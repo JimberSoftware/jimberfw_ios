@@ -11,7 +11,7 @@
 
 "tunnelsListTitle" = "WireGuard";
 "tunnelsListSettingsButtonTitle" = "Settings";
-"tunnelsListCenteredAddTunnelButtonTitle" = "Add a tunnel";
+"tunnelsListCenteredAddTunnelButtonTitle" = "Add a connection";
 "tunnelsListSwipeDeleteButtonTitle" = "Delete";
 "tunnelsListSelectButtonTitle" = "Select";
 "tunnelsListSelectAllButtonTitle" = "Select All";
@@ -21,25 +21,25 @@
 
 // Tunnels list menu
 
-"addTunnelMenuHeader" = "Add a new WireGuard tunnel";
+"addTunnelMenuHeader" = "Add a new WireGuard connection";
 "addTunnelMenuImportFile" = "Create from file or archive";
 "addTunnelMenuQRCode" = "Create from QR code";
 "addTunnelMenuFromScratch" = "Create from scratch";
 
 // Tunnels list alerts
 
-"alertImportedFromMultipleFilesTitle (%d)" = "Created %d tunnels";
-"alertImportedFromMultipleFilesMessage (%1$d of %2$d)" = "Created %1$d of %2$d tunnels from imported files";
+"alertImportedFromMultipleFilesTitle (%d)" = "Created %d connections";
+"alertImportedFromMultipleFilesMessage (%1$d of %2$d)" = "Created %1$d of %2$d connections from imported files";
 
-"alertImportedFromZipTitle (%d)" = "Created %d tunnels";
-"alertImportedFromZipMessage (%1$d of %2$d)" = "Created %1$d of %2$d tunnels from zip archive";
+"alertImportedFromZipTitle (%d)" = "Created %d connections";
+"alertImportedFromZipMessage (%1$d of %2$d)" = "Created %1$d of %2$d connections from zip archive";
 
-"alertBadConfigImportTitle" = "Unable to import tunnel";
+"alertBadConfigImportTitle" = "Unable to import connection";
 "alertBadConfigImportMessage (%@)" = "The file ‘%@’ does not contain a valid WireGuard configuration";
 
 "deleteTunnelsConfirmationAlertButtonTitle" = "Delete";
-"deleteTunnelConfirmationAlertButtonMessage (%d)" = "Delete %d tunnel?";
-"deleteTunnelsConfirmationAlertButtonMessage (%d)" = "Delete %d tunnels?";
+"deleteTunnelConfirmationAlertButtonMessage (%d)" = "Delete %d connection?";
+"deleteTunnelsConfirmationAlertButtonMessage (%d)" = "Delete %d connections?";
 
 // Tunnel detail and edit UI
 
@@ -134,9 +134,9 @@
 "deletePeerConfirmationAlertButtonTitle" = "Delete";
 "deletePeerConfirmationAlertMessage" = "Delete this peer?";
 
-"deleteTunnelButtonTitle" = "Delete tunnel";
+"deleteTunnelButtonTitle" = "Delete connection";
 "deleteTunnelConfirmationAlertButtonTitle" = "Delete";
-"deleteTunnelConfirmationAlertMessage" = "Delete this tunnel?";
+"deleteTunnelConfirmationAlertMessage" = "Delete this connection?";
 
 "tunnelEditPlaceholderTextRequired" = "Required";
 "tunnelEditPlaceholderTextOptional" = "Optional";
@@ -206,7 +206,7 @@
 "alertScanQRCodeUnreadableQRCodeTitle" = "Invalid Code";
 "alertScanQRCodeUnreadableQRCodeMessage" = "The scanned code could not be read";
 
-"alertScanQRCodeNamePromptTitle" = "Please name the scanned tunnel";
+"alertScanQRCodeNamePromptTitle" = "Please name the scanned connection";
 
 // Settings UI
 
@@ -246,10 +246,10 @@
 "alertBadArchiveMessage" = "Bad or corrupt zip archive.";
 
 "alertNoTunnelsToExportTitle" = "Nothing to export";
-"alertNoTunnelsToExportMessage" = "There are no tunnels to export";
+"alertNoTunnelsToExportMessage" = "There are no connections to export";
 
-"alertNoTunnelsInImportedZipArchiveTitle" = "No tunnels in zip archive";
-"alertNoTunnelsInImportedZipArchiveMessage" = "No .conf tunnel files were found inside the zip archive.";
+"alertNoTunnelsInImportedZipArchiveTitle" = "No connections in zip archive";
+"alertNoTunnelsInImportedZipArchiveMessage" = "No .conf connections files were found inside the zip archive.";
 
 // Conf import error alerts
 
@@ -259,37 +259,37 @@
 // Tunnel management error alerts
 
 "alertTunnelActivationFailureTitle" = "Activation failure";
-"alertTunnelActivationFailureMessage" = "The tunnel could not be activated. Please ensure that you are connected to the Internet.";
-"alertTunnelActivationSavedConfigFailureMessage" = "Unable to retrieve tunnel information from the saved configuration.";
+"alertTunnelActivationFailureMessage" = "The connection could not be activated. Please ensure that you are connected to the Internet.";
+"alertTunnelActivationSavedConfigFailureMessage" = "Unable to retrieve connection information from the saved configuration.";
 "alertTunnelActivationBackendFailureMessage" = "Unable to turn on Go backend library.";
 "alertTunnelActivationFileDescriptorFailureMessage" = "Unable to determine TUN device file descriptor.";
-"alertTunnelActivationSetNetworkSettingsMessage" = "Unable to apply network settings to tunnel object.";
+"alertTunnelActivationSetNetworkSettingsMessage" = "Unable to apply network settings to connection object.";
 
 "alertTunnelDNSFailureTitle" = "DNS resolution failure";
 "alertTunnelDNSFailureMessage" = "One or more endpoint domains could not be resolved.";
 
 "alertTunnelNameEmptyTitle" = "No name provided";
-"alertTunnelNameEmptyMessage" = "Cannot create tunnel with an empty name";
+"alertTunnelNameEmptyMessage" = "Cannot create connection with an empty name";
 
 "alertTunnelAlreadyExistsWithThatNameTitle" = "Name already exists";
-"alertTunnelAlreadyExistsWithThatNameMessage" = "A tunnel with that name already exists";
+"alertTunnelAlreadyExistsWithThatNameMessage" = "A connection with that name already exists";
 
 "alertTunnelActivationErrorTunnelIsNotInactiveTitle" = "Activation in progress";
-"alertTunnelActivationErrorTunnelIsNotInactiveMessage" = "The tunnel is already active or in the process of being activated";
+"alertTunnelActivationErrorTunnelIsNotInactiveMessage" = "The connection is already active or in the process of being activated";
 
 // Tunnel management error alerts on system error
 
 /* The alert message that goes with the following titles would be
    one of the alertSystemErrorMessage* listed further down */
-"alertSystemErrorOnListingTunnelsTitle" = "Unable to list tunnels";
-"alertSystemErrorOnAddTunnelTitle" = "Unable to create tunnel";
-"alertSystemErrorOnModifyTunnelTitle" = "Unable to modify tunnel";
-"alertSystemErrorOnRemoveTunnelTitle" = "Unable to remove tunnel";
+"alertSystemErrorOnListingTunnelsTitle" = "Unable to list connections";
+"alertSystemErrorOnAddTunnelTitle" = "Unable to create connection";
+"alertSystemErrorOnModifyTunnelTitle" = "Unable to modify connection";
+"alertSystemErrorOnRemoveTunnelTitle" = "Unable to remove connection";
 
 /* The alert message for this alert shall include
  one of the alertSystemErrorMessage* listed further down */
 "alertTunnelActivationSystemErrorTitle" = "Activation failure";
-"alertTunnelActivationSystemErrorMessage (%@)" = "The tunnel could not be activated. %@";
+"alertTunnelActivationSystemErrorMessage (%@)" = "The connection could not be activated. %@";
 
 /* alertSystemErrorMessage* messages */
 "alertSystemErrorMessageTunnelConfigurationInvalid" = "The configuration is invalid.";
@@ -305,12 +305,12 @@
 "macMenuNetworksNone" = "Networks: None";
 
 "macMenuTitle" = "WireGuard";
-"macTunnelsMenuTitle" = "Tunnels";
-"macMenuManageTunnels" = "Manage Tunnels";
-"macMenuImportTunnels" = "Import Tunnel(s) from File…";
-"macMenuAddEmptyTunnel" = "Add Empty Tunnel…";
+"macTunnelsMenuTitle" = "Connections";
+"macMenuManageTunnels" = "Manage Connections";
+"macMenuImportTunnels" = "Import Connection(s) from File…";
+"macMenuAddEmptyTunnel" = "Add Empty Connection...";
 "macMenuViewLog" = "View Log";
-"macMenuExportTunnels" = "Export Tunnels to Zip…";
+"macMenuExportTunnels" = "Export Connections to Zip…";
 "macMenuAbout" = "About WireGuard";
 "macMenuQuit" = "Quit WireGuard";
 
@@ -327,7 +327,7 @@
 "macMenuPaste" = "Paste";
 "macMenuSelectAll" = "Select All";
 
-"macMenuTunnel" = "Tunnel";
+"macMenuTunnel" = "Connection";
 "macMenuToggleStatus" = "Toggle Status";
 "macMenuEditTunnel" = "Edit…";
 "macMenuDeleteSelected" = "Delete Selected";
@@ -338,25 +338,25 @@
 
 // Mac manage tunnels window
 
-"macWindowTitleManageTunnels" = "Manage WireGuard Tunnels";
+"macWindowTitleManageTunnels" = "Manage WireGuard Connection";
 
 "macDeleteTunnelConfirmationAlertMessage (%@)" = "Are you sure you want to delete ‘%@’?";
-"macDeleteMultipleTunnelsConfirmationAlertMessage (%d)" = "Are you sure you want to delete %d tunnels?";
+"macDeleteMultipleTunnelsConfirmationAlertMessage (%d)" = "Are you sure you want to delete %d connections?";
 "macDeleteTunnelConfirmationAlertInfo" = "You cannot undo this action.";
 "macDeleteTunnelConfirmationAlertButtonTitleDelete" = "Delete";
 "macDeleteTunnelConfirmationAlertButtonTitleCancel" = "Cancel";
 "macDeleteTunnelConfirmationAlertButtonTitleDeleting" = "Deleting…";
 
-"macButtonImportTunnels" = "Import tunnel(s) from file";
+"macButtonImportTunnels" = "Import connection(s) from file";
 "macSheetButtonImport" = "Import";
 
 "macNameFieldExportLog" = "Save log to:";
 "macSheetButtonExportLog" = "Save";
 
-"macNameFieldExportZip" = "Export tunnels to:";
+"macNameFieldExportZip" = "Export connections to:";
 "macSheetButtonExportZip" = "Save";
 
-"macButtonDeleteTunnels (%d)" = "Delete %d tunnels";
+"macButtonDeleteTunnels (%d)" = "Delete %d connections";
 
 "macButtonEdit" = "Edit";
 
@@ -376,7 +376,7 @@
 "macEditSave" = "Save";
 
 "macAlertNameIsEmpty" = "Name is required";
-"macAlertDuplicateName (%@)" = "Another tunnel already exists with the name ‘%@’.";
+"macAlertDuplicateName (%@)" = "Another connection already exists with the name ‘%@’.";
 
 "macAlertInvalidLine (%@)" = "Invalid line: ‘%@’.";
 
@@ -409,25 +409,25 @@
 
 // Privacy
 
-"macExportPrivateData" = "export tunnel private keys";
-"macViewPrivateData" = "view tunnel private keys";
-"iosExportPrivateData" = "Authenticate to export tunnel private keys.";
-"iosViewPrivateData" = "Authenticate to view tunnel private keys.";
+"macExportPrivateData" = "export connection private keys";
+"macViewPrivateData" = "view connection private keys";
+"iosExportPrivateData" = "Authenticate to export connection private keys.";
+"iosViewPrivateData" = "Authenticate to view connection private keys.";
 
 // Mac alert
 
-"macConfirmAndQuitAlertMessage" = "Do you want to close the tunnels manager or quit WireGuard entirely?";
-"macConfirmAndQuitAlertInfo" = "If you close the tunnels manager, WireGuard will continue to be available from the menu bar icon.";
-"macConfirmAndQuitInfoWithActiveTunnel (%@)" = "If you close the tunnels manager, WireGuard will continue to be available from the menu bar icon.\n\nNote that if you quit WireGuard entirely the currently active tunnel ('%@') will still remain active until you deactivate it from this application or through the Network panel in System Preferences.";
+"macConfirmAndQuitAlertMessage" = "Do you want to close the connections manager or quit WireGuard entirely?";
+"macConfirmAndQuitAlertInfo" = "If you close the connections manager, WireGuard will continue to be available from the menu bar icon.";
+"macConfirmAndQuitInfoWithActiveTunnel (%@)" = "If you close the connections manager, WireGuard will continue to be available from the menu bar icon.\n\nNote that if you quit WireGuard entirely the currently active tunnel ('%@') will still remain active until you deactivate it from this application or through the Network panel in System Preferences.";
 "macConfirmAndQuitAlertQuitWireGuard" = "Quit WireGuard";
-"macConfirmAndQuitAlertCloseWindow" = "Close Tunnels Manager";
+"macConfirmAndQuitAlertCloseWindow" = "Close Connections Manager";
 
-"macAppExitingWithActiveTunnelMessage" = "WireGuard is exiting with an active tunnel";
-"macAppExitingWithActiveTunnelInfo" = "The tunnel will remain active after exiting. You may disable it by reopening this application or through the Network panel in System Preferences.";
+"macAppExitingWithActiveTunnelMessage" = "WireGuard is exiting with an active connection";
+"macAppExitingWithActiveTunnelInfo" = "The connection will remain active after exiting. You may disable it by reopening this application or through the Network panel in System Preferences.";
 
 // Mac tooltip
 
-"macToolTipEditTunnel" = "Edit tunnel (⌘E)";
+"macToolTipEditTunnel" = "Edit connection (⌘E)";
 "macToolTipToggleStatus" = "Toggle status (⌘T)";
 
 // Mac log view
@@ -439,15 +439,15 @@
 
 // Mac unusable tunnel view
 
-"macUnusableTunnelMessage" = "The configuration for this tunnel cannot be found in the keychain.";
-"macUnusableTunnelInfo" = "In case this tunnel was created by another user, only that user can view, edit, or activate this tunnel.";
-"macUnusableTunnelButtonTitleDeleteTunnel" = "Delete tunnel";
+"macUnusableTunnelMessage" = "The configuration for this connection cannot be found in the keychain.";
+"macUnusableTunnelInfo" = "In case this connection was created by another user, only that user can view, edit, or activate this tunnel.";
+"macUnusableTunnelButtonTitleDeleteTunnel" = "Delete connection";
 
 // Mac App Store updating alert
 
 "macAppStoreUpdatingAlertMessage" = "App Store would like to update WireGuard";
-"macAppStoreUpdatingAlertInfoWithOnDemand (%@)" = "Please disable on-demand for tunnel ‘%@’, deactivate it, and then continue updating in App Store.";
-"macAppStoreUpdatingAlertInfoWithoutOnDemand (%@)" = "Please deactivate tunnel ‘%@’ and then continue updating in App Store.";
+"macAppStoreUpdatingAlertInfoWithOnDemand (%@)" = "Please disable on-demand for connection ‘%@’, deactivate it, and then continue updating in App Store.";
+"macAppStoreUpdatingAlertInfoWithoutOnDemand (%@)" = "Please deactivate connection ‘%@’ and then continue updating in App Store.";
 
 // Donation
 
