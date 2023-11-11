@@ -588,7 +588,7 @@
 				58233BCE2591F842002060A8 /* NotificationToken.swift */,
 			);
 			name = Shared;
-			path = Sources/Shared;
+			path = Shared;
 			sourceTree = "<group>";
 		};
 		6F70E22A22106A2D008BDFB4 /* LoginItemHelper */ = {
