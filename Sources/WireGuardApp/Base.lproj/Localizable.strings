@@ -9,7 +9,7 @@
 
 // Tunnels list UI
 
-"tunnelsListTitle" = "WireGuard";
+"tunnelsListTitle" = "Jimber Network Isolation";
 "tunnelsListSettingsButtonTitle" = "Settings";
 "tunnelsListCenteredAddTunnelButtonTitle" = "Add a connection";
 "tunnelsListSwipeDeleteButtonTitle" = "Delete";
@@ -21,7 +21,7 @@
 
 // Tunnels list menu
 
-"addTunnelMenuHeader" = "Add a new WireGuard connection";
+"addTunnelMenuHeader" = "Add a new Jimber Network Isolation connection";
 "addTunnelMenuImportFile" = "Create from file or archive";
 "addTunnelMenuQRCode" = "Create from QR code";
 "addTunnelMenuFromScratch" = "Create from scratch";
@@ -35,7 +35,7 @@
 "alertImportedFromZipMessage (%1$d of %2$d)" = "Created %1$d of %2$d connections from zip archive";
 
 "alertBadConfigImportTitle" = "Unable to import connection";
-"alertBadConfigImportMessage (%@)" = "The file ‘%@’ does not contain a valid WireGuard configuration";
+"alertBadConfigImportMessage (%@)" = "The file ‘%@’ does not contain a valid Jimber Network Isolation configuration";
 
 "deleteTunnelsConfirmationAlertButtonTitle" = "Delete";
 "deleteTunnelConfirmationAlertButtonMessage (%d)" = "Delete %d connection?";
@@ -201,7 +201,7 @@
 "alertScanQRCodeCameraUnsupportedMessage" = "This device is not able to scan QR codes";
 
 "alertScanQRCodeInvalidQRCodeTitle" = "Invalid QR Code";
-"alertScanQRCodeInvalidQRCodeMessage" = "The scanned QR code is not a valid WireGuard configuration";
+"alertScanQRCodeInvalidQRCodeMessage" = "The scanned QR code is not a valid Jimber Network Isolation configuration";
 
 "alertScanQRCodeUnreadableQRCodeTitle" = "Invalid Code";
 "alertScanQRCodeUnreadableQRCodeMessage" = "The scanned code could not be read";
@@ -213,8 +213,8 @@
 "settingsViewTitle" = "Settings";
 
 "settingsSectionTitleAbout" = "About";
-"settingsVersionKeyWireGuardForIOS" = "WireGuard for iOS";
-"settingsVersionKeyWireGuardGoBackend" = "WireGuard Go Backend";
+"settingsVersionKeyWireGuardForIOS" = "Jimber Network Isolation for iOS";
+"settingsVersionKeyWireGuardGoBackend" = "Jimber Network Isolation Go Backend";
 
 "settingsSectionTitleExportConfigurations" = "Export configurations";
 "settingsExportZipButtonTitle" = "Export zip archive";
@@ -304,17 +304,17 @@
 "macMenuNetworks (%@)" = "Networks: %@";
 "macMenuNetworksNone" = "Networks: None";
 
-"macMenuTitle" = "WireGuard";
+"macMenuTitle" = "Jimber Network Isolation";
 "macTunnelsMenuTitle" = "Connections";
 "macMenuManageTunnels" = "Manage Connections";
 "macMenuImportTunnels" = "Import Connection(s) from File…";
 "macMenuAddEmptyTunnel" = "Add Empty Connection...";
 "macMenuViewLog" = "View Log";
 "macMenuExportTunnels" = "Export Connections to Zip…";
-"macMenuAbout" = "About WireGuard";
-"macMenuQuit" = "Quit WireGuard";
+"macMenuAbout" = "About Jimber Network Isolation";
+"macMenuQuit" = "Quit Jimber Network Isolation";
 
-"macMenuHideApp" = "Hide WireGuard";
+"macMenuHideApp" = "Hide Jimber Network Isolation";
 "macMenuHideOtherApps" = "Hide Others";
 "macMenuShowAllApps" = "Show All";
 
@@ -338,7 +338,7 @@
 
 // Mac manage tunnels window
 
-"macWindowTitleManageTunnels" = "Manage WireGuard Connection";
+"macWindowTitleManageTunnels" = "Manage Jimber Network Isolation Connection";
 
 "macDeleteTunnelConfirmationAlertMessage (%@)" = "Are you sure you want to delete ‘%@’?";
 "macDeleteMultipleTunnelsConfirmationAlertMessage (%d)" = "Are you sure you want to delete %d connections?";
@@ -416,13 +416,13 @@
 
 // Mac alert
 
-"macConfirmAndQuitAlertMessage" = "Do you want to close the connections manager or quit WireGuard entirely?";
-"macConfirmAndQuitAlertInfo" = "If you close the connections manager, WireGuard will continue to be available from the menu bar icon.";
-"macConfirmAndQuitInfoWithActiveTunnel (%@)" = "If you close the connections manager, WireGuard will continue to be available from the menu bar icon.\n\nNote that if you quit WireGuard entirely the currently active tunnel ('%@') will still remain active until you deactivate it from this application or through the Network panel in System Preferences.";
-"macConfirmAndQuitAlertQuitWireGuard" = "Quit WireGuard";
+"macConfirmAndQuitAlertMessage" = "Do you want to close the connections manager or quit Jimber Network Isolation entirely?";
+"macConfirmAndQuitAlertInfo" = "If you close the connections manager, Jimber Network Isolation will continue to be available from the menu bar icon.";
+"macConfirmAndQuitInfoWithActiveTunnel (%@)" = "If you close the connections manager, Jimber Network Isolation will continue to be available from the menu bar icon.\n\nNote that if you quit Jimber Network Isolation entirely the currently active tunnel ('%@') will still remain active until you deactivate it from this application or through the Network panel in System Preferences.";
+"macConfirmAndQuitAlertQuitWireGuard" = "Quit Jimber Network Isolation";
 "macConfirmAndQuitAlertCloseWindow" = "Close Connections Manager";
 
-"macAppExitingWithActiveTunnelMessage" = "WireGuard is exiting with an active connection";
+"macAppExitingWithActiveTunnelMessage" = "Jimber Network Isolation is exiting with an active connection";
 "macAppExitingWithActiveTunnelInfo" = "The connection will remain active after exiting. You may disable it by reopening this application or through the Network panel in System Preferences.";
 
 // Mac tooltip
@@ -445,10 +445,10 @@
 
 // Mac App Store updating alert
 
-"macAppStoreUpdatingAlertMessage" = "App Store would like to update WireGuard";
+"macAppStoreUpdatingAlertMessage" = "App Store would like to update Jimber Network Isolation";
 "macAppStoreUpdatingAlertInfoWithOnDemand (%@)" = "Please disable on-demand for connection ‘%@’, deactivate it, and then continue updating in App Store.";
 "macAppStoreUpdatingAlertInfoWithoutOnDemand (%@)" = "Please deactivate connection ‘%@’ and then continue updating in App Store.";
 
 // Donation
 
-"donateLink" = "♥ Donate to the WireGuard Project";
+"donateLink" = "♥ Donate to the Jimber Network Isolation Project";
