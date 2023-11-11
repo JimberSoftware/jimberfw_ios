@@ -9,14 +9,12 @@ class SettingsTableViewController: UITableViewController {
     enum SettingsFields {
         case iosAppVersion
         case goBackendVersion
-        case exportZipArchive
         case viewLog
 
         var localizedUIString: String {
             switch self {
             case .iosAppVersion: return tr("settingsVersionKeyWireGuardForIOS")
             case .goBackendVersion: return tr("settingsVersionKeyWireGuardGoBackend")
-            case .exportZipArchive: return tr("settingsExportZipButtonTitle")
             case .viewLog: return tr("settingsViewLogButtonTitle")
             }
         }
@@ -24,7 +22,6 @@ class SettingsTableViewController: UITableViewController {
 
     let settingsFieldsBySection: [[SettingsFields]] = [
         [.iosAppVersion, .goBackendVersion],
-        [.exportZipArchive],
         [.viewLog]
     ]
 
@@ -129,8 +126,6 @@ extension SettingsTableViewController {
         case 0:
             return tr("settingsSectionTitleAbout")
         case 1:
-            return tr("settingsSectionTitleExportConfigurations")
-        case 2:
             return tr("settingsSectionTitleTunnelLog")
         default:
             return nil
@@ -151,13 +146,6 @@ extension SettingsTableViewController {
                 cell.value = appVersion
             } else if field == .goBackendVersion {
                 cell.value = WIREGUARD_GO_VERSION
-            }
-            return cell
-        } else if field == .exportZipArchive {
-            let cell: ButtonCell = tableView.dequeueReusableCell(for: indexPath)
-            cell.buttonText = field.localizedUIString
-            cell.onTapped = { [weak self] in
-                self?.exportConfigurationsAsZipFile(sourceView: cell.button)
             }
             return cell
         } else if field == .viewLog {

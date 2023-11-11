@@ -213,7 +213,7 @@
 "settingsViewTitle" = "Settings";
 
 "settingsSectionTitleAbout" = "About";
-"settingsVersionKeyWireGuardForIOS" = "Jimber Network Isolation for iOS";
+"settingsVersionKeyWireGuardForIOS" = "Network Isolation by Wireguard for iOS";
 "settingsVersionKeyWireGuardGoBackend" = "Jimber Network Isolation Go Backend";
 
 "settingsSectionTitleExportConfigurations" = "Export configurations";
