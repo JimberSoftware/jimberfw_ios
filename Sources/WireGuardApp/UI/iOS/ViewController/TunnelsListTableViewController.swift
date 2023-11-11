@@ -138,22 +138,11 @@ class TunnelsListTableViewController: UIViewController {
         guard tunnelsManager != nil else { return }
 
         let alert = UIAlertController(title: "", message: tr("addTunnelMenuHeader"), preferredStyle: .actionSheet)
-        let importFileAction = UIAlertAction(title: tr("addTunnelMenuImportFile"), style: .default) { [weak self] _ in
-            self?.presentViewControllerForFileImport()
-        }
-        alert.addAction(importFileAction)
 
         let scanQRCodeAction = UIAlertAction(title: tr("addTunnelMenuQRCode"), style: .default) { [weak self] _ in
             self?.presentViewControllerForScanningQRCode()
         }
         alert.addAction(scanQRCodeAction)
-
-        let createFromScratchAction = UIAlertAction(title: tr("addTunnelMenuFromScratch"), style: .default) { [weak self] _ in
-            if let self = self, let tunnelsManager = self.tunnelsManager {
-                self.presentViewControllerForTunnelCreation(tunnelsManager: tunnelsManager)
-            }
-        }
-        alert.addAction(createFromScratchAction)
 
         let cancelAction = UIAlertAction(title: tr("actionCancel"), style: .cancel)
         alert.addAction(cancelAction)
