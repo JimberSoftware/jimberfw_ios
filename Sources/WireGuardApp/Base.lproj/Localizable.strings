@@ -205,6 +205,7 @@
 
 "alertScanQRCodeUnreadableQRCodeTitle" = "Invalid Code";
 "alertScanQRCodeUnreadableQRCodeMessage" = "The scanned code could not be read";
+"alertScanQRCodeNoCompanyMessage" = "There is no company registered inside the QR code, please contact support";
 
 "alertScanQRCodeNamePromptTitle" = "Please name the scanned connection";
 

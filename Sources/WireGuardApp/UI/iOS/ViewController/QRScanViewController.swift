@@ -107,22 +107,40 @@ class QRScanViewController: UIViewController {
             return
         }
 
-        let alert = UIAlertController(title: tr("alertScanQRCodeNamePromptTitle"), message: nil, preferredStyle: .alert)
-        alert.addTextField(configurationHandler: nil)
-        alert.addAction(UIAlertAction(title: tr("actionCancel"), style: .cancel) { [weak self] _ in
-            self?.dismiss(animated: true, completion: nil)
-        })
-        alert.addAction(UIAlertAction(title: tr("actionSave"), style: .default) { [weak self] _ in
-            guard let title = alert.textFields?[0].text?.trimmingCharacters(in: .whitespacesAndNewlines), !title.isEmpty else { return }
-            tunnelConfiguration.name = title
-            if let self = self {
-                self.delegate?.addScannedQRCode(tunnelConfiguration: tunnelConfiguration, qrScanViewController: self) {
-                    self.dismiss(animated: true, completion: nil)
+        let companyName = extractCompanyName(from: code)
+
+        if(companyName == nil) {
+            scanDidEncounterError(title: tr("alertScanQRCodeUnreadableQRCodeTitle"), message: tr("alertScanQRCodeNoCompanyMessage"))
+                         return
+        }
+
+        tunnelConfiguration.name = companyName
+
+        self.delegate?.addScannedQRCode(tunnelConfiguration: tunnelConfiguration, qrScanViewController: self) {
+                self.dismiss(animated: true, completion: nil)
+            }
+
+    }
+
+    func extractCompanyName(from configuration: String) -> String? {
+        // Split the configuration string into lines
+        let lines = configuration.components(separatedBy: "\n")
+
+        // Search for the line containing the company name
+        for line in lines {
+            if line.contains("#company") {
+                // Extract the company name after the "#company" tag
+                let components = line.components(separatedBy: " ")
+                if let companyName = components.last {
+                    return companyName
                 }
             }
-        })
-        present(alert, animated: true)
+        }
+
+        // Company name not found
+        return nil
     }
+
 
     func scanDidEncounterError(title: String, message: String) {
         let alertController = UIAlertController(title: title, message: message, preferredStyle: .alert)
