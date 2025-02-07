@@ -44,7 +44,11 @@ class MainViewController: UISplitViewController {
 
             switch result {
             case .failure(let error):
-                ErrorPresenter.showErrorAlert(error: error, from: self)
+                let signInVC = SignInViewController()
+                signInVC.modalPresentationStyle = .fullScreen // Ensures the view controller covers the entire screen
+                self.present(signInVC, animated: true, completion: nil)
+
+                // ErrorPresenter.showErrorAlert(error: error, from: self)
             case .success(let tunnelsManager):
                 self.tunnelsManager = tunnelsManager
                 self.tunnelsListVC?.setTunnelsManager(tunnelsManager: tunnelsManager)
@@ -53,6 +57,12 @@ class MainViewController: UISplitViewController {
 
                 self.onTunnelsManagerReady?(tunnelsManager)
                 self.onTunnelsManagerReady = nil
+
+                 // Check if there are no tunnels and navigate to WelcomeViewController if needed
+                if tunnelsManager.allTunnels.isEmpty {
+                    let signInVc = SignInViewController()
+                    self.showDetailViewController(signInVc, sender: self)
+                }
             }
         }
     }

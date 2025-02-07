@@ -24,3 +24,4 @@ opt_in_rules:
 identifier_name:
   min_length:
     warning: 0
+  allowed_symbols: "_"
