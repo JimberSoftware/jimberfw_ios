@@ -206,6 +206,8 @@
 		6FFA5DA42197085D0001E2F7 /* ActivateOnDemandOption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FFA5DA32197085D0001E2F7 /* ActivateOnDemandOption.swift */; };
 		6FFACD2021E4D8D500E9A2A5 /* ParseError+WireGuardAppError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FFACD1E21E4D89600E9A2A5 /* ParseError+WireGuardAppError.swift */; };
 		9FE0E2292D560A78006A5835 /* BaseViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FE0E2282D560A73006A5835 /* BaseViewController.swift */; };
+		9FE0E22B2D59DA92006A5835 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 9FE0E22A2D59DA92006A5835 /* GoogleSignIn */; };
+		9FE0E22D2D59DA97006A5835 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 9FE0E22C2D59DA97006A5835 /* GoogleSignInSwift */; };
 		9FEAD4E72CDBA3210004D766 /* HexExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FEAD4E62CDBA3210004D766 /* HexExtension.swift */; };
 		9FEAD4E92CDBA5DE0004D766 /* SignInViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FEAD4E82CDBA5DE0004D766 /* SignInViewController.swift */; };
 /* End PBXBuildFile section */
@@ -459,7 +461,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9FE0E22D2D59DA97006A5835 /* GoogleSignInSwift in Frameworks */,
 				6B653B86220DE2960050E69C /* NetworkExtension.framework in Frameworks */,
+				9FE0E22B2D59DA92006A5835 /* GoogleSignIn in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -850,8 +854,6 @@
 				6FDEF7E221846C0000D8FBF6 /* PBXTargetDependency */,
 			);
 			name = WireGuardNetworkExtensioniOS;
-			packageProductDependencies = (
-			);
 			productName = WireGuardNetworkExtension;
 			productReference = 6F5D0C1A218352EF000F85AD /* WireGuardNetworkExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
@@ -891,8 +893,6 @@
 				6FB1BD9821D4BFE700A991BF /* PBXTargetDependency */,
 			);
 			name = WireGuardmacOS;
-			packageProductDependencies = (
-			);
 			productName = WireGuardmacOS;
 			productReference = 6FB1BD5D21D2607A00A991BF /* WireGuard.app */;
 			productType = "com.apple.product-type.application";
@@ -912,8 +912,6 @@
 				6FB1BD9F21D4DF7A00A991BF /* PBXTargetDependency */,
 			);
 			name = WireGuardNetworkExtensionmacOS;
-			packageProductDependencies = (
-			);
 			productName = WireGuardNetworkExtension;
 			productReference = 6FB1BD9121D4BFE600A991BF /* WireGuardNetworkExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
@@ -936,8 +934,6 @@
 				6F5D0C21218352EF000F85AD /* PBXTargetDependency */,
 			);
 			name = WireGuardiOS;
-			packageProductDependencies = (
-			);
 			productName = WireGuard;
 			productReference = 6FF4AC14211EC46F002C96EB /* WireGuard.app */;
 			productType = "com.apple.product-type.application";
@@ -1960,6 +1956,19 @@
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		9FE0E22A2D59DA92006A5835 /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9FEAD4E32CDBA0D80004D766 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+		9FE0E22C2D59DA97006A5835 /* GoogleSignInSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9FEAD4E32CDBA0D80004D766 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignInSwift;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 6FF4AC0C211EC46F002C96EB /* Project object */;
 }

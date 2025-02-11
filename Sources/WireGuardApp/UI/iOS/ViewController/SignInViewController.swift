@@ -1,9 +1,13 @@
 import UIKit
+import GoogleSignIn
 
 class SignInViewController: BaseViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        GIDSignIn.sharedInstance.signOut()
+        GIDSignIn.sharedInstance.disconnect()
 
         self.navigationItem.hidesBackButton = true
 
@@ -114,13 +118,29 @@ class SignInViewController: BaseViewController {
 
     // Action methods for button taps
     @objc func googleSignInTapped() {
-        // Google sign-in logic
-        print("Google Sign-In Tapped")
+        GIDSignIn.sharedInstance.disconnect()
+        GIDSignIn.sharedInstance.signOut()
+
+        GIDSignIn.sharedInstance.signIn(
+               withPresenting: self,
+               hint: nil,
+               additionalScopes: nil
+           ) { signInResult, error in
+               if let error = error {
+                   return
+               }
+
+               print(signInResult?.user.idToken?.tokenString);
+
+           }
     }
 
     @objc func microsoftSignInTapped() {
         // Microsoft sign-in logic
         print("Microsoft Sign-In Tapped")
+        GIDSignIn.sharedInstance.signOut()
+        GIDSignIn.sharedInstance.disconnect()
+        print("done")
     }
 
     @objc func emailSignInTapped() {
