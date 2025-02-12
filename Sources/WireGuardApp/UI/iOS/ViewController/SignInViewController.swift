@@ -163,14 +163,45 @@ class SignInViewController: BaseViewController {
                withPresenting: self,
                hint: nil,
                additionalScopes: nil
-           ) { signInResult, error in
-               if let error = error {
-                   return
-               }
+        ) { signInResult, error in
+            if let error = error {
+                return
+            }
 
-               print(signInResult?.user.idToken?.tokenString);
+            // Use a Task to handle async functions properly
+            Task {
+                do {
+                    // Ensure idToken is non-nil before passing it
+                    guard let idToken = signInResult?.user.idToken?.tokenString else {
+                        print("Error: ID Token is missing.")
+                        return
+                    }
 
-           }
+                    // Await the result of the async function
+                    let result = await getUserAuthentication(idToken: idToken, authenticationType: .google)
+                    // Handle the result of the authentication
+                    
+                    
+
+                    switch result {
+                    case .failure(let error):
+                        print("Authentication failed: \(error)")
+                        return;
+
+                    case .success(let userAuthentication):
+                        print("Authentication: \(userAuthentication)")
+
+                        let companyName = userAuthentication.companyName;
+                        let userId = userAuthentication.userId;
+
+                        let alreadyInStorage = SharedStorage.shared.getDaemonKeyPairByUserId(userId)
+
+
+                        let name = "lennyGdaemon"
+                    }
+                }
+            }
+        }
     }
 
     func acquireTokenInteractively() {

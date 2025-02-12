@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -209,6 +209,9 @@
 		9FE0E22B2D59DA92006A5835 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 9FE0E22A2D59DA92006A5835 /* GoogleSignIn */; };
 		9FE0E22D2D59DA97006A5835 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 9FE0E22C2D59DA97006A5835 /* GoogleSignInSwift */; };
 		9FE0E2302D5B8D98006A5835 /* MSAL in Frameworks */ = {isa = PBXBuildFile; productRef = 9FE0E22F2D5B8D98006A5835 /* MSAL */; };
+		9FE0E23A2D5C9905006A5835 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 9FE0E2392D5C9905006A5835 /* Alamofire */; };
+		9FE0E2822D5CCD12006A5835 /* Clibsodium in Frameworks */ = {isa = PBXBuildFile; productRef = 9FE0E2812D5CCD12006A5835 /* Clibsodium */; };
+		9FE0E2842D5CCD12006A5835 /* Sodium in Frameworks */ = {isa = PBXBuildFile; productRef = 9FE0E2832D5CCD12006A5835 /* Sodium */; };
 		9FEAD4E72CDBA3210004D766 /* HexExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FEAD4E62CDBA3210004D766 /* HexExtension.swift */; };
 		9FEAD4E92CDBA5DE0004D766 /* SignInViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FEAD4E82CDBA5DE0004D766 /* SignInViewController.swift */; };
 /* End PBXBuildFile section */
@@ -283,6 +286,16 @@
 				6FB1BD9921D4BFE700A991BF /* WireGuardNetworkExtension.appex in Embed App Extensions */,
 			);
 			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9FE0E23E2D5C9905006A5835 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+			);
+			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -431,6 +444,15 @@
 		9FEAD4E82CDBA5DE0004D766 /* SignInViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		9FE0E2322D5C9707006A5835 /* Api */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Api; sourceTree = "<group>"; };
+		9FE0E23F2D5C9A97006A5835 /* Authentication */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Authentication; sourceTree = "<group>"; };
+		9FE0E2452D5C9AAE006A5835 /* Daemon */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Daemon; sourceTree = "<group>"; };
+		9FE0E24B2D5C9AC1006A5835 /* NetworkController */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = NetworkController; sourceTree = "<group>"; };
+		9FE0E26F2D5CC7D5006A5835 /* SharedStorage */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = SharedStorage; sourceTree = "<group>"; };
+		9FE0E27A2D5CCB00006A5835 /* Utils */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Utils; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
 		6F5D0C17218352EF000F85AD /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
@@ -462,10 +484,13 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9FE0E23A2D5C9905006A5835 /* Alamofire in Frameworks */,
 				9FE0E22D2D59DA97006A5835 /* GoogleSignInSwift in Frameworks */,
 				9FE0E2302D5B8D98006A5835 /* MSAL in Frameworks */,
 				6B653B86220DE2960050E69C /* NetworkExtension.framework in Frameworks */,
+				9FE0E2842D5CCD12006A5835 /* Sodium in Frameworks */,
 				9FE0E22B2D59DA92006A5835 /* GoogleSignIn in Frameworks */,
+				9FE0E2822D5CCD12006A5835 /* Clibsodium in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -783,6 +808,12 @@
 		6FF4AC16211EC46F002C96EB /* WireGuardApp */ = {
 			isa = PBXGroup;
 			children = (
+				9FE0E27A2D5CCB00006A5835 /* Utils */,
+				9FE0E26F2D5CC7D5006A5835 /* SharedStorage */,
+				9FE0E24B2D5C9AC1006A5835 /* NetworkController */,
+				9FE0E2452D5C9AAE006A5835 /* Daemon */,
+				9FE0E23F2D5C9A97006A5835 /* Authentication */,
+				9FE0E2322D5C9707006A5835 /* Api */,
 				6F919ED3218C65C50023B400 /* Resources */,
 				6F7774DD217181B1006A79B3 /* UI */,
 				6F7774ED21722D0C006A79B3 /* Tunnel */,
@@ -894,6 +925,14 @@
 				6F70E23B22109DD3008BDFB4 /* PBXTargetDependency */,
 				6FB1BD9821D4BFE700A991BF /* PBXTargetDependency */,
 			);
+			fileSystemSynchronizedGroups = (
+				9FE0E2322D5C9707006A5835 /* Api */,
+				9FE0E23F2D5C9A97006A5835 /* Authentication */,
+				9FE0E2452D5C9AAE006A5835 /* Daemon */,
+				9FE0E24B2D5C9AC1006A5835 /* NetworkController */,
+				9FE0E26F2D5CC7D5006A5835 /* SharedStorage */,
+				9FE0E27A2D5CCB00006A5835 /* Utils */,
+			);
 			name = WireGuardmacOS;
 			productName = WireGuardmacOS;
 			productReference = 6FB1BD5D21D2607A00A991BF /* WireGuard.app */;
@@ -929,11 +968,20 @@
 				6FF4AC11211EC46F002C96EB /* Frameworks */,
 				6FF4AC12211EC46F002C96EB /* Resources */,
 				6F5D0C26218352EF000F85AD /* Embed App Extensions */,
+				9FE0E23E2D5C9905006A5835 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				6F5D0C21218352EF000F85AD /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				9FE0E2322D5C9707006A5835 /* Api */,
+				9FE0E23F2D5C9A97006A5835 /* Authentication */,
+				9FE0E2452D5C9AAE006A5835 /* Daemon */,
+				9FE0E24B2D5C9AC1006A5835 /* NetworkController */,
+				9FE0E26F2D5CC7D5006A5835 /* SharedStorage */,
+				9FE0E27A2D5CCB00006A5835 /* Utils */,
 			);
 			name = WireGuardiOS;
 			productName = WireGuard;
@@ -1036,6 +1084,8 @@
 			packageReferences = (
 				9FEAD4E32CDBA0D80004D766 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 				9FE0E22E2D5B8C0C006A5835 /* XCRemoteSwiftPackageReference "microsoft-authentication-library-for-objc" */,
+				9FE0E2382D5C98F9006A5835 /* XCRemoteSwiftPackageReference "Alamofire" */,
+				9FE0E2802D5CCD12006A5835 /* XCRemoteSwiftPackageReference "swift-sodium" */,
 			);
 			productRefGroup = 6FF4AC15211EC46F002C96EB /* Products */;
 			projectDirPath = "";
@@ -1958,6 +2008,22 @@
 				minimumVersion = 1.7.0;
 			};
 		};
+		9FE0E2382D5C98F9006A5835 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.10.2;
+			};
+		};
+		9FE0E2802D5CCD12006A5835 /* XCRemoteSwiftPackageReference "swift-sodium" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/jedisct1/swift-sodium";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.9.1;
+			};
+		};
 		9FEAD4E32CDBA0D80004D766 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/google/GoogleSignIn-iOS.git";
@@ -1983,6 +2049,21 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9FE0E22E2D5B8C0C006A5835 /* XCRemoteSwiftPackageReference "microsoft-authentication-library-for-objc" */;
 			productName = MSAL;
+		};
+		9FE0E2392D5C9905006A5835 /* Alamofire */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9FE0E2382D5C98F9006A5835 /* XCRemoteSwiftPackageReference "Alamofire" */;
+			productName = Alamofire;
+		};
+		9FE0E2812D5CCD12006A5835 /* Clibsodium */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9FE0E2802D5CCD12006A5835 /* XCRemoteSwiftPackageReference "swift-sodium" */;
+			productName = Clibsodium;
+		};
+		9FE0E2832D5CCD12006A5835 /* Sodium */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9FE0E2802D5CCD12006A5835 /* XCRemoteSwiftPackageReference "swift-sodium" */;
+			productName = Sodium;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

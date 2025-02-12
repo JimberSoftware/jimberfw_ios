@@ -21,6 +21,8 @@
 			</array>
 		</dict>
 	</array>
+	<key>GIDServerClientID</key>
+	<string>107269124183-7i5qr58qcfaar9u4fbeodcs43s61lmtm.apps.googleusercontent.com</string>
 	<key>GIDClientID</key>
 	<string>107269124183-2u340vnj231dh29f15iqh3mm2jtllb64.apps.googleusercontent.com</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
