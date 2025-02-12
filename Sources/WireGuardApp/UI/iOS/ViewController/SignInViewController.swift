@@ -1,7 +1,19 @@
 import UIKit
 import GoogleSignIn
+import MSAL
 
 class SignInViewController: BaseViewController {
+
+    // Update the below to your client ID. The below is for running the demo only
+    let kClientID = "f1373772-6623-4090-9204-3cb04b9d46c9"
+    let kAuthority = "https://login.microsoftonline.com/common"
+
+    let kScopes: [String] = ["user.read"] // request permission to read the profile of the signed-in user
+
+    var accessToken = String()
+    var applicationContext : MSALPublicClientApplication?
+    var webViewParameters : MSALWebviewParameters?
+    var currentAccount: MSALAccount?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -57,7 +69,33 @@ class SignInViewController: BaseViewController {
         // Add Email sign-in button
         let emailSignInButton = createSignInButton(title: "Sign in with Email", imageName: "email_icon", action: #selector(emailSignInTapped))
         stackView.addArrangedSubview(emailSignInButton)
+
+        do {
+                  try self.initMSAL()
+              } catch let error {
+                  print(error)
+              }
     }
+
+    func initMSAL() throws {
+
+           guard let authorityURL = URL(string: kAuthority) else {
+               print("erreur")
+               return
+           }
+
+           let authority = try MSALAADAuthority(url: authorityURL)
+
+           let msalConfiguration = MSALPublicClientApplicationConfig(clientId: kClientID, redirectUri: nil, authority: authority)
+        MSALGlobalConfig.brokerAvailability = .none;
+           self.applicationContext = try MSALPublicClientApplication(configuration: msalConfiguration)
+           self.initWebViewParams()
+       }
+
+    func initWebViewParams() {
+        self.webViewParameters = MSALWebviewParameters(authPresentationViewController: self)
+    }
+
 
     // Helper function to create sign-in buttons
     func createSignInButton(title: String, imageName: String, action: Selector) -> UIButton {
@@ -135,16 +173,50 @@ class SignInViewController: BaseViewController {
            }
     }
 
-    @objc func microsoftSignInTapped() {
-        // Microsoft sign-in logic
-        print("Microsoft Sign-In Tapped")
-        GIDSignIn.sharedInstance.signOut()
-        GIDSignIn.sharedInstance.disconnect()
-        print("done")
+    func acquireTokenInteractively() {
+
+        guard let applicationContext = self.applicationContext else { return }
+        guard let webViewParameters = self.webViewParameters else { return }
+
+        // #1
+        let parameters = MSALInteractiveTokenParameters(scopes: kScopes, webviewParameters: webViewParameters)
+        parameters.promptType = .selectAccount
+
+        // #2
+        applicationContext.acquireToken(with: parameters) { (result, error) in
+
+            // #3
+            if let error = error {
+
+                print("error 1 " + error.localizedDescription)
+                return
+            }
+
+            guard let result = result else {
+
+                print("error" + error!.localizedDescription)
+                return
+            }
+
+            // #4
+            self.accessToken = result.accessToken
+            self.updateCurrentAccount(account: result.account)
+
+            print(self.accessToken)
+        }
     }
 
+    @objc func microsoftSignInTapped() {
+        acquireTokenInteractively()
+        print("Microsoft Sign-In Tapped")
+    }
+
+
     @objc func emailSignInTapped() {
-        // Email sign-in logic
         print("Email Sign-In Tapped")
+    }
+
+    func updateCurrentAccount(account: MSALAccount?) {
+        self.currentAccount = account
     }
 }

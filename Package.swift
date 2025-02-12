@@ -39,7 +39,8 @@ let package = Package(
         .target(
         name: "WireGuard",
         dependencies: [
-            .product(name: "GoogleSignIn", package: "GoogleSignIn-iOS")
+            .product(name: "GoogleSignIn", package: "GoogleSignIn-iOS"),
+            .product(name: "MSAL", package: "MSAL")
         ]
     )
     ]

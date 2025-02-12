@@ -12,5 +12,10 @@
 	<array>
 		<string>group.$(APP_ID_IOS)</string>
 	</array>
+	<key>keychain-access-groups</key>
+	<array>
+		<string>$(AppIdentifierPrefix)com.microsoft.adalcache</string>
+		<string>$(AppIdentifierPrefix)com.microsoft.identity.universalstorage</string>
+	</array>
 </dict>
 </plist>
