@@ -6,3 +6,7 @@ struct NetworkController: Codable {
     let endpointAddress: String
     let allowedIps: String
 }
+
+struct DnsServer: Codable {
+    let ipAddress: String
+}

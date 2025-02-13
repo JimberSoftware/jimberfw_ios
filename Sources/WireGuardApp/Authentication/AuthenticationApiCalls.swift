@@ -1,7 +1,7 @@
 import Foundation
 import Combine
 
-func getUserAuthentication(idToken: String, authenticationType: AuthenticationType) async -> Result<UserAuthentication, Error> {
+func getUserAuthentication(idToken: String, authenticationType: AuthenticationType) async -> UserAuthentication? {
     let type: String
     switch authenticationType {
     case .google:
@@ -11,35 +11,27 @@ func getUserAuthentication(idToken: String, authenticationType: AuthenticationTy
     }
 
     let authRequest = AuthenticationApiRequest(idToken: idToken)
-    // Create a Future to bridge Combine to async/await
-    let future = Future<UserAuthentication, Error> { promise in
-        ApiClient.shared.getUserAuthentication(type: type, data: authRequest)
-            .sink(receiveCompletion: { completion in
-                switch completion {
-                case .failure(let error):
-                    promise(.failure(error))
-                case .finished:
-                    break
-                }
-            }, receiveValue: { apiResult in
-                // Assuming the response contains the userId and companyName
-                let userAuthentication = UserAuthentication(
-                    userId: apiResult.id,
-                    companyName: apiResult.company.name
-                )
-                promise(.success(userAuthentication))
-            })
-            .store(in: &subscriptions)
-    }
 
-    do {
-          // Await the future and return the result
-          let userAuthentication = try await future.value
-          return .success(userAuthentication)
-      } catch {
-          // Handle errors that occur during the network call
-          return .failure(error)
-      }
+    // Use async/await to handle the completion handler
+    return await withCheckedContinuation { continuation in
+        ApiClient.apiService.getUserAuthentication(type: type, data: authRequest) { result in
+            switch result {
+            case .success(let userAuthResult):
+                // Handle success, map to the UserAuthentication model
+                let userAuthentication = UserAuthentication(
+                    userId: userAuthResult.id,
+                    companyName: userAuthResult.company.name
+                )
+                // Return the result
+                continuation.resume(returning: userAuthentication)
+
+            case .failure(let error):
+                // Handle failure
+                continuation.resume(returning: nil)
+            }
+        }
+    }
 }
+
 
 private var subscriptions = Set<AnyCancellable>()

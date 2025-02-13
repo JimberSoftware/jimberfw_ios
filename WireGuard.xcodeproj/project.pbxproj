@@ -210,8 +210,6 @@
 		9FE0E22D2D59DA97006A5835 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 9FE0E22C2D59DA97006A5835 /* GoogleSignInSwift */; };
 		9FE0E2302D5B8D98006A5835 /* MSAL in Frameworks */ = {isa = PBXBuildFile; productRef = 9FE0E22F2D5B8D98006A5835 /* MSAL */; };
 		9FE0E23A2D5C9905006A5835 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 9FE0E2392D5C9905006A5835 /* Alamofire */; };
-		9FE0E2822D5CCD12006A5835 /* Clibsodium in Frameworks */ = {isa = PBXBuildFile; productRef = 9FE0E2812D5CCD12006A5835 /* Clibsodium */; };
-		9FE0E2842D5CCD12006A5835 /* Sodium in Frameworks */ = {isa = PBXBuildFile; productRef = 9FE0E2832D5CCD12006A5835 /* Sodium */; };
 		9FEAD4E72CDBA3210004D766 /* HexExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FEAD4E62CDBA3210004D766 /* HexExtension.swift */; };
 		9FEAD4E92CDBA5DE0004D766 /* SignInViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FEAD4E82CDBA5DE0004D766 /* SignInViewController.swift */; };
 /* End PBXBuildFile section */
@@ -488,9 +486,7 @@
 				9FE0E22D2D59DA97006A5835 /* GoogleSignInSwift in Frameworks */,
 				9FE0E2302D5B8D98006A5835 /* MSAL in Frameworks */,
 				6B653B86220DE2960050E69C /* NetworkExtension.framework in Frameworks */,
-				9FE0E2842D5CCD12006A5835 /* Sodium in Frameworks */,
 				9FE0E22B2D59DA92006A5835 /* GoogleSignIn in Frameworks */,
-				9FE0E2822D5CCD12006A5835 /* Clibsodium in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1085,7 +1081,6 @@
 				9FEAD4E32CDBA0D80004D766 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 				9FE0E22E2D5B8C0C006A5835 /* XCRemoteSwiftPackageReference "microsoft-authentication-library-for-objc" */,
 				9FE0E2382D5C98F9006A5835 /* XCRemoteSwiftPackageReference "Alamofire" */,
-				9FE0E2802D5CCD12006A5835 /* XCRemoteSwiftPackageReference "swift-sodium" */,
 			);
 			productRefGroup = 6FF4AC15211EC46F002C96EB /* Products */;
 			projectDirPath = "";
@@ -2016,14 +2011,6 @@
 				minimumVersion = 5.10.2;
 			};
 		};
-		9FE0E2802D5CCD12006A5835 /* XCRemoteSwiftPackageReference "swift-sodium" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/jedisct1/swift-sodium";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.9.1;
-			};
-		};
 		9FEAD4E32CDBA0D80004D766 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/google/GoogleSignIn-iOS.git";
@@ -2054,16 +2041,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9FE0E2382D5C98F9006A5835 /* XCRemoteSwiftPackageReference "Alamofire" */;
 			productName = Alamofire;
-		};
-		9FE0E2812D5CCD12006A5835 /* Clibsodium */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 9FE0E2802D5CCD12006A5835 /* XCRemoteSwiftPackageReference "swift-sodium" */;
-			productName = Clibsodium;
-		};
-		9FE0E2832D5CCD12006A5835 /* Sodium */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 9FE0E2802D5CCD12006A5835 /* XCRemoteSwiftPackageReference "swift-sodium" */;
-			productName = Sodium;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

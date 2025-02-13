@@ -24,8 +24,7 @@ func generateEd25519KeyPair() -> EdKeyPair {
 
 // Convert Ed25519 keys to X25519 for WireGuard
 func generateWireguardConfigurationKeys(pk: String, sk: String) -> WireguardKeys? {
-    guard let skData = Data(base64Encoded: sk),
-          let pkData = Data(base64Encoded: pk) else { return nil }
+    guard let skData = Data(base64Encoded: sk) else { return nil }
 
     guard let curvePrivateKey = try? Curve25519.KeyAgreement.PrivateKey(rawRepresentation: skData) else {
         print("Failed to create Curve25519 private key from raw representation")
@@ -56,4 +55,36 @@ func generateSignedMessage(message: Data, privateKey: String) -> String? {
 
     let payload = signature + message
     return payload.base64EncodedString()
+}
+
+@available(iOS 13.0, *)
+func parseEdPublicKeyToCurveX25519(pk: String) -> String? {
+    guard let pkData = Data(base64Encoded: pk) else { return nil }
+
+    do {
+        // Assuming pkData is in Ed25519 format, we use CryptoKit's Curve25519
+        let curvePk = try Curve25519.Signing.PublicKey(rawRepresentation: pkData)
+        let baseEncodedCurvePk = curvePk.rawRepresentation.base64EncodedString()
+
+        return baseEncodedCurvePk
+    } catch {
+        print("Error: \(error)")
+        return nil
+    }
+}
+
+@available(iOS 13.0, *)
+func parseEdPrivateKeyToCurveX25519(sk: String) -> String? {
+    guard let skData = Data(base64Encoded: sk) else { return nil }
+
+    do {
+        // Assuming skData is in Ed25519 format, we use CryptoKit's Curve25519
+        let curveSk = try Curve25519.Signing.PrivateKey(rawRepresentation: skData)
+        let baseEncodedCurveSk = curveSk.rawRepresentation.base64EncodedString()
+
+        return baseEncodedCurveSk
+    } catch {
+        print("Error: \(error)")
+        return nil
+    }
 }

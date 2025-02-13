@@ -1,150 +1,147 @@
-// SPDX-License-Identifier: MIT
-// Copyright © 2018-2023 WireGuard LLC. All Rights Reserved.
-
 import Foundation
 import Alamofire
-import Combine
 
-// MARK: - AuthEventManager
-class AuthEventManager {
-    static let shared = AuthEventManager()
-    let authFailedEvent = PassthroughSubject<Bool, Never>()
+
+// Custom logger that filters sensitive information
+class CustomLogger: EventMonitor {
+    func request(_ request: Request, didParseResponse response: DataResponse<Data, AFError>) {
+        if let message = String(data: response.data ?? Data(), encoding: .utf8) {
+            let filteredMessage = message
+                .replacingOccurrences(of: "(accessToken\":\")\\S+", with: "$1****\"}", options: .regularExpression)
+                .replacingOccurrences(of: "(Authentication=)[^;]+", with: "$1****", options: .regularExpression)
+                .replacingOccurrences(of: "(Authorization:)[^;]+", with: "$1****", options: .regularExpression)
+                .replacingOccurrences(of: "(Refresh=)[^;]+", with: "$1****", options: .regularExpression)
+                .replacingOccurrences(of: "(idToken\":\")\\S+", with: "$1****\"}", options: .regularExpression)
+
+            print(filteredMessage) // Log the filtered message
+        }
+    }
 }
 
-// MARK: - AuthInterceptor
-final class AuthInterceptor: RequestInterceptor, @unchecked Sendable {
-    private let excludedUrls: [String] = [
-        "https://signal.staging.jimber.io/api/v1/auth/refresh"
-    ]
+// AuthInterceptor that handles token renewal
+class AuthInterceptor: RequestInterceptor {
+    private let excludedUrls: [String] = ["https://staging.jimber.io/api/v1/auth/refresh"]
 
-    func adapt(_ urlRequest: URLRequest, for session: Alamofire.Session, completion: @escaping (Result<URLRequest, Error>) -> Void) {
-        // Modify request before it's sent
-        completion(.success(urlRequest))
-    }
-
-    func retry(_ request: Request, for session: Alamofire.Session, dueTo error: Error, completion: @escaping (RetryResult) -> Void) {
-        guard let response = request.response, response.statusCode == 401 else {
-            completion(.doNotRetry)
+    func intercept(_ request: URLRequest, for session: Session, completion: @escaping (Result<URLRequest, Error>) -> Void) {
+        if excludedUrls.contains(where: { request.url?.absoluteString.starts(with: $0) == true }) {
+            completion(.success(request))
             return
         }
 
-        Task {
-            if let newToken = await renewJwt() {
-                var newRequest = request.request
-                newRequest?.setValue("Bearer \(newToken)", forHTTPHeaderField: "Authorization")
-                completion(.retry)
-            } else {
-                completion(.doNotRetry)
+        // Intercept request and handle authorization error
+        session.request(request)
+            .validate(statusCode: 401..<500)
+            .responseData { response in
+                if response.error != nil {
+                    // Handle token renewal and retry logic
+                    self.renewJwt { newToken in
+                        var newRequest = request
+                        newRequest.addValue("Bearer \(newToken)", forHTTPHeaderField: "Authorization")
+                        completion(.success(newRequest))
+                    }
+                } else {
+                    completion(.success(request))
+                }
+            }
+    }
+
+    private func renewJwt(completion: @escaping (String?) -> Void) {
+        // Call to refresh token
+        ApiClient.apiService.refreshToken(cookies: "cookie_string_here") { result in
+            switch result {
+            case .success(let response):
+                completion(response.accessToken)
+            case .failure:
+                completion(nil)
             }
         }
     }
-
-    private func renewJwt() async -> String? {
-        do {
-            let newAccessToken = try await withCheckedThrowingContinuation { continuation in
-                ApiClient.shared.refreshToken()
-                    .sink(
-                        receiveCompletion: { completion in
-                            switch completion {
-                            case .failure(let error):
-                                continuation.resume(throwing: error)
-                            case .finished:
-                                break
-                            }
-                        },
-                        receiveValue: { result in
-                            continuation.resume(returning: result.accessToken)
-                        }
-                    )
-                    .store(in: &subscriptions)
-            }
-            return newAccessToken
-            } catch {
-                print("Error renewing JWT: \(error)")
-                return nil
-            }
-    }
-
-    private var subscriptions = Set<AnyCancellable>()
 }
 
-// MARK: - TokenManager
-class TokenManager {
-    static let shared = TokenManager()
-    var accessToken: String?
-
-    func renewJwt(completion: @escaping (String?) -> Void) {
-        ApiClient.shared.refreshToken().sink(receiveCompletion: { _ in }, receiveValue: { result in
-            if result.accessToken != "" {
-                self.accessToken = result.accessToken
-                completion(result.accessToken)
-            } else {
-                completion(nil)
-            }
-        }).store(in: &subscriptions)
-    }
-
-    private var subscriptions = Set<AnyCancellable>()
+// API Service for Retrofit-like requests
+protocol ApiService {
+    func getUserAuthentication(type: String, data: AuthenticationApiRequest, completion: @escaping (Result<UserAuthenticationApiResult, AFError>) -> Void)
+    func createDaemon(userId: Int, company: String, data: CreateDaemonApiRequest, cookies: String, completion: @escaping (Result<CreateDaemonApiResult, AFError>) -> Void)
+    func deleteDaemon(daemonId: Int, company: String, authorization: String, completion: @escaping (Result<DeleteDaemonApiResult, AFError>) -> Void)
+    func sendVerificationEmail(data: VerificationCodeApiRequest, completion: @escaping (Result<Bool, AFError>) -> Void)
+    func verifyEmailWithToken(data: AuthenticationWithVerificationCodeApiRequest, completion: @escaping (Result<UserAuthenticationApiResult, AFError>) -> Void)
+    func refreshToken(cookies: String, completion: @escaping (Result<RefreshTokenApiResult, AFError>) -> Void)
+    func logout(cookies: String, completion: @escaping (Result<Bool, AFError>) -> Void)
+    func getCloudControllerInformation(daemonId: Int, company: String, authorization: String, completion: @escaping (Result<NetworkControllerApiResult, AFError>) -> Void)
 }
 
-// MARK: - ApiClient
+// ApiClient class
 class ApiClient {
-    static let shared = ApiClient()
-    private let baseURL = "https://signal.staging.jimber.io/api/v1/"
+    static let BASE_URL = "https://signal.staging.jimber.io/api/v1/"
+    static let apiService = ApiServiceImpl()
+
+    private init() {}
+}
+
+// API Implementation using Alamofire
+class ApiServiceImpl: ApiService {
     private let session: Session
 
-    private init() {
+    init() {
         let interceptor = AuthInterceptor()
-        self.session = Session(interceptor: interceptor)
+        let logger = CustomLogger()
+
+        session = Session(interceptor: interceptor, eventMonitors: [logger])
     }
 
-    func request<T: Decodable>(_ endpoint: String, method: HTTPMethod, parameters: Parameters? = nil, headers: HTTPHeaders? = nil) -> AnyPublisher<T, AFError> {
-        let url = baseURL + endpoint
-        return session.request(url, method: method, parameters: parameters, encoding: JSONEncoding.default, headers: headers)
-            .validate()
-            .publishDecodable(type: T.self)
-            .value()
-            .eraseToAnyPublisher()
+    func getUserAuthentication(type: String, data: AuthenticationApiRequest, completion: @escaping (Result<UserAuthenticationApiResult, AFError>) -> Void) {
+        session.request("\(ApiClient.BASE_URL)auth/verify-\(type)-id", method: .post, parameters: data, encoder: JSONParameterEncoder.default)
+            .responseDecodable(of: UserAuthenticationApiResult.self) { response in
+                completion(response.result)
+            }
     }
 
-    func refreshToken() -> AnyPublisher<RefreshTokenApiResult, AFError> {
-        request("auth/refresh", method: .get)
+    func createDaemon(userId: Int, company: String, data: CreateDaemonApiRequest, cookies: String, completion: @escaping (Result<CreateDaemonApiResult, AFError>) -> Void) {
+        session.request("\(ApiClient.BASE_URL)companies/\(company)/daemons/user/\(userId)", method: .post, parameters: data, encoder: JSONParameterEncoder.default, headers: ["Cookie": cookies])
+            .responseDecodable(of: CreateDaemonApiResult.self) { response in
+                completion(response.result)
+            }
     }
 
-    func getUserAuthentication(type: String, data: AuthenticationApiRequest) -> AnyPublisher<UserAuthenticationApiResult, AFError> {
-        request("auth/verify-\(type)-id", method: .post, parameters: data.toDictionary())
+    func deleteDaemon(daemonId: Int, company: String, authorization: String, completion: @escaping (Result<DeleteDaemonApiResult, AFError>) -> Void) {
+        session.request("\(ApiClient.BASE_URL)companies/\(company)/daemons-mobile/\(daemonId)", method: .delete, headers: ["Authorization": authorization])
+            .responseDecodable(of: DeleteDaemonApiResult.self) { response in
+                completion(response.result)
+            }
     }
 
-    func createDaemon(userId: Int, company: String, data: CreateDaemonApiRequest) -> AnyPublisher<CreateDaemonApiResult, AFError> {
-        request("companies/\(company)/daemons/user/\(userId)", method: .post, parameters: data.toDictionary())
+    func sendVerificationEmail(data: VerificationCodeApiRequest, completion: @escaping (Result<Bool, AFError>) -> Void) {
+        session.request("\(ApiClient.BASE_URL)auth/send-user-token-code", method: .post, parameters: data, encoder: JSONParameterEncoder.default)
+            .responseDecodable(of: Bool.self) { response in
+                completion(response.result)
+            }
     }
 
-    func deleteDaemon(company: String, daemonId: Int) -> AnyPublisher<DeleteDaemonApiResult, AFError> {
-        request("companies/\(company)/daemons-mobile/\(daemonId)", method: .delete)
+    func verifyEmailWithToken(data: AuthenticationWithVerificationCodeApiRequest, completion: @escaping (Result<UserAuthenticationApiResult, AFError>) -> Void) {
+        session.request("\(ApiClient.BASE_URL)auth/verify-email-token", method: .post, parameters: data, encoder: JSONParameterEncoder.default)
+            .responseDecodable(of: UserAuthenticationApiResult.self) { response in
+                completion(response.result)
+            }
     }
 
-    func sendVerificationEmail(data: VerificationCodeApiRequest) -> AnyPublisher<Bool, AFError> {
-        request("auth/send-user-token-code", method: .post, parameters: data.toDictionary())
+    func refreshToken(cookies: String, completion: @escaping (Result<RefreshTokenApiResult, AFError>) -> Void) {
+        session.request("\(ApiClient.BASE_URL)auth/refresh", method: .get, headers: ["Cookie": cookies])
+            .responseDecodable(of: RefreshTokenApiResult.self) { response in
+                completion(response.result)
+            }
     }
 
-    func verifyEmailWithToken(data: AuthenticationWithVerificationCodeApiRequest) -> AnyPublisher<UserAuthenticationApiResult, AFError> {
-        request("auth/verify-email-token", method: .post, parameters: data.toDictionary())
+    func logout(cookies: String, completion: @escaping (Result<Bool, AFError>) -> Void) {
+        session.request("\(ApiClient.BASE_URL)auth/logout", method: .post, headers: ["Cookie": cookies])
+            .responseDecodable(of: Bool.self) { response in
+                completion(response.result)
+            }
     }
 
-    func logout() -> AnyPublisher<Bool, AFError> {
-        request("auth/logout", method: .post)
-    }
-
-    func getCloudControllerInformation(company: String, daemonId: Int) -> AnyPublisher<NetworkControllerApiResult, AFError> {
-        request("companies/\(company)/daemons-mobile/\(daemonId)/nc-information", method: .get)
+    func getCloudControllerInformation(daemonId: Int, company: String, authorization: String, completion: @escaping (Result<NetworkControllerApiResult, AFError>) -> Void) {
+        session.request("\(ApiClient.BASE_URL)companies/\(company)/daemons-mobile/\(daemonId)/nc-information", method: .get, headers: ["Authorization": authorization])
+            .responseDecodable(of: NetworkControllerApiResult.self) { response in
+                completion(response.result)
+            }
     }
 }
-
-// MARK: - Helper Extensions
-extension Encodable {
-    func toDictionary() -> [String: Any]? {
-        guard let data = try? JSONEncoder().encode(self) else { return nil }
-        return try? JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any]
-    }
-}
-

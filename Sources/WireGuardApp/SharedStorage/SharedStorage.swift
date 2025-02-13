@@ -1,6 +1,6 @@
 import Foundation
 
-struct DaemonKeyPair {
+struct DaemonKeyPair: Codable {
     let daemonName: String
     let daemonId: Int
     let userId: Int

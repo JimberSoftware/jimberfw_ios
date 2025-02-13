@@ -178,28 +178,30 @@ class SignInViewController: BaseViewController {
                     }
 
                     // Await the result of the async function
-                    let result = await getUserAuthentication(idToken: idToken, authenticationType: .google)
+                    let userAuthentication = await getUserAuthentication(idToken: idToken, authenticationType: .google)
                     // Handle the result of the authentication
-                    
-                    
 
-                    switch result {
-                    case .failure(let error):
-                        print("Authentication failed: \(error)")
+                    if(userAuthentication == nil){
+                        //TODO: error
                         return;
+                    }
 
-                    case .success(let userAuthentication):
-                        print("Authentication: \(userAuthentication)")
-
-                        let companyName = userAuthentication.companyName;
-                        let userId = userAuthentication.userId;
+                    do {
+                        let companyName = userAuthentication!.companyName;
+                        let userId = userAuthentication!.userId;
 
                         let alreadyInStorage = SharedStorage.shared.getDaemonKeyPairByUserId(userId)
+
+                        let q = try await register(userAuthentication: userAuthentication!, daemonName: "lennygdaemon")
+                        print(q.configurationString)
+                    }
+                    catch(let error){
+
+                    }
 
 
                         let name = "lennyGdaemon"
                     }
-                }
             }
         }
     }
