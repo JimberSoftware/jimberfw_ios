@@ -4,8 +4,27 @@ import Alamofire
 
 // Custom logger that filters sensitive information
 class CustomLogger: EventMonitor {
+
+    // Log the request details
+    func request(_ request: Request, didStartRequest task: URLSessionTask) {
+        if let url = request.request?.url {
+            print("Starting Request:")
+            print("URL: \(url.absoluteString)")
+            print("Method: \(request.request?.method?.rawValue ?? "N/A")")
+
+            if let url = request.request?.url, let queryItems = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems {
+                print("Query Parameters: \(queryItems.map { "\($0.name): \($0.value ?? "nil")" }.joined(separator: ", "))")
+            }
+        }
+    }
+
+    // Log the response details (including JSON)
     func request(_ request: Request, didParseResponse response: DataResponse<Data, AFError>) {
         if let message = String(data: response.data ?? Data(), encoding: .utf8) {
+            // Log the response body (JSON)
+            print("Response JSON: \(message)")
+
+            // Apply filtering for sensitive data (same as your previous example)
             let filteredMessage = message
                 .replacingOccurrences(of: "(accessToken\":\")\\S+", with: "$1****\"}", options: .regularExpression)
                 .replacingOccurrences(of: "(Authentication=)[^;]+", with: "$1****", options: .regularExpression)
@@ -13,8 +32,13 @@ class CustomLogger: EventMonitor {
                 .replacingOccurrences(of: "(Refresh=)[^;]+", with: "$1****", options: .regularExpression)
                 .replacingOccurrences(of: "(idToken\":\")\\S+", with: "$1****\"}", options: .regularExpression)
 
-            print(filteredMessage) // Log the filtered message
+            print("Filtered Response JSON: \(filteredMessage)")
         }
+    }
+
+    // Log the error details (in case of failure)
+    func request(_ request: Request, didFailWithError error: Error) {
+        print("Request failed with error: \(error.localizedDescription)")
     }
 }
 
@@ -92,9 +116,20 @@ class ApiServiceImpl: ApiService {
     func getUserAuthentication(type: String, data: AuthenticationApiRequest, completion: @escaping (Result<UserAuthenticationApiResult, AFError>) -> Void) {
         session.request("\(ApiClient.BASE_URL)auth/verify-\(type)-id", method: .post, parameters: data, encoder: JSONParameterEncoder.default)
             .responseDecodable(of: UserAuthenticationApiResult.self) { response in
-                completion(response.result)
+                switch response.result {
+                case .success(var apiResult):
+                    if let headers = response.response?.allHeaderFields as? [String: String],
+                       let setCookie = headers["Set-Cookie"] {
+                        apiResult.authCookie = setCookie
+                    }
+                    completion(.success(apiResult))
+
+                case .failure(let error):
+                    completion(.failure(error))
+                }
             }
     }
+
 
     func createDaemon(userId: Int, company: String, data: CreateDaemonApiRequest, cookies: String, completion: @escaping (Result<CreateDaemonApiResult, AFError>) -> Void) {
         session.request("\(ApiClient.BASE_URL)companies/\(company)/daemons/user/\(userId)", method: .post, parameters: data, encoder: JSONParameterEncoder.default, headers: ["Cookie": cookies])

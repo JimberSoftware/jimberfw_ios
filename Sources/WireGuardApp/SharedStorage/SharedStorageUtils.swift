@@ -1,8 +1,8 @@
 import Foundation
 
 func saveDataToLocalStorage(cookies: String, user: User) {
-    let authToken = extractToken(from: cookies, key: "Authentication")
-    let refreshToken = extractToken(from: cookies, key: "Refresh")
+    let authToken = extractCookieValue(from: cookies, for: "Authentication")
+    let refreshToken = extractCookieValue(from: cookies, for: "Refresh")
 
     let sharedStorage = SharedStorage.shared
 
@@ -13,8 +13,8 @@ func saveDataToLocalStorage(cookies: String, user: User) {
 
 func getCookieString() -> String {
     let sharedStorage = SharedStorage.shared
-    let authToken = sharedStorage.getAuthenticationToken()
-    let refreshToken = sharedStorage.getRefreshToken()
+    let authToken = sharedStorage.getAuthenticationToken()!
+    let refreshToken = sharedStorage.getRefreshToken()!
 
     return "Authentication=\(authToken); Refresh=\(refreshToken)"
 }

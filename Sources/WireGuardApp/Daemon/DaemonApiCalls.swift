@@ -2,7 +2,7 @@ import Foundation
 
 func createDaemon(userId: Int, company: String, daemonData: CreateDaemonApiRequest) async -> Daemon? {
     let cookies = getCookieString()
-    
+
     return await withCheckedContinuation { continuation in
         ApiClient.apiService.createDaemon(userId: userId, company: company, data: daemonData, cookies: cookies) { result in
             switch result {

@@ -4,6 +4,7 @@ struct UserAuthenticationApiResult: Codable {
     let id: Int
     let email: String
     let company: Company
+    var authCookie: String?
 }
 
 struct RefreshTokenApiResult: Codable {

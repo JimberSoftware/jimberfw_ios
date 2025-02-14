@@ -12,26 +12,26 @@ func getUserAuthentication(idToken: String, authenticationType: AuthenticationTy
 
     let authRequest = AuthenticationApiRequest(idToken: idToken)
 
-    // Use async/await to handle the completion handler
     return await withCheckedContinuation { continuation in
         ApiClient.apiService.getUserAuthentication(type: type, data: authRequest) { result in
             switch result {
             case .success(let userAuthResult):
-                // Handle success, map to the UserAuthentication model
                 let userAuthentication = UserAuthentication(
                     userId: userAuthResult.id,
                     companyName: userAuthResult.company.name
                 )
-                // Return the result
+
+                let user = User(id: userAuthResult.id, email: userAuthResult.email)
+
+                saveDataToLocalStorage(cookies: userAuthResult.authCookie!, user: user)
                 continuation.resume(returning: userAuthentication)
 
             case .failure(let error):
-                // Handle failure
+                print("Error: \(error)")
                 continuation.resume(returning: nil)
             }
         }
     }
 }
-
 
 private var subscriptions = Set<AnyCancellable>()

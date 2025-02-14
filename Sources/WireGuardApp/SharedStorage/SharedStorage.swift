@@ -38,7 +38,11 @@ class SharedStorage {
     }
 
     func getRefreshToken() -> String? {
-        return defaults.string(forKey: Keys.refreshTokenKey)
+        if let token = defaults.string(forKey: Keys.refreshTokenKey) {
+            return token
+        }
+
+        return nil
     }
 
     func clearRefreshToken() {
@@ -51,7 +55,11 @@ class SharedStorage {
     }
 
     func getAuthenticationToken() -> String? {
-        return defaults.string(forKey: Keys.authenticationTokenKey)
+        if let token = defaults.string(forKey: Keys.authenticationTokenKey) {
+            return token
+        }
+
+        return nil
     }
 
     func clearAuthenticationToken() {
