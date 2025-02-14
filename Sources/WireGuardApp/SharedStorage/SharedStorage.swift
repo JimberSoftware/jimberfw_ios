@@ -133,8 +133,23 @@ class SharedStorage {
         defaults.removeObject(forKey: Keys.wireGuardKeyPairKey)
     }
 
-    // Get All Stored Values
     func getAll() -> [String: Any] {
-        return defaults.dictionaryRepresentation()
+        let storedKeys: [String] = [
+            Keys.refreshTokenKey,
+            Keys.authenticationTokenKey,
+            Keys.currentUserKey,
+            Keys.wireGuardKeyPairKey
+        ]
+
+        var filteredData: [String: Any] = [:]
+
+        for key in storedKeys {
+            if let value = defaults.object(forKey: key) {
+                filteredData[key] = value
+            }
+        }
+
+        return filteredData
     }
+
 }

@@ -35,6 +35,7 @@ class MainViewController: UISplitViewController {
     override func viewDidLoad() {
         delegate = self
 
+        print("jeeha")
         // On iPad, always show both masterVC and detailVC, even in portrait mode, like the Settings app
         preferredDisplayMode = .allVisible
 
@@ -44,12 +45,14 @@ class MainViewController: UISplitViewController {
 
             switch result {
             case .failure(let error):
+                print("ITS A FAILRUE")
                 let signInVC = SignInViewController()
                 signInVC.modalPresentationStyle = .fullScreen // Ensures the view controller covers the entire screen
                 self.present(signInVC, animated: true, completion: nil)
 
                 // ErrorPresenter.showErrorAlert(error: error, from: self)
             case .success(let tunnelsManager):
+                print("ITS A SUCCESS")
                 self.tunnelsManager = tunnelsManager
                 self.tunnelsListVC?.setTunnelsManager(tunnelsManager: tunnelsManager)
 
@@ -70,6 +73,21 @@ class MainViewController: UISplitViewController {
     func allTunnelNames() -> [String]? {
         guard let tunnelsManager = self.tunnelsManager else { return nil }
         return tunnelsManager.mapTunnels { $0.name }
+    }
+
+
+    func navigateToCorrectScreen() {
+        let userId = SharedStorage.shared.getCurrentUser()?.id
+        if(userId == nil) {
+            // TODO: got to sign in
+
+            return;
+        }
+
+
+
+
+
     }
 }
 

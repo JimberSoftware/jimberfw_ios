@@ -38,6 +38,29 @@ class TunnelsManager {
         return tunnels
     }
 
+    func allTunnelsForUserId(userId: String) -> [TunnelContainer] {
+        return tunnels;
+//        var filteredTunnels: [TunnelContainer] = []
+//
+//        wg_log(.info, message: "FILTERING TUNNELS")
+//        wg_log(.info, message: "CURRENT_USER_ID: \(userId)")
+//
+//        for tunnel in tunnels {
+//            let daemonId = tunnel.getDaemonId()
+//            let keyPair = sharedStorage.getDaemonKeyPairByDaemonId(daemonId: daemonId)
+//
+//            let logString = "DAEMON ID: \(daemonId); FOUND KP: \(keyPair != nil); IS SAME USER ID: \(tunnel.getUserId() == userId)"
+//            wg_log(.info, message: logString)
+//
+//            if tunnel.getUserId() == userId, keyPair != nil {
+//                filteredTunnels.append(tunnel)
+//            }
+//        }
+//
+//        return filteredTunnels
+    }
+
+
     static func create(completionHandler: @escaping (Result<TunnelsManager, TunnelsManagerError>) -> Void) {
         NETunnelProviderManager.loadAllFromPreferences { managers, error in
             if let error = error {
@@ -162,6 +185,7 @@ class TunnelsManager {
             #endif
 
             let tunnel = TunnelContainer(tunnel: tunnelProviderManager)
+
             self.tunnels.append(tunnel)
             self.tunnels.sort { TunnelsManager.tunnelNameIsLessThan($0.name, $1.name) }
             self.tunnelsListDelegate?.tunnelAdded(at: self.tunnels.firstIndex(of: tunnel)!)
@@ -625,6 +649,7 @@ class TunnelContainer: NSObject {
         isActivateOnDemandEnabled = tunnel.isOnDemandEnabled && tunnel.isEnabled
         hasOnDemandRules = !(tunnel.onDemandRules ?? []).isEmpty
         tunnelProvider = tunnel
+
         super.init()
     }
 

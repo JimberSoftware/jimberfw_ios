@@ -183,17 +183,19 @@ class SignInViewController: BaseViewController {
 
                     if(userAuthentication == nil){
                         //TODO: error
-                        return;
+                        return
                     }
 
                     do {
-                        let companyName = userAuthentication!.companyName;
-                        let userId = userAuthentication!.userId;
+                        let companyName = userAuthentication!.companyName
+                        let userId = userAuthentication!.userId
 
                         let alreadyInStorage = SharedStorage.shared.getDaemonKeyPairByUserId(userId)
 
                         let q = try await register(userAuthentication: userAuthentication!, daemonName: "lennygdaemon")
                         print(q.configurationString)
+
+                        await self.importAndNavigate(configurationString: q.configurationString, companyName: companyName, daemonId: q.daemonId)
                     }
                     catch(let error){
 
@@ -206,6 +208,63 @@ class SignInViewController: BaseViewController {
         }
     }
 
+    func createTunnelsManager() async throws -> TunnelsManager {
+        return try await withCheckedThrowingContinuation { continuation in
+            TunnelsManager.create { result in
+                switch result {
+                case .success(let tunnelsManager):
+                    continuation.resume(returning: tunnelsManager)
+                case .failure(let error):
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+    }
+
+    func addTunnel(tunnelsManager: TunnelsManager, configuration: TunnelConfiguration) async throws {
+        return try await withCheckedThrowingContinuation { continuation in
+            tunnelsManager.add(tunnelConfiguration: configuration) { result in
+                switch result {
+                case .success:
+                    continuation.resume()
+                case .failure(let error):
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+    }
+
+    func importAndNavigate(configurationString: String, companyName: String, daemonId: Int) async {
+        guard let scannedTunnelConfiguration = try? TunnelConfiguration(fromWgQuickConfig: configurationString, called: "Registered") else {
+            print("Invalid configuration")
+            return
+        }
+        scannedTunnelConfiguration.name = companyName
+
+        do {
+            print("A")
+            let tunnelsManager = try await createTunnelsManager()
+            print("B")
+            try await addTunnel(tunnelsManager: tunnelsManager, configuration: scannedTunnelConfiguration)
+            print("Going to mainview")
+
+            DispatchQueue.main.async {
+                let masterVC = TunnelsListTableViewController()
+                masterVC.setTunnelsManager(tunnelsManager: tunnelsManager)
+
+                // Navigate to the new screen
+                if let navigationController = self.navigationController {
+                    navigationController.setViewControllers([masterVC], animated: true)
+                } else {
+                    self.present(masterVC, animated: true, completion: nil)
+                }
+            }
+        } catch {
+            print("Error: \(error)")
+        }
+
+        print("DONE")
+    }
     func acquireTokenInteractively() {
 
         guard let applicationContext = self.applicationContext else { return }

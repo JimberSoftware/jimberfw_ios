@@ -10,19 +10,24 @@ class SettingsTableViewController: UITableViewController {
         case iosAppVersion
         case goBackendVersion
         case viewLog
+        case getStorage
+        case deleteStorage
 
         var localizedUIString: String {
             switch self {
             case .iosAppVersion: return tr("settingsVersionKeyWireGuardForIOS")
             case .goBackendVersion: return tr("settingsVersionKeyWireGuardGoBackend")
             case .viewLog: return tr("settingsViewLogButtonTitle")
+            case .getStorage: return "Get Storage"
+            case .deleteStorage: return "Delete Storage"
             }
         }
     }
 
     let settingsFieldsBySection: [[SettingsFields]] = [
         [.iosAppVersion, .goBackendVersion],
-        [.viewLog]
+        [.viewLog],
+        [.getStorage, .deleteStorage]
     ]
 
     let tunnelsManager: TunnelsManager?
@@ -82,33 +87,43 @@ class SettingsTableViewController: UITableViewController {
         dismiss(animated: true, completion: nil)
     }
 
-    func exportConfigurationsAsZipFile(sourceView: UIView) {
-        PrivateDataConfirmation.confirmAccess(to: tr("iosExportPrivateData")) { [weak self] in
-            guard let self = self else { return }
-            guard let tunnelsManager = self.tunnelsManager else { return }
-            guard let destinationDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else { return }
+    func presentLogView() {
+        let logVC = LogViewController()
+        navigationController?.pushViewController(logVC, animated: true)
+    }
 
-            let destinationURL = destinationDir.appendingPathComponent("wireguard-export.zip")
-            _ = FileManager.deleteFile(at: destinationURL)
-
-            let count = tunnelsManager.numberOfTunnels()
-            let tunnelConfigurations = (0 ..< count).compactMap { tunnelsManager.tunnel(at: $0).tunnelConfiguration }
-            ZipExporter.exportConfigFiles(tunnelConfigurations: tunnelConfigurations, to: destinationURL) { [weak self] error in
-                if let error = error {
-                    ErrorPresenter.showErrorAlert(error: error, from: self)
-                    return
+    func createTunnelsManager() async throws -> TunnelsManager {
+        return try await withCheckedThrowingContinuation { continuation in
+            TunnelsManager.create { result in
+                switch result {
+                case .success(let tunnelsManager):
+                    continuation.resume(returning: tunnelsManager)
+                case .failure(let error):
+                    continuation.resume(throwing: error)
                 }
-
-                let fileExportVC = UIDocumentPickerViewController(url: destinationURL, in: .exportToService)
-                self?.present(fileExportVC, animated: true, completion: nil)
             }
         }
     }
 
-    func presentLogView() {
-        let logVC = LogViewController()
-        navigationController?.pushViewController(logVC, animated: true)
+    func getStorageAction() async {
+        print(SharedStorage.shared.getAll())
 
+        do {
+            let tunnelsManager = try await createTunnelsManager()
+            let tunnels = tunnelsManager.allTunnels
+
+            print(tunnels)
+        }
+        catch
+        {
+
+        }
+
+    }
+
+    func deleteStorageAction() {
+        print(SharedStorage.shared.clearAll())
+        print("Deleted storage")
     }
 }
 
@@ -127,6 +142,8 @@ extension SettingsTableViewController {
             return tr("settingsSectionTitleAbout")
         case 1:
             return tr("settingsSectionTitleTunnelLog")
+        case 2:
+            return "Development Options"
         default:
             return nil
         }
@@ -153,6 +170,22 @@ extension SettingsTableViewController {
             cell.buttonText = field.localizedUIString
             cell.onTapped = { [weak self] in
                 self?.presentLogView()
+            }
+            return cell
+        } else if field == .getStorage {
+            let cell: ButtonCell = tableView.dequeueReusableCell(for: indexPath)
+            cell.buttonText = field.localizedUIString
+            cell.onTapped = { [weak self] in
+                Task {
+                    await self?.getStorageAction()
+                }
+            }
+            return cell
+        } else if field == .deleteStorage {
+            let cell: ButtonCell = tableView.dequeueReusableCell(for: indexPath)
+            cell.buttonText = field.localizedUIString
+            cell.onTapped = { [weak self] in
+                self?.deleteStorageAction()
             }
             return cell
         }
