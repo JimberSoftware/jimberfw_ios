@@ -1,9 +1,9 @@
 import Foundation
 
-func createDaemon(userId: Int, company: String, daemonData: CreateDaemonApiRequest) async -> Daemon? {
+func createDaemon(userId: Int, company: String, daemonData: CreateDaemonApiRequest) async throws -> Daemon {
     let cookies = getCookieString()
 
-    return await withCheckedContinuation { continuation in
+    return try await withCheckedThrowingContinuation { continuation in
         ApiClient.apiService.createDaemon(userId: userId, company: company, data: daemonData, cookies: cookies) { result in
             switch result {
             case .success(let response):
@@ -15,12 +15,14 @@ func createDaemon(userId: Int, company: String, daemonData: CreateDaemonApiReque
                 )
                 continuation.resume(returning: daemon)
 
-            case .failure:
-                continuation.resume(returning: nil)
+            case .failure(let error):
+                continuation.resume(throwing: error)
             }
         }
     }
 }
+
+
 
 func deleteDaemon(daemonId: Int, company: String, sk: String) async -> Result<DeletedDaemon, Error> {
     let timestampInSeconds = Int(Date().timeIntervalSince1970)

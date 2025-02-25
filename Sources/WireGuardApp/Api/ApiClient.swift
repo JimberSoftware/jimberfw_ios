@@ -84,14 +84,14 @@ class AuthInterceptor: RequestInterceptor {
 
 // API Service for Retrofit-like requests
 protocol ApiService {
-    func getUserAuthentication(type: String, data: AuthenticationApiRequest, completion: @escaping (Result<UserAuthenticationApiResult, AFError>) -> Void)
-    func createDaemon(userId: Int, company: String, data: CreateDaemonApiRequest, cookies: String, completion: @escaping (Result<CreateDaemonApiResult, AFError>) -> Void)
-    func deleteDaemon(daemonId: Int, company: String, authorization: String, completion: @escaping (Result<DeleteDaemonApiResult, AFError>) -> Void)
-    func sendVerificationEmail(data: VerificationCodeApiRequest, completion: @escaping (Result<Bool, AFError>) -> Void)
-    func verifyEmailWithToken(data: AuthenticationWithVerificationCodeApiRequest, completion: @escaping (Result<UserAuthenticationApiResult, AFError>) -> Void)
-    func refreshToken(cookies: String, completion: @escaping (Result<RefreshTokenApiResult, AFError>) -> Void)
-    func logout(cookies: String, completion: @escaping (Result<Bool, AFError>) -> Void)
-    func getCloudControllerInformation(daemonId: Int, company: String, authorization: String, completion: @escaping (Result<NetworkControllerApiResult, AFError>) -> Void)
+    func getUserAuthentication(type: String, data: AuthenticationApiRequest, completion: @escaping (Result<UserAuthenticationApiResult, Error>) -> Void)
+    func createDaemon(userId: Int, company: String, data: CreateDaemonApiRequest, cookies: String, completion: @escaping (Result<CreateDaemonApiResult, Error>) -> Void)
+    func deleteDaemon(daemonId: Int, company: String, authorization: String, completion: @escaping (Result<DeleteDaemonApiResult, Error>) -> Void)
+    func sendVerificationEmail(data: VerificationCodeApiRequest, completion: @escaping (Result<Bool, Error>) -> Void)
+    func verifyEmailWithToken(data: AuthenticationWithVerificationCodeApiRequest, completion: @escaping (Result<UserAuthenticationApiResult, Error>) -> Void)
+    func refreshToken(cookies: String, completion: @escaping (Result<RefreshTokenApiResult, Error>) -> Void)
+    func logout(cookies: String, completion: @escaping (Result<Bool, Error>) -> Void)
+    func getCloudControllerInformation(daemonId: Int, company: String, authorization: String, completion: @escaping (Result<NetworkControllerApiResult, Error>) -> Void)
 }
 
 // ApiClient class
@@ -113,70 +113,224 @@ class ApiServiceImpl: ApiService {
         session = Session(interceptor: interceptor, eventMonitors: [logger])
     }
 
-    func getUserAuthentication(type: String, data: AuthenticationApiRequest, completion: @escaping (Result<UserAuthenticationApiResult, AFError>) -> Void) {
-        session.request("\(ApiClient.BASE_URL)auth/verify-\(type)-id", method: .post, parameters: data, encoder: JSONParameterEncoder.default)
-            .responseDecodable(of: UserAuthenticationApiResult.self) { response in
-                switch response.result {
-                case .success(var apiResult):
-                    if let headers = response.response?.allHeaderFields as? [String: String],
-                       let setCookie = headers["Set-Cookie"] {
-                        apiResult.authCookie = setCookie
-                    }
-                    completion(.success(apiResult))
+    func getUserAuthentication(type: String, data: AuthenticationApiRequest, completion: @escaping (Result<UserAuthenticationApiResult, Error>) -> Void) {
+        let url = "\(ApiClient.BASE_URL)auth/verify-\(type)-id"
 
-                case .failure(let error):
-                    completion(.failure(error))
-                }
-            }
+        session.request(url, method: .post, parameters: data, encoder: JSONParameterEncoder.default)
+               .validate()
+               .responseData { response in
+                   switch response.result {
+                   case .success(let data):
+                       do {
+                           var result = try JSONDecoder().decode(UserAuthenticationApiResult.self, from: data)
+                           if let headers = response.response?.allHeaderFields as? [String: String],
+                              let setCookie = headers["Set-Cookie"] {
+                               result.authCookie = setCookie
+                           }
+                           completion(.success(result))
+                       } catch {
+                           completion(.failure(error))
+                       }
+
+                   case .failure(let error):
+                       if let data = response.data,
+                          let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                          let message = json["message"] as? String {
+                           completion(.failure(NSError(domain: "", code: response.response?.statusCode ?? 0, userInfo: [NSLocalizedDescriptionKey: message])))
+                       } else {
+                           completion(.failure(error))
+                       }
+                   }
+               }
     }
 
 
-    func createDaemon(userId: Int, company: String, data: CreateDaemonApiRequest, cookies: String, completion: @escaping (Result<CreateDaemonApiResult, AFError>) -> Void) {
-        session.request("\(ApiClient.BASE_URL)companies/\(company)/daemons/user/\(userId)", method: .post, parameters: data, encoder: JSONParameterEncoder.default, headers: ["Cookie": cookies])
-            .responseDecodable(of: CreateDaemonApiResult.self) { response in
-                completion(response.result)
-            }
+    func createDaemon(userId: Int,company: String, data: CreateDaemonApiRequest, cookies: String, completion: @escaping (Result<CreateDaemonApiResult, Error>) -> Void) {
+        let url = "\(ApiClient.BASE_URL)companies/\(company)/daemons/user/\(userId)"
+
+        session.request(url, method: .post, parameters: data, encoder: JSONParameterEncoder.default, headers: ["Cookie": cookies])
+               .validate()
+               .responseData { response in
+                   switch response.result {
+                   case .success(let data):
+                       do {
+                           let result = try JSONDecoder().decode(CreateDaemonApiResult.self, from: data)
+                           completion(.success(result))
+                       } catch {
+                           completion(.failure(error))
+                       }
+
+                   case .failure(let error):
+                       if let data = response.data,
+                          let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                          let message = json["message"] as? String {
+                           completion(.failure(NSError(domain: "", code: response.response?.statusCode ?? 0, userInfo: [NSLocalizedDescriptionKey: message])))
+                       } else {
+                           completion(.failure(error))
+                       }
+                   }
+               }
     }
 
-    func deleteDaemon(daemonId: Int, company: String, authorization: String, completion: @escaping (Result<DeleteDaemonApiResult, AFError>) -> Void) {
-        session.request("\(ApiClient.BASE_URL)companies/\(company)/daemons-mobile/\(daemonId)", method: .delete, headers: ["Authorization": authorization])
-            .responseDecodable(of: DeleteDaemonApiResult.self) { response in
-                completion(response.result)
-            }
+
+    func deleteDaemon(daemonId: Int, company: String, authorization: String, completion: @escaping (Result<DeleteDaemonApiResult, Error>) -> Void) {
+        let url = "\(ApiClient.BASE_URL)companies/\(company)/daemons-mobile/\(daemonId)"
+
+        session.request(url, method: .delete, headers: ["Authorization": authorization])
+               .validate()
+               .responseData { response in
+                   switch response.result {
+                   case .success(let data):
+                       do {
+                           let result = try JSONDecoder().decode(DeleteDaemonApiResult.self, from: data)
+                           completion(.success(result))
+                       } catch {
+                           completion(.failure(error))
+                       }
+
+                   case .failure(let error):
+                       if let data = response.data,
+                          let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                          let message = json["message"] as? String {
+                           completion(.failure(NSError(domain: "", code: response.response?.statusCode ?? 0, userInfo: [NSLocalizedDescriptionKey: message])))
+                       } else {
+                           completion(.failure(error))
+                       }
+                   }
+               }
     }
 
-    func sendVerificationEmail(data: VerificationCodeApiRequest, completion: @escaping (Result<Bool, AFError>) -> Void) {
-        session.request("\(ApiClient.BASE_URL)auth/send-user-token-code", method: .post, parameters: data, encoder: JSONParameterEncoder.default)
-            .responseDecodable(of: Bool.self) { response in
-                completion(response.result)
-            }
+    func sendVerificationEmail(data: VerificationCodeApiRequest, completion: @escaping (Result<Bool, Error>) -> Void) {
+        let url = "\(ApiClient.BASE_URL)auth/send-user-token-code"
+
+        session.request(url, method: .post, parameters: data, encoder: JSONParameterEncoder.default)
+               .validate()
+               .responseData { response in
+                   switch response.result {
+                   case .success(let data):
+                       do {
+                           let result = try JSONDecoder().decode(Bool.self, from: data)
+                           completion(.success(result))
+                       } catch {
+                           completion(.failure(error))
+                       }
+
+                   case .failure(let error):
+                       if let data = response.data,
+                          let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                          let message = json["message"] as? String {
+                           completion(.failure(NSError(domain: "", code: response.response?.statusCode ?? 0, userInfo: [NSLocalizedDescriptionKey: message])))
+                       } else {
+                           completion(.failure(error))
+                       }
+                   }
+               }
     }
 
-    func verifyEmailWithToken(data: AuthenticationWithVerificationCodeApiRequest, completion: @escaping (Result<UserAuthenticationApiResult, AFError>) -> Void) {
-        session.request("\(ApiClient.BASE_URL)auth/verify-email-token", method: .post, parameters: data, encoder: JSONParameterEncoder.default)
-            .responseDecodable(of: UserAuthenticationApiResult.self) { response in
-                completion(response.result)
-            }
+    func verifyEmailWithToken(data: AuthenticationWithVerificationCodeApiRequest, completion: @escaping (Result<UserAuthenticationApiResult, Error>) -> Void) {
+        let url = "\(ApiClient.BASE_URL)auth/verify-email-token"
+
+        session.request(url, method: .post, parameters: data, encoder: JSONParameterEncoder.default)
+               .validate()
+               .responseData { response in
+                   switch response.result {
+                   case .success(let data):
+                       do {
+                           let result = try JSONDecoder().decode(UserAuthenticationApiResult.self, from: data)
+                           completion(.success(result))
+                       } catch {
+                           completion(.failure(error))
+                       }
+
+                   case .failure(let error):
+                       if let data = response.data,
+                          let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                          let message = json["message"] as? String {
+                           completion(.failure(NSError(domain: "", code: response.response?.statusCode ?? 0, userInfo: [NSLocalizedDescriptionKey: message])))
+                       } else {
+                           completion(.failure(error))
+                       }
+                   }
+               }
     }
 
-    func refreshToken(cookies: String, completion: @escaping (Result<RefreshTokenApiResult, AFError>) -> Void) {
-        session.request("\(ApiClient.BASE_URL)auth/refresh", method: .get, headers: ["Cookie": cookies])
-            .responseDecodable(of: RefreshTokenApiResult.self) { response in
-                completion(response.result)
-            }
+
+    func refreshToken(cookies: String, completion: @escaping (Result<RefreshTokenApiResult, Error>) -> Void) {
+        let url = "\(ApiClient.BASE_URL)auth/refresh"
+
+        session.request(url, method: .get, headers: ["Cookie": cookies])
+               .validate()
+               .responseData { response in
+                   switch response.result {
+                   case .success(let data):
+                       do {
+                           let result = try JSONDecoder().decode(RefreshTokenApiResult.self, from: data)
+                           completion(.success(result))
+                       } catch {
+                           completion(.failure(error))
+                       }
+                   case .failure(let error):
+                       if let data = response.data,
+                          let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                          let message = json["message"] as? String {
+                           completion(.failure(NSError(domain: "", code: response.response?.statusCode ?? 0, userInfo: [NSLocalizedDescriptionKey: message])))
+                       } else {
+                           completion(.failure(error))
+                       }
+                   }
+               }
     }
 
-    func logout(cookies: String, completion: @escaping (Result<Bool, AFError>) -> Void) {
-        session.request("\(ApiClient.BASE_URL)auth/logout", method: .post, headers: ["Cookie": cookies])
-            .responseDecodable(of: Bool.self) { response in
-                completion(response.result)
-            }
+    func logout(cookies: String, completion: @escaping (Result<Bool, Error>) -> Void) {
+        let url = "\(ApiClient.BASE_URL)auth/logout"
+
+        session.request(url, method: .post, headers: ["Cookie": cookies])
+               .validate()
+               .responseData { response in
+                   switch response.result {
+                   case .success(let data):
+                       do {
+                           let result = try JSONDecoder().decode(Bool.self, from: data)
+                           completion(.success(result))
+                       } catch {
+                           completion(.failure(error))
+                       }
+                   case .failure(let error):
+                       if let data = response.data,
+                          let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                          let message = json["message"] as? String {
+                           completion(.failure(NSError(domain: "", code: response.response?.statusCode ?? 0, userInfo: [NSLocalizedDescriptionKey: message])))
+                       } else {
+                           completion(.failure(error))
+                       }
+                   }
+               }
     }
 
-    func getCloudControllerInformation(daemonId: Int, company: String, authorization: String, completion: @escaping (Result<NetworkControllerApiResult, AFError>) -> Void) {
-        session.request("\(ApiClient.BASE_URL)companies/\(company)/daemons-mobile/\(daemonId)/nc-information", method: .get, headers: ["Authorization": authorization])
-            .responseDecodable(of: NetworkControllerApiResult.self) { response in
-                completion(response.result)
-            }
+    func getCloudControllerInformation(daemonId: Int, company: String, authorization: String, completion: @escaping (Result<NetworkControllerApiResult, Error>) -> Void) {
+        let url = "\(ApiClient.BASE_URL)companies/\(company)/daemons-mobile/\(daemonId)/nc-information"
+
+        session.request(url, method: .get, headers: ["Authorization": authorization])
+               .validate()
+               .responseData { response in
+                   switch response.result {
+                   case .success(let data):
+                       do {
+                           let result = try JSONDecoder().decode(NetworkControllerApiResult.self, from: data)
+                           completion(.success(result))
+                       } catch {
+                           completion(.failure(error))
+                       }
+                   case .failure(let error):
+                       if let data = response.data,
+                          let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                          let message = json["message"] as? String {
+                           completion(.failure(NSError(domain: "", code: response.response?.statusCode ?? 0, userInfo: [NSLocalizedDescriptionKey: message])))
+                       } else {
+                           completion(.failure(error))
+                       }
+                   }
+               }
     }
+
 }

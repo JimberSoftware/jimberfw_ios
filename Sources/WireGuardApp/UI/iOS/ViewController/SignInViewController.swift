@@ -198,7 +198,11 @@ class SignInViewController: BaseViewController {
                         await self.importAndNavigate(configurationString: q.configurationString, companyName: companyName, daemonId: q.daemonId)
                     }
                     catch(let error){
-
+                        DispatchQueue.main.async {
+                               let alert = UIAlertController(title: "Error", message: error.localizedDescription, preferredStyle: .alert)
+                               alert.addAction(UIAlertAction(title: "OK", style: .default))
+                               UIApplication.shared.windows.first?.rootViewController?.present(alert, animated: true)
+                           }
                     }
 
 
