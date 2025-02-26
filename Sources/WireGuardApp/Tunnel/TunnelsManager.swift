@@ -73,6 +73,7 @@ class TunnelsManager {
             var refs: Set<Data> = []
             var tunnelNames: Set<String> = []
             for (index, tunnelManager) in tunnelManagers.enumerated().reversed() {
+
                 if let tunnelName = tunnelManager.localizedDescription {
                     tunnelNames.insert(tunnelName)
                 }
@@ -80,18 +81,16 @@ class TunnelsManager {
                 if proto.migrateConfigurationIfNeeded(called: tunnelManager.localizedDescription ?? "unknown") {
                     tunnelManager.saveToPreferences { _ in }
                 }
-                #if os(iOS)
+
+
+                let userId = 69;
+                let daemonId = 69;
+
+                proto.setUserId(userId)
+                proto.setDaemonId(daemonId)
+
                 let passwordRef = proto.verifyConfigurationReference() ? proto.passwordReference : nil
-                #elseif os(macOS)
-                let passwordRef: Data?
-                if proto.providerConfiguration?["UID"] as? uid_t == getuid() {
-                    passwordRef = proto.verifyConfigurationReference() ? proto.passwordReference : nil
-                } else {
-                    passwordRef = proto.passwordReference // To handle multiple users in macOS, we skip verifying
-                }
-                #else
-                #error("Unimplemented")
-                #endif
+
                 if let ref = passwordRef {
                     refs.insert(ref)
                 } else {
@@ -101,9 +100,8 @@ class TunnelsManager {
                 }
             }
             Keychain.deleteReferences(except: refs)
-            #if os(iOS)
             RecentTunnelsTracker.cleanupTunnels(except: tunnelNames)
-            #endif
+
             completionHandler(.success(TunnelsManager(tunnelProviders: tunnelManagers)))
         }
     }
@@ -132,6 +130,7 @@ class TunnelsManager {
                             loadedTunnelProvider.saveToPreferences { _ in }
                         }
                     }
+
                     let tunnel = TunnelContainer(tunnel: loadedTunnelProvider)
                     self.tunnels.append(tunnel)
                     self.tunnels.sort { TunnelsManager.tunnelNameIsLessThan($0.name, $1.name) }
@@ -154,6 +153,7 @@ class TunnelsManager {
         }
 
         let tunnelProviderManager = NETunnelProviderManager()
+
         tunnelProviderManager.setTunnelConfiguration(tunnelConfiguration)
         tunnelProviderManager.isEnabled = true
 
@@ -171,7 +171,6 @@ class TunnelsManager {
 
             guard let self = self else { return }
 
-            #if os(iOS)
             // HACK: In iOS, adding a tunnel causes deactivation of any currently active tunnel.
             // This is an ugly hack to reactivate the tunnel that has been deactivated like that.
             if let activeTunnel = activeTunnel {
@@ -182,7 +181,6 @@ class TunnelsManager {
                     activeTunnel.status = .restarting
                 }
             }
-            #endif
 
             let tunnel = TunnelContainer(tunnel: tunnelProviderManager)
 
@@ -590,6 +588,7 @@ private func lastErrorTextFromNetworkExtension(for tunnel: TunnelContainer) -> (
 
 class TunnelContainer: NSObject {
     @objc dynamic var name: String
+
     @objc dynamic var status: TunnelStatus
 
     @objc dynamic var isActivateOnDemandEnabled: Bool
@@ -636,14 +635,9 @@ class TunnelContainer: NSObject {
         return ActivateOnDemandOption(from: tunnelProvider)
     }
 
-    #if os(macOS)
-    var isTunnelAvailableToUser: Bool {
-        return (tunnelProvider.protocolConfiguration as? NETunnelProviderProtocol)?.providerConfiguration?["UID"] as? uid_t == getuid()
-    }
-    #endif
-
     init(tunnel: NETunnelProviderManager) {
         name = tunnel.localizedDescription ?? "Unnamed"
+
         let status = TunnelStatus(from: tunnel.connection.status)
         self.status = status
         isActivateOnDemandEnabled = tunnel.isOnDemandEnabled && tunnel.isEnabled
@@ -772,5 +766,32 @@ extension NETunnelProviderManager {
 
     func isEquivalentTo(_ tunnel: TunnelContainer) -> Bool {
         return localizedDescription == tunnel.name && tunnelConfiguration == tunnel.tunnelConfiguration
+    }
+}
+
+extension NETunnelProviderProtocol {
+    private struct AssociatedKeys {
+        static var userId = "userId"
+        static var daemonId = "daemonId"
+    }
+
+    // Method to set custom metadata (like userId)
+    func setUserId(_ userId: Int) {
+        objc_setAssociatedObject(self, &AssociatedKeys.userId, userId, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+    }
+
+    // Method to get custom metadata (like userId)
+    func getUserId() -> Int? {
+        return objc_getAssociatedObject(self, &AssociatedKeys.userId) as? Int
+    }
+
+    // Method to set custom metadata (like userId)
+    func setDaemonId(_ daemonId: Int) {
+        objc_setAssociatedObject(self, &AssociatedKeys.daemonId, daemonId, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+    }
+
+    // Method to get custom metadata (like userId)
+    func getDaemonId() -> Int? {
+        return objc_getAssociatedObject(self, &AssociatedKeys.daemonId) as? Int
     }
 }

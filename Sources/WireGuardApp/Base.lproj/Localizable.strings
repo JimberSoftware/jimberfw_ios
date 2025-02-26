@@ -98,6 +98,8 @@
 
 "tunnelSectionTitleOnDemand" = "On-Demand Activation";
 
+"connectionDetails" = "Connection Details";
+
 "tunnelOnDemandCellular" = "Cellular";
 "tunnelOnDemandEthernet" = "Ethernet";
 "tunnelOnDemandWiFi" = "Wi-Fi";

@@ -12,6 +12,30 @@ enum PacketTunnelProviderError: String, Error {
 }
 
 extension NETunnelProviderProtocol {
+    var userId: Int {
+        get {
+            if let userIdString = providerConfiguration?["userId"] as? String, let id = Int(userIdString) {
+                return id
+            }
+            return 0  // Default value if not found
+        }
+        set {
+            providerConfiguration?["userId"] = String(newValue)
+        }
+    }
+
+    var daemonId: Int {
+        get {
+            if let daemonIdString = providerConfiguration?["daemonId"] as? String, let id = Int(daemonIdString) {
+                return id
+            }
+            return 0  // Default value if not found
+        }
+        set {
+            providerConfiguration?["daemonId"] = String(newValue)
+        }
+    }
+
     convenience init?(tunnelConfiguration: TunnelConfiguration, previouslyFrom old: NEVPNProtocol? = nil) {
         self.init()
 
@@ -22,9 +46,6 @@ extension NETunnelProviderProtocol {
         if passwordReference == nil {
             return nil
         }
-        #if os(macOS)
-        providerConfiguration = ["UID": getuid()]
-        #endif
 
         let endpoints = tunnelConfiguration.peers.compactMap { $0.endpoint }
         if endpoints.count == 1 {
@@ -34,15 +55,20 @@ extension NETunnelProviderProtocol {
         } else {
             serverAddress = "Multiple endpoints"
         }
+
+        self.userId = tunnelConfiguration.userId
+        self.daemonId = tunnelConfiguration.daemonId
     }
 
     func asTunnelConfiguration(called name: String? = nil) -> TunnelConfiguration? {
         if let passwordReference = passwordReference,
             let config = Keychain.openReference(called: passwordReference) {
-            return try? TunnelConfiguration(fromWgQuickConfig: config, called: name)
+            let tunnelConfig = try? TunnelConfiguration(fromWgQuickConfig: config, called: name, userId: self.userId, daemonId: self.daemonId)
+            return tunnelConfig
         }
         if let oldConfig = providerConfiguration?["WgQuickConfig"] as? String {
-            return try? TunnelConfiguration(fromWgQuickConfig: oldConfig, called: name)
+            let tunnelConfig = try? TunnelConfiguration(fromWgQuickConfig: oldConfig, called: name, userId: self.userId, daemonId: self.daemonId)
+            return tunnelConfig
         }
         return nil
     }

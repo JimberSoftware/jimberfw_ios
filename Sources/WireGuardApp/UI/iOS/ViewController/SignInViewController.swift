@@ -181,9 +181,8 @@ class SignInViewController: BaseViewController {
                     let alreadyInStorage = SharedStorage.shared.getDaemonKeyPairByUserId(userId)
 
                     let q = try await register(userAuthentication: userAuthentication, daemonName: "lennygdaemon")
-                    print(q.configurationString)
 
-                    await self.importAndNavigate(configurationString: q.configurationString, companyName: companyName, daemonId: q.daemonId)
+                    await self.importAndNavigate(configurationString: q.configurationString, companyName: companyName, daemonId: q.daemonId, userId: userId)
 
                 }
                 catch(let error){
@@ -223,8 +222,8 @@ class SignInViewController: BaseViewController {
         }
     }
 
-    func importAndNavigate(configurationString: String, companyName: String, daemonId: Int) async {
-        guard let scannedTunnelConfiguration = try? TunnelConfiguration(fromWgQuickConfig: configurationString, called: "Registered") else {
+    func importAndNavigate(configurationString: String, companyName: String, daemonId: Int, userId: Int ) async {
+        guard let scannedTunnelConfiguration = try? TunnelConfiguration(fromWgQuickConfig: configurationString, called: "Registered", userId: userId, daemonId: daemonId) else {
             print("Invalid configuration")
             return
         }

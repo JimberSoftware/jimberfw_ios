@@ -13,58 +13,46 @@ class TunnelImporter {
         var configs = [TunnelConfiguration?]()
         var lastFileImportErrorText: (title: String, message: String)?
         for url in urls {
-            if url.pathExtension.lowercased() == "zip" {
-                dispatchGroup.enter()
-                ZipImporter.importConfigFiles(from: url) { result in
-                    switch result {
-                    case .failure(let error):
-                        lastFileImportErrorText = error.alertText
-                    case .success(let configsInZip):
-                        configs.append(contentsOf: configsInZip)
-                    }
-                    dispatchGroup.leave()
-                }
-            } else { /* if it is not a zip, we assume it is a conf */
-                let fileName = url.lastPathComponent
-                let fileBaseName = url.deletingPathExtension().lastPathComponent.trimmingCharacters(in: .whitespacesAndNewlines)
-                dispatchGroup.enter()
-                DispatchQueue.global(qos: .userInitiated).async {
-                    let fileContents: String
-                    do {
-                        fileContents = try String(contentsOf: url)
-                    } catch let error {
-                        DispatchQueue.main.async {
-                            if let cocoaError = error as? CocoaError, cocoaError.isFileError {
-                                lastFileImportErrorText = (title: tr("alertCantOpenInputConfFileTitle"), message: error.localizedDescription)
-                            } else {
-                                lastFileImportErrorText = (title: tr("alertCantOpenInputConfFileTitle"), message: tr(format: "alertCantOpenInputConfFileMessage (%@)", fileName))
-                            }
-                            configs.append(nil)
-                            dispatchGroup.leave()
-                        }
-                        return
-                    }
-                    var parseError: Error?
-                    var tunnelConfiguration: TunnelConfiguration?
-                    do {
-                        tunnelConfiguration = try TunnelConfiguration(fromWgQuickConfig: fileContents, called: fileBaseName)
-                    } catch let error {
-                        parseError = error
-                    }
+            let fileName = url.lastPathComponent
+            let fileBaseName = url.deletingPathExtension().lastPathComponent.trimmingCharacters(in: .whitespacesAndNewlines)
+            dispatchGroup.enter()
+            DispatchQueue.global(qos: .userInitiated).async {
+                let fileContents: String
+                do {
+                    fileContents = try String(contentsOf: url)
+                } catch let error {
                     DispatchQueue.main.async {
-                        if parseError != nil {
-                            if let parseError = parseError as? WireGuardAppError {
-                                lastFileImportErrorText = parseError.alertText
-                            } else {
-                                lastFileImportErrorText = (title: tr("alertBadConfigImportTitle"), message: tr(format: "alertBadConfigImportMessage (%@)", fileName))
-                            }
+                        if let cocoaError = error as? CocoaError, cocoaError.isFileError {
+                            lastFileImportErrorText = (title: tr("alertCantOpenInputConfFileTitle"), message: error.localizedDescription)
+                        } else {
+                            lastFileImportErrorText = (title: tr("alertCantOpenInputConfFileTitle"), message: tr(format: "alertCantOpenInputConfFileMessage (%@)", fileName))
                         }
-                        configs.append(tunnelConfiguration)
+                        configs.append(nil)
                         dispatchGroup.leave()
                     }
+                    return
+                }
+                var parseError: Error?
+                var tunnelConfiguration: TunnelConfiguration?
+                do {
+                    tunnelConfiguration = try TunnelConfiguration(fromWgQuickConfig: fileContents, called: fileBaseName)
+                } catch let error {
+                    parseError = error
+                }
+                DispatchQueue.main.async {
+                    if parseError != nil {
+                        if let parseError = parseError as? WireGuardAppError {
+                            lastFileImportErrorText = parseError.alertText
+                        } else {
+                            lastFileImportErrorText = (title: tr("alertBadConfigImportTitle"), message: tr(format: "alertBadConfigImportMessage (%@)", fileName))
+                        }
+                    }
+                    configs.append(tunnelConfiguration)
+                    dispatchGroup.leave()
                 }
             }
         }
+
         dispatchGroup.notify(queue: .main) {
             tunnelsManager.addMultiple(tunnelConfigurations: configs.compactMap { $0 }) { numberSuccessful, lastAddError in
                 if !configs.isEmpty && numberSuccessful == configs.count {

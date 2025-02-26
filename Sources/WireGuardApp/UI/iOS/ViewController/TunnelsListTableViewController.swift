@@ -77,7 +77,6 @@ class TunnelsListTableViewController: UIViewController {
 
         centeredAddButton.onTapped = { [weak self] in
             guard let self = self else { return }
-            self.addButtonTapped(sender: self.centeredAddButton)
         }
 
         busyIndicator.startAnimating()
@@ -93,7 +92,6 @@ class TunnelsListTableViewController: UIViewController {
     func handleTableStateChange() {
         switch tableState {
         case .normal:
-            navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addButtonTapped(sender:)))
             navigationItem.leftBarButtonItem = UIBarButtonItem(title: tr("tunnelsListSettingsButtonTitle"), style: .plain, target: self, action: #selector(settingsButtonTapped(sender:)))
         case .rowSwiped:
             navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonTapped))
@@ -134,28 +132,6 @@ class TunnelsListTableViewController: UIViewController {
         }
     }
 
-    @objc func addButtonTapped(sender: AnyObject) {
-        guard tunnelsManager != nil else { return }
-
-        let alert = UIAlertController(title: "", message: tr("addTunnelMenuHeader"), preferredStyle: .actionSheet)
-
-        let scanQRCodeAction = UIAlertAction(title: tr("addTunnelMenuQRCode"), style: .default) { [weak self] _ in
-            self?.presentViewControllerForScanningQRCode()
-        }
-        alert.addAction(scanQRCodeAction)
-
-        let cancelAction = UIAlertAction(title: tr("actionCancel"), style: .cancel)
-        alert.addAction(cancelAction)
-
-        if let sender = sender as? UIBarButtonItem {
-            alert.popoverPresentationController?.barButtonItem = sender
-        } else if let sender = sender as? UIView {
-            alert.popoverPresentationController?.sourceView = sender
-            alert.popoverPresentationController?.sourceRect = sender.bounds
-        }
-        present(alert, animated: true, completion: nil)
-    }
-
     @objc func settingsButtonTapped(sender: UIBarButtonItem) {
         guard tunnelsManager != nil else { return }
 
@@ -170,21 +146,6 @@ class TunnelsListTableViewController: UIViewController {
         let editNC = UINavigationController(rootViewController: editVC)
         editNC.modalPresentationStyle = .fullScreen
         present(editNC, animated: true)
-    }
-
-    func presentViewControllerForFileImport() {
-        let documentTypes = ["com.wireguard.config.quick", String(kUTTypeText), String(kUTTypeZipArchive)]
-        let filePicker = UIDocumentPickerViewController(documentTypes: documentTypes, in: .import)
-        filePicker.delegate = self
-        present(filePicker, animated: true)
-    }
-
-    func presentViewControllerForScanningQRCode() {
-        let scanQRCodeVC = QRScanViewController()
-        scanQRCodeVC.delegate = self
-        let scanQRCodeNC = UINavigationController(rootViewController: scanQRCodeVC)
-        scanQRCodeNC.modalPresentationStyle = .fullScreen
-        present(scanQRCodeNC, animated: true)
     }
 
     @objc func selectButtonTapped() {
@@ -258,27 +219,6 @@ class TunnelsListTableViewController: UIViewController {
         }
         detailDisplayedTunnel = tunnel
         self.presentedViewController?.dismiss(animated: false, completion: nil)
-    }
-}
-
-extension TunnelsListTableViewController: UIDocumentPickerDelegate {
-    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
-        guard let tunnelsManager = tunnelsManager else { return }
-        TunnelImporter.importFromFile(urls: urls, into: tunnelsManager, sourceVC: self, errorPresenterType: ErrorPresenter.self)
-    }
-}
-
-extension TunnelsListTableViewController: QRScanViewControllerDelegate {
-    func addScannedQRCode(tunnelConfiguration: TunnelConfiguration, qrScanViewController: QRScanViewController,
-                          completionHandler: (() -> Void)?) {
-        tunnelsManager?.add(tunnelConfiguration: tunnelConfiguration) { result in
-            switch result {
-            case .failure(let error):
-                ErrorPresenter.showErrorAlert(error: error, from: qrScanViewController, onDismissal: completionHandler)
-            case .success:
-                completionHandler?()
-            }
-        }
     }
 }
 

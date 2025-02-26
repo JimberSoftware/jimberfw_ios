@@ -35,8 +35,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
-        mainVC?.importFromDisposableFile(url: url)
-
         // Handle Google Sign-In
         if GIDSignIn.sharedInstance.handle(url) {
             return true
