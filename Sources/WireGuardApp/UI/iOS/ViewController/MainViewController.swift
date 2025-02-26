@@ -80,7 +80,6 @@ class MainViewController: UISplitViewController {
         let userId = SharedStorage.shared.getCurrentUser()?.id
         if(userId == nil) {
             // TODO: got to sign in
-
             return;
         }
 

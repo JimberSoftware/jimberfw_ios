@@ -1,25 +1,5 @@
 import Foundation
 
-// Authentication
-enum AuthenticationError: Error {
-    case authenticationFailed
-}
-
-func authenticateUser(authToken: String, authType: AuthenticationType) async throws -> UserAuthentication {
-    let userAuthResult = await getUserAuthentication(idToken: authToken, authenticationType: authType)
-    if(userAuthResult == nil) {
-        throw AuthenticationError.authenticationFailed
-    }
-
-    return userAuthResult!;
-}
-
-// Register Daemon
-enum DaemonRegistrationError: Error {
-    case daemonCreationFailed
-    case networkControllerDataFetchFailed
-}
-
 func register(userAuthentication: UserAuthentication, daemonName: String) async throws -> NetworkIsolationDaemon {
     do {
         let ed25519Keys = generateEd25519KeyPair()
@@ -39,15 +19,12 @@ func register(userAuthentication: UserAuthentication, daemonName: String) async 
         let daemonPrivateKeyX25519 = wireguardConfigKeys!.base64EncodedSkCurveX25519
         let daemonPrivateKeyEd25519 = ed25519Keys.privateKey
 
-        let cloudControllerData = await getDaemonConnectionData(daemonId: daemonId, companyName: companyName, sk: daemonPrivateKeyEd25519)
-        if(cloudControllerData == nil) {
-            // TODO: error
-        }
+        let cloudControllerData = try await getDaemonConnectionData(daemonId: daemonId, companyName: companyName, sk: daemonPrivateKeyEd25519)
 
-        let routerPublicKeyX25519 = parseEdPublicKeyToCurveX25519(pk: cloudControllerData!.routerPublicKey)
-        let endpointAddress = cloudControllerData!.endpointAddress
-        let cloudIpAddress = cloudControllerData!.ipAddress
-        let allowedIps = cloudControllerData!.allowedIps
+        let routerPublicKeyX25519 = parseEdPublicKeyToCurveX25519(pk: cloudControllerData.routerPublicKey)
+        let endpointAddress = cloudControllerData.endpointAddress
+        let cloudIpAddress = cloudControllerData.ipAddress
+        let allowedIps = cloudControllerData.allowedIps
 
         // Save the Daemon KeyPair in shared storage
         let daemonKeyPair = DaemonKeyPair(daemonName: daemonName, daemonId: daemonId, userId: userId, companyName: companyName, baseEncodedPkEd25519: ed25519Keys.publicKey, baseEncodedSkEd25519: ed25519Keys.privateKey)

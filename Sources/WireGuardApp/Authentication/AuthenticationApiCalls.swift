@@ -1,7 +1,7 @@
 import Foundation
 import Combine
 
-func getUserAuthentication(idToken: String, authenticationType: AuthenticationType) async -> UserAuthentication? {
+func getUserAuthentication(idToken: String, authenticationType: AuthenticationType) async throws -> UserAuthentication {
     let type: String
     switch authenticationType {
     case .google:
@@ -12,7 +12,7 @@ func getUserAuthentication(idToken: String, authenticationType: AuthenticationTy
 
     let authRequest = AuthenticationApiRequest(idToken: idToken)
 
-    return await withCheckedContinuation { continuation in
+    return try await withCheckedThrowingContinuation { continuation in
         ApiClient.apiService.getUserAuthentication(type: type, data: authRequest) { result in
             switch result {
             case .success(let userAuthResult):
@@ -27,8 +27,7 @@ func getUserAuthentication(idToken: String, authenticationType: AuthenticationTy
                 continuation.resume(returning: userAuthentication)
 
             case .failure(let error):
-                print("Error: \(error)")
-                continuation.resume(returning: nil)
+                continuation.resume(throwing: error)
             }
         }
     }

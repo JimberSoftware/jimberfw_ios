@@ -168,45 +168,30 @@ class SignInViewController: BaseViewController {
                 return
             }
 
-            // Use a Task to handle async functions properly
             Task {
                 do {
-                    // Ensure idToken is non-nil before passing it
-                    guard let idToken = signInResult?.user.idToken?.tokenString else {
-                        print("Error: ID Token is missing.")
-                        return
-                    }
+                    let idToken = signInResult?.user.idToken?.tokenString
 
-                    // Await the result of the async function
-                    let userAuthentication = await getUserAuthentication(idToken: idToken, authenticationType: .google)
-                    // Handle the result of the authentication
+                    let userAuthentication = try await getUserAuthentication(idToken: idToken!, authenticationType: .google)
 
-                    if(userAuthentication == nil){
-                        //TODO: error
-                        return
-                    }
 
-                    do {
-                        let companyName = userAuthentication!.companyName
-                        let userId = userAuthentication!.userId
+                    let companyName = userAuthentication.companyName
+                    let userId = userAuthentication.userId
 
-                        let alreadyInStorage = SharedStorage.shared.getDaemonKeyPairByUserId(userId)
+                    let alreadyInStorage = SharedStorage.shared.getDaemonKeyPairByUserId(userId)
 
-                        let q = try await register(userAuthentication: userAuthentication!, daemonName: "lennygdaemon")
-                        print(q.configurationString)
+                    let q = try await register(userAuthentication: userAuthentication, daemonName: "lennygdaemon")
+                    print(q.configurationString)
 
-                        await self.importAndNavigate(configurationString: q.configurationString, companyName: companyName, daemonId: q.daemonId)
-                    }
-                    catch(let error){
+                    await self.importAndNavigate(configurationString: q.configurationString, companyName: companyName, daemonId: q.daemonId)
+
+                }
+                catch(let error){
                         DispatchQueue.main.async {
                                let alert = UIAlertController(title: "Error", message: error.localizedDescription, preferredStyle: .alert)
                                alert.addAction(UIAlertAction(title: "OK", style: .default))
                                UIApplication.shared.windows.first?.rootViewController?.present(alert, animated: true)
                            }
-                    }
-
-
-                        let name = "lennyGdaemon"
                     }
             }
         }
@@ -246,17 +231,13 @@ class SignInViewController: BaseViewController {
         scannedTunnelConfiguration.name = companyName
 
         do {
-            print("A")
             let tunnelsManager = try await createTunnelsManager()
-            print("B")
             try await addTunnel(tunnelsManager: tunnelsManager, configuration: scannedTunnelConfiguration)
-            print("Going to mainview")
 
             DispatchQueue.main.async {
                 let masterVC = TunnelsListTableViewController()
                 masterVC.setTunnelsManager(tunnelsManager: tunnelsManager)
 
-                // Navigate to the new screen
                 if let navigationController = self.navigationController {
                     navigationController.setViewControllers([masterVC], animated: true)
                 } else {
@@ -266,8 +247,6 @@ class SignInViewController: BaseViewController {
         } catch {
             print("Error: \(error)")
         }
-
-        print("DONE")
     }
     func acquireTokenInteractively() {
 

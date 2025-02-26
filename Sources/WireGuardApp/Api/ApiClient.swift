@@ -44,7 +44,7 @@ class CustomLogger: EventMonitor {
 
 // AuthInterceptor that handles token renewal
 class AuthInterceptor: RequestInterceptor {
-    private let excludedUrls: [String] = ["https://staging.jimber.io/api/v1/auth/refresh"]
+    private let excludedUrls: [String] = ["\(ApiClient.BASE_URL)/auth/refresh"]
 
     func intercept(_ request: URLRequest, for session: Session, completion: @escaping (Result<URLRequest, Error>) -> Void) {
         if excludedUrls.contains(where: { request.url?.absoluteString.starts(with: $0) == true }) {
@@ -70,8 +70,9 @@ class AuthInterceptor: RequestInterceptor {
     }
 
     private func renewJwt(completion: @escaping (String?) -> Void) {
-        // Call to refresh token
-        ApiClient.apiService.refreshToken(cookies: "cookie_string_here") { result in
+        let cookies = getCookieString()
+
+        ApiClient.apiService.refreshToken(cookies: cookies) { result in
             switch result {
             case .success(let response):
                 completion(response.accessToken)
@@ -136,6 +137,7 @@ class ApiServiceImpl: ApiService {
                        if let data = response.data,
                           let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
                           let message = json["message"] as? String {
+                           print(message)
                            completion(.failure(NSError(domain: "", code: response.response?.statusCode ?? 0, userInfo: [NSLocalizedDescriptionKey: message])))
                        } else {
                            completion(.failure(error))
@@ -164,6 +166,7 @@ class ApiServiceImpl: ApiService {
                        if let data = response.data,
                           let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
                           let message = json["message"] as? String {
+                           print(message)
                            completion(.failure(NSError(domain: "", code: response.response?.statusCode ?? 0, userInfo: [NSLocalizedDescriptionKey: message])))
                        } else {
                            completion(.failure(error))
@@ -192,6 +195,7 @@ class ApiServiceImpl: ApiService {
                        if let data = response.data,
                           let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
                           let message = json["message"] as? String {
+                           print(message)
                            completion(.failure(NSError(domain: "", code: response.response?.statusCode ?? 0, userInfo: [NSLocalizedDescriptionKey: message])))
                        } else {
                            completion(.failure(error))
@@ -219,6 +223,7 @@ class ApiServiceImpl: ApiService {
                        if let data = response.data,
                           let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
                           let message = json["message"] as? String {
+                           print(message)
                            completion(.failure(NSError(domain: "", code: response.response?.statusCode ?? 0, userInfo: [NSLocalizedDescriptionKey: message])))
                        } else {
                            completion(.failure(error))
@@ -246,6 +251,7 @@ class ApiServiceImpl: ApiService {
                        if let data = response.data,
                           let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
                           let message = json["message"] as? String {
+                           print(message)
                            completion(.failure(NSError(domain: "", code: response.response?.statusCode ?? 0, userInfo: [NSLocalizedDescriptionKey: message])))
                        } else {
                            completion(.failure(error))
@@ -273,6 +279,7 @@ class ApiServiceImpl: ApiService {
                        if let data = response.data,
                           let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
                           let message = json["message"] as? String {
+                           print(message)
                            completion(.failure(NSError(domain: "", code: response.response?.statusCode ?? 0, userInfo: [NSLocalizedDescriptionKey: message])))
                        } else {
                            completion(.failure(error))
@@ -299,6 +306,7 @@ class ApiServiceImpl: ApiService {
                        if let data = response.data,
                           let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
                           let message = json["message"] as? String {
+                           print(message)
                            completion(.failure(NSError(domain: "", code: response.response?.statusCode ?? 0, userInfo: [NSLocalizedDescriptionKey: message])))
                        } else {
                            completion(.failure(error))
@@ -325,6 +333,7 @@ class ApiServiceImpl: ApiService {
                        if let data = response.data,
                           let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
                           let message = json["message"] as? String {
+                           print(message)
                            completion(.failure(NSError(domain: "", code: response.response?.statusCode ?? 0, userInfo: [NSLocalizedDescriptionKey: message])))
                        } else {
                            completion(.failure(error))
