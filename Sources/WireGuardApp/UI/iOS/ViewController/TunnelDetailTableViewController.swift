@@ -10,7 +10,6 @@ class TunnelDetailTableViewController: UITableViewController {
         case interface
         case peer(index: Int, peer: TunnelViewModel.PeerData)
         case onDemand
-        case connectionDetails
         case delete
     }
 
@@ -28,10 +27,6 @@ class TunnelDetailTableViewController: UITableViewController {
     static let onDemandFields: [ActivateOnDemandViewModel.OnDemandField] = [
         .onDemand, .ssid
     ]
-    
-    static let connectionDetailsFields: [TunnelViewModel.ConnectionDetailsField] = [
-        .userId, .daemonId
-    ]
 
     let tunnelsManager: TunnelsManager
     let tunnel: TunnelContainer
@@ -41,7 +36,6 @@ class TunnelDetailTableViewController: UITableViewController {
     private var sections = [Section]()
     private var interfaceFieldIsVisible = [Bool]()
     private var peerFieldIsVisible = [[Bool]]()
-    private var connectionDetailsFieldIsVisible = [Bool]()
 
     private var statusObservationToken: AnyObject?
     private var onDemandObservationToken: AnyObject?
@@ -108,8 +102,6 @@ class TunnelDetailTableViewController: UITableViewController {
             let visiblePeerFields = peer.filterFieldsWithValueOrControl(peerFields: TunnelDetailTableViewController.peerFields)
             return TunnelDetailTableViewController.peerFields.map { visiblePeerFields.contains($0) }
         }
-        
-        connectionDetailsFieldIsVisible = [true, true];
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -294,8 +286,6 @@ extension TunnelDetailTableViewController {
             return peerFieldIsVisible[peerIndex].filter { $0 }.count
         case .onDemand:
             return onDemandViewModel.isWiFiInterfaceEnabled ? 2 : 1
-        case .connectionDetails:
-            return 2
         case .delete:
             return 1
         }
@@ -311,8 +301,6 @@ extension TunnelDetailTableViewController {
             return tr("tunnelSectionTitlePeer")
         case .onDemand:
             return tr("tunnelSectionTitleOnDemand")
-        case .connectionDetails:
-            return tr("connectionDetails")
         case .delete:
             return nil
         }
@@ -328,8 +316,6 @@ extension TunnelDetailTableViewController {
             return peerCell(for: tableView, at: indexPath, with: peer, peerIndex: index)
         case .onDemand:
             return onDemandCell(for: tableView, at: indexPath)
-        case .connectionDetails:
-            return connectionDetailsCell(for: tableView, at: indexPath)
         case .delete:
             return deleteConfigurationCell(for: tableView, at: indexPath)
         }
@@ -421,15 +407,6 @@ extension TunnelDetailTableViewController {
     private func interfaceCell(for tableView: UITableView, at indexPath: IndexPath) -> UITableViewCell {
         let visibleInterfaceFields = TunnelDetailTableViewController.interfaceFields.enumerated().filter { interfaceFieldIsVisible[$0.offset] }.map { $0.element }
         let field = visibleInterfaceFields[indexPath.row]
-        let cell: KeyValueCell = tableView.dequeueReusableCell(for: indexPath)
-        cell.key = field.localizedUIString
-        cell.value = tunnelViewModel.interfaceData[field]
-        return cell
-    }
-
-    private func connectionDetailsCell(for tableView: UITableView, at indexPath: IndexPath) -> UITableViewCell {
-        let visibleConnectionDetailsFields = TunnelDetailTableViewController.connectionDetailsFields.enumerated().filter { connectionDetailsFieldIsVisible[$0.offset] }.map { $0.element }
-        let field = visibleConnectionDetailsFields[indexPath.row]
         let cell: KeyValueCell = tableView.dequeueReusableCell(for: indexPath)
         cell.key = field.localizedUIString
         cell.value = tunnelViewModel.interfaceData[field]

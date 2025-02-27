@@ -209,14 +209,14 @@ class SignInViewController: BaseViewController {
         }
     }
 
-    func addTunnel(tunnelsManager: TunnelsManager, configuration: TunnelConfiguration) async throws {
+    func addTunnel(tunnelsManager: TunnelsManager, configuration: TunnelConfiguration) async throws -> TunnelContainer {
         return try await withCheckedThrowingContinuation { continuation in
             tunnelsManager.add(tunnelConfiguration: configuration) { result in
                 switch result {
-                case .success:
-                    continuation.resume()
+                case .success(let tunnelContainer):
+                    continuation.resume(returning: tunnelContainer)
                 case .failure(let error):
-                    continuation.resume(throwing: error)
+                    continuation.resume(throwing: error)  // Throw the error if it fails
                 }
             }
         }
@@ -231,7 +231,7 @@ class SignInViewController: BaseViewController {
 
         do {
             let tunnelsManager = try await createTunnelsManager()
-            try await addTunnel(tunnelsManager: tunnelsManager, configuration: scannedTunnelConfiguration)
+            let tunnel = try await addTunnel(tunnelsManager: tunnelsManager, configuration: scannedTunnelConfiguration)
 
             DispatchQueue.main.async {
                 let masterVC = TunnelsListTableViewController()

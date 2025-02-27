@@ -60,7 +60,6 @@ class TunnelsManager {
 //        return filteredTunnels
     }
 
-
     static func create(completionHandler: @escaping (Result<TunnelsManager, TunnelsManagerError>) -> Void) {
         NETunnelProviderManager.loadAllFromPreferences { managers, error in
             if let error = error {
@@ -81,13 +80,6 @@ class TunnelsManager {
                 if proto.migrateConfigurationIfNeeded(called: tunnelManager.localizedDescription ?? "unknown") {
                     tunnelManager.saveToPreferences { _ in }
                 }
-
-
-                let userId = 69;
-                let daemonId = 69;
-
-                proto.setUserId(userId)
-                proto.setDaemonId(daemonId)
 
                 let passwordRef = proto.verifyConfigurationReference() ? proto.passwordReference : nil
 
@@ -111,6 +103,17 @@ class TunnelsManager {
             guard let self = self else { return }
 
             let loadedTunnelProviders = managers ?? []
+
+            if let firstManager = loadedTunnelProviders.first,
+                let tunnelProtocol = firstManager.protocolConfiguration as? NETunnelProviderProtocol,
+                let savedDaemonId = tunnelProtocol.providerConfiguration?["daemonId"] as? Int {
+                 print("Calling reload, the first one has daemonId: \(savedDaemonId)")
+             } else {
+                 print("daemonId is nil or not properly loaded")
+             }
+
+
+
 
             for (index, currentTunnel) in self.tunnels.enumerated().reversed() {
                 if !loadedTunnelProviders.contains(where: { $0.isEquivalentTo(currentTunnel) }) {
@@ -157,11 +160,20 @@ class TunnelsManager {
         tunnelProviderManager.setTunnelConfiguration(tunnelConfiguration)
         tunnelProviderManager.isEnabled = true
 
+        if let tunnelProtocol = tunnelProviderManager.protocolConfiguration as? NETunnelProviderProtocol {
+            tunnelProtocol.providerConfiguration = ["daemonId": tunnelConfiguration.daemonId]
+            print("Set daemonId: \(tunnelConfiguration.daemonId)")
+        } else {
+            print("Failed to set daemonId in providerConfiguration")
+        }
+
         onDemandOption.apply(on: tunnelProviderManager)
 
         let activeTunnel = tunnels.first { $0.status == .active || $0.status == .activating }
 
         tunnelProviderManager.saveToPreferences { [weak self] error in
+            print("In the add savePreferences I have the daemonId \(tunnelProviderManager.tunnelConfiguration!.daemonId)")
+
             if let error = error {
                 wg_log(.error, message: "Add: Saving configuration failed: \(error)")
                 (tunnelProviderManager.protocolConfiguration as? NETunnelProviderProtocol)?.destroyConfigurationReference()
@@ -187,6 +199,12 @@ class TunnelsManager {
             self.tunnels.append(tunnel)
             self.tunnels.sort { TunnelsManager.tunnelNameIsLessThan($0.name, $1.name) }
             self.tunnelsListDelegate?.tunnelAdded(at: self.tunnels.firstIndex(of: tunnel)!)
+
+            if let savedDaemonId = (tunnelProviderManager.protocolConfiguration as? NETunnelProviderProtocol)?
+                       .providerConfiguration?["daemonId"] as? Int {
+                       print("Successfully saved daemonId: \(savedDaemonId)")
+                   }
+
             completionHandler(.success(tunnel))
         }
     }
@@ -766,32 +784,5 @@ extension NETunnelProviderManager {
 
     func isEquivalentTo(_ tunnel: TunnelContainer) -> Bool {
         return localizedDescription == tunnel.name && tunnelConfiguration == tunnel.tunnelConfiguration
-    }
-}
-
-extension NETunnelProviderProtocol {
-    private struct AssociatedKeys {
-        static var userId = "userId"
-        static var daemonId = "daemonId"
-    }
-
-    // Method to set custom metadata (like userId)
-    func setUserId(_ userId: Int) {
-        objc_setAssociatedObject(self, &AssociatedKeys.userId, userId, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-    }
-
-    // Method to get custom metadata (like userId)
-    func getUserId() -> Int? {
-        return objc_getAssociatedObject(self, &AssociatedKeys.userId) as? Int
-    }
-
-    // Method to set custom metadata (like userId)
-    func setDaemonId(_ daemonId: Int) {
-        objc_setAssociatedObject(self, &AssociatedKeys.daemonId, daemonId, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-    }
-
-    // Method to get custom metadata (like userId)
-    func getDaemonId() -> Int? {
-        return objc_getAssociatedObject(self, &AssociatedKeys.daemonId) as? Int
     }
 }

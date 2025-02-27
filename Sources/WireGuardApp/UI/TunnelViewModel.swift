@@ -488,7 +488,11 @@ class TunnelViewModel {
     private(set) var interfaceData: InterfaceData
     private(set) var peersData: [PeerData]
 
+    var currentTunnelConfiguration : TunnelConfiguration?
+
     init(tunnelConfiguration: TunnelConfiguration?) {
+        self.currentTunnelConfiguration = tunnelConfiguration;
+
         let interfaceData = InterfaceData()
         var peersData = [PeerData]()
         if let tunnelConfiguration = tunnelConfiguration {
@@ -566,7 +570,10 @@ class TunnelViewModel {
                 return .error(tr("alertInvalidPeerMessagePublicKeyDuplicated"))
             }
 
-            let tunnelConfiguration = TunnelConfiguration(name: interfaceConfiguration.0, interface: interfaceConfiguration.1, peers: peerConfigurations)
+            let userId = self.currentTunnelConfiguration?.userId
+            let daemonId = self.currentTunnelConfiguration?.daemonId
+
+            let tunnelConfiguration = TunnelConfiguration(name: interfaceConfiguration.0, userId: userId!, daemonId: daemonId!, interface: interfaceConfiguration.1, peers: peerConfigurations)
             return .saved(tunnelConfiguration)
         }
     }
