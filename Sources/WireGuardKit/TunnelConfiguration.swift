@@ -7,10 +7,10 @@ public final class TunnelConfiguration {
     public var name: String?
     public var interface: InterfaceConfiguration
     public let peers: [PeerConfiguration]
-    public let userId: Int
-    public let daemonId: Int
+    public let userId: Int?
+    public let daemonId: Int?
 
-    public init(name: String?, userId: Int, daemonId: Int, interface: InterfaceConfiguration, peers: [PeerConfiguration]) {
+    public init(name: String?, userId: Int?, daemonId: Int?, interface: InterfaceConfiguration, peers: [PeerConfiguration]) {
         self.interface = interface
         self.peers = peers
         self.name = name

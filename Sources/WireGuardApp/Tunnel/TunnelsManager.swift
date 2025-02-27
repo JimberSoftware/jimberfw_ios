@@ -161,10 +161,9 @@ class TunnelsManager {
         tunnelProviderManager.isEnabled = true
 
         if let tunnelProtocol = tunnelProviderManager.protocolConfiguration as? NETunnelProviderProtocol {
-            tunnelProtocol.providerConfiguration = ["daemonId": tunnelConfiguration.daemonId]
-            print("Set daemonId: \(tunnelConfiguration.daemonId)")
+            tunnelProtocol.providerConfiguration = ["daemonId": tunnelConfiguration.daemonId, "userId": tunnelConfiguration.userId]
         } else {
-            print("Failed to set daemonId in providerConfiguration")
+            print("Failed to set daemonId or userId in providerConfiguration")
         }
 
         onDemandOption.apply(on: tunnelProviderManager)
@@ -769,8 +768,29 @@ extension NETunnelProviderManager {
         if let cached = objc_getAssociatedObject(self, &NETunnelProviderManager.cachedConfigKey) as? TunnelConfiguration {
             return cached
         }
-        let config = (protocolConfiguration as? NETunnelProviderProtocol)?.asTunnelConfiguration(called: localizedDescription)
-        if config != nil {
+
+        var savedDaemonId: Int?
+        var savedUserId: Int?
+
+        if let tunnelProtocol = protocolConfiguration as? NETunnelProviderProtocol {
+            if let savedDaemonIdUnwrapped = tunnelProtocol.providerConfiguration?["daemonId"] as? Int {
+               savedDaemonId = savedDaemonIdUnwrapped
+            } else {
+                print("Failed to retrieve daemonId")
+            }
+
+            if let savedUserIdUnwrapped = tunnelProtocol.providerConfiguration?["userId"] as? Int {
+               savedUserId = savedUserIdUnwrapped
+            } else {
+                print("Failed to retrieve userId")
+            }
+
+        } else {
+            print("Failed to cast protocolConfiguration to NETunnelProviderProtocol A")
+        }
+
+        let config = (protocolConfiguration as? NETunnelProviderProtocol)?.asTunnelConfiguration(called: localizedDescription, userId: savedUserId, daemonId: savedDaemonId)
+        if let config = config {
             objc_setAssociatedObject(self, &NETunnelProviderManager.cachedConfigKey, config, objc_AssociationPolicy.OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
         return config
