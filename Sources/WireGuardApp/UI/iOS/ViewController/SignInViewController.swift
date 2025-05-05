@@ -16,6 +16,7 @@ class SignInViewController: BaseViewController {
     var currentAccount: MSALAccount?
 
     override func viewDidLoad() {
+        print("Loaded")
         super.viewDidLoad()
 
         GIDSignIn.sharedInstance.signOut()
@@ -87,7 +88,7 @@ class SignInViewController: BaseViewController {
            let authority = try MSALAADAuthority(url: authorityURL)
 
            let msalConfiguration = MSALPublicClientApplicationConfig(clientId: kClientID, redirectUri: nil, authority: authority)
-        MSALGlobalConfig.brokerAvailability = .none;
+            MSALGlobalConfig.brokerAvailability = .none;
            self.applicationContext = try MSALPublicClientApplication(configuration: msalConfiguration)
            self.initWebViewParams()
        }

@@ -464,11 +464,24 @@ extension TunnelDetailTableViewController {
                                        from: cell, presentingVC: self) { [weak self] in
                 guard let self = self else { return }
                 self.tunnelsManager.remove(tunnel: self.tunnel) { error in
-                    if error != nil {
-                        print("Error removing tunnel: \(String(describing: error))")
+                    if let error = error {
+                        print("Error removing tunnel: \(error)")
                         return
                     }
+
+                    DispatchQueue.main.async {
+                          let signInVC = SignInViewController()
+                          let nav = UINavigationController(rootViewController: signInVC)
+                          nav.modalPresentationStyle = .fullScreen
+
+                          if let window = UIApplication.shared.windows.first {
+                              window.rootViewController = nav
+                              window.makeKeyAndVisible()
+                          }
+                      }  
                 }
+
+
             }
         }
         return cell

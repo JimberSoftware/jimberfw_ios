@@ -24,13 +24,6 @@ class TunnelsListTableViewController: UIViewController {
         return tableView
     }()
 
-    let centeredAddButton: BorderedTextButton = {
-        let button = BorderedTextButton()
-        button.title = tr("tunnelsListCenteredAddTunnelButtonTitle")
-        button.isHidden = true
-        return button
-    }()
-
     let busyIndicator: UIActivityIndicatorView = {
         let busyIndicator: UIActivityIndicatorView
         busyIndicator = UIActivityIndicatorView(style: .medium)
@@ -67,17 +60,6 @@ class TunnelsListTableViewController: UIViewController {
             busyIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             busyIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         ])
-
-        view.addSubview(centeredAddButton)
-        centeredAddButton.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            centeredAddButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            centeredAddButton.centerYAnchor.constraint(equalTo: view.centerYAnchor)
-        ])
-
-        centeredAddButton.onTapped = { [weak self] in
-            guard let self = self else { return }
-        }
 
         busyIndicator.startAnimating()
     }
@@ -123,7 +105,6 @@ class TunnelsListTableViewController: UIViewController {
 
         busyIndicator.stopAnimating()
         tableView.reloadData()
-        centeredAddButton.isHidden = tunnelsManager.numberOfTunnels() > 0
     }
 
     override func viewWillAppear(_: Bool) {
@@ -308,7 +289,6 @@ extension TunnelsListTableViewController: UITableViewDelegate {
 extension TunnelsListTableViewController: TunnelsManagerListDelegate {
     func tunnelAdded(at index: Int) {
         tableView.insertRows(at: [IndexPath(row: index, section: 0)], with: .automatic)
-        centeredAddButton.isHidden = (tunnelsManager?.numberOfTunnels() ?? 0 > 0)
     }
 
     func tunnelModified(at index: Int) {
@@ -321,7 +301,6 @@ extension TunnelsListTableViewController: TunnelsManagerListDelegate {
 
     func tunnelRemoved(at index: Int, tunnel: TunnelContainer) {
         tableView.deleteRows(at: [IndexPath(row: index, section: 0)], with: .automatic)
-        centeredAddButton.isHidden = tunnelsManager?.numberOfTunnels() ?? 0 > 0
         if detailDisplayedTunnel == tunnel, let splitViewController = splitViewController {
             if splitViewController.isCollapsed != false {
                 (splitViewController.viewControllers[0] as? UINavigationController)?.popToRootViewController(animated: false)

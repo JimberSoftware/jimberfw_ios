@@ -79,11 +79,6 @@ class MainViewController: UISplitViewController {
             // TODO: got to sign in
             return;
         }
-
-
-
-
-
     }
 }
 
