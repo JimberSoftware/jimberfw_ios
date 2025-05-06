@@ -29,13 +29,20 @@ class TunnelsManager {
 
     init(tunnelProviders: [NETunnelProviderManager]) {
         tunnels = tunnelProviders.map { TunnelContainer(tunnel: $0) }.sorted { TunnelsManager.tunnelNameIsLessThan($0.name, $1.name) }
+
+        let userId = SharedStorage.shared.getCurrentUser()?.id
+        if let userId = userId {
+            tunnels = tunnelProviders
+                .map { TunnelContainer(tunnel: $0) }
+                .filter { $0.tunnelConfiguration?.userId == userId }
+                .sorted { TunnelsManager.tunnelNameIsLessThan($0.name, $1.name) }
+        }
+
+        print("these are all the tunnels")
+        print(tunnels)
+
         startObservingTunnelStatuses()
         startObservingTunnelConfigurations()
-    }
-
-    // Public method or computed property
-    var allTunnels: [TunnelContainer] {
-        return tunnels
     }
 
     func allTunnelsForUserId(userId: Int) -> [TunnelContainer] {
@@ -97,10 +104,24 @@ class TunnelsManager {
                     tunnelManagers.remove(at: index)
                 }
             }
+
             Keychain.deleteReferences(except: refs)
             RecentTunnelsTracker.cleanupTunnels(except: tunnelNames)
 
-            completionHandler(.success(TunnelsManager(tunnelProviders: tunnelManagers)))
+            let userId = SharedStorage.shared.getCurrentUser()?.id
+
+            print("this is the user id")
+            print(userId)
+
+            // Only mount tunnelmanagers related with their userId
+            let allTunnelManagers = tunnelManagers.filter{ $0.tunnelConfiguration?.userId == userId }
+
+            print("these are all the tunnel managers")
+            print(tunnelManagers)
+            
+            print("returning these tunnel managers")
+            print(allTunnelManagers)
+            completionHandler(.success(TunnelsManager(tunnelProviders: allTunnelManagers)))
         }
     }
 
@@ -109,17 +130,6 @@ class TunnelsManager {
             guard let self = self else { return }
 
             let loadedTunnelProviders = managers ?? []
-
-            if let firstManager = loadedTunnelProviders.first,
-                let tunnelProtocol = firstManager.protocolConfiguration as? NETunnelProviderProtocol,
-                let savedDaemonId = tunnelProtocol.providerConfiguration?["daemonId"] as? Int {
-                 print("Calling reload, the first one has daemonId: \(savedDaemonId)")
-             } else {
-                 print("daemonId is nil or not properly loaded")
-             }
-
-
-
 
             for (index, currentTunnel) in self.tunnels.enumerated().reversed() {
                 if !loadedTunnelProviders.contains(where: { $0.isEquivalentTo(currentTunnel) }) {
@@ -177,8 +187,6 @@ class TunnelsManager {
         let activeTunnel = tunnels.first { $0.status == .active || $0.status == .activating }
 
         tunnelProviderManager.saveToPreferences { [weak self] error in
-            print("In the add savePreferences I have the daemonId \(tunnelProviderManager.tunnelConfiguration!.daemonId)")
-
             if let error = error {
                 wg_log(.error, message: "Add: Saving configuration failed: \(error)")
                 (tunnelProviderManager.protocolConfiguration as? NETunnelProviderProtocol)?.destroyConfigurationReference()

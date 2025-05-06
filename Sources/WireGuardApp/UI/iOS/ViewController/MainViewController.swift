@@ -55,8 +55,6 @@ class MainViewController: UISplitViewController {
                 self.onTunnelsManagerReady?(tunnelsManager)
                 self.onTunnelsManagerReady = nil
 
-                print(tunnelsManager.allTunnels)
-
                 let userId = SharedStorage.shared.getCurrentUser()?.id;
                 if(userId == nil) {
                     print("No UserId found")

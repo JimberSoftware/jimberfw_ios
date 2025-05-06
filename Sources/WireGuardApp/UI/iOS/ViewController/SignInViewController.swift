@@ -155,56 +155,53 @@ class SignInViewController: BaseViewController {
        return button
     }
 
-    // Action methods for button taps
     @objc func googleSignInTapped() {
         GIDSignIn.sharedInstance.disconnect()
         GIDSignIn.sharedInstance.signOut()
 
         GIDSignIn.sharedInstance.signIn(
-               withPresenting: self,
-               hint: nil,
-               additionalScopes: nil
+            withPresenting: self,
+            hint: nil,
+            additionalScopes: nil
         ) { signInResult, error in
             if let error = error {
+                print("Google Sign-In error: \(error)")
+                self.showToast(message: "Sign-In failed: \(error.localizedDescription)")
+                return
+            }
+
+            guard let idToken = signInResult?.user.idToken?.tokenString else {
+                self.showToast(message: "No ID token received")
                 return
             }
 
             Task {
                 do {
-                    let idToken = signInResult?.user.idToken?.tokenString
-
-                    let userAuthentication = try await getUserAuthentication(idToken: idToken!, authenticationType: .google)
-
+                    let userAuthentication = try await getUserAuthentication(idToken: idToken, authenticationType: .google)
                     let companyName = userAuthentication.companyName
                     let userId = userAuthentication.userId
 
-                    let alreadyInStorage = SharedStorage.shared.getDaemonKeyPairByUserId(userId)
-                    print(alreadyInStorage)
-                    if(alreadyInStorage != nil) {
+                    if let _ = SharedStorage.shared.getDaemonKeyPairByUserId(userId) {
                         self.loadExistingDaemons()
-                        return;
+                        return
                     }
-
 
                     let result = try await register(userAuthentication: userAuthentication, daemonName: "lennygdaemon")
 
-                    await self.importAndNavigate(configurationString: result.configurationString, companyName: companyName, daemonId: result.daemonId, userId: userId)
-
+                    await self.importAndNavigate(
+                        configurationString: result.configurationString,
+                        companyName: companyName,
+                        daemonId: result.daemonId,
+                        userId: userId
+                    )
+                } catch {
+                    self.showToast(message: error.localizedDescription)
                 }
-                catch(let error){
-                        DispatchQueue.main.async {
-                               let alert = UIAlertController(title: "Error", message: error.localizedDescription, preferredStyle: .alert)
-                               alert.addAction(UIAlertAction(title: "OK", style: .default))
-                               UIApplication.shared.windows.first?.rootViewController?.present(alert, animated: true)
-                           }
-                    }
             }
         }
     }
 
     func loadExistingDaemons() {
-        print("GOING TO MAIN VIEW CONTROLLER")
-        
         let mainViewController = MainViewController()
         mainViewController.modalPresentationStyle = .fullScreen // Ensures the view controller covers the entire screen
         self.present(mainViewController, animated: true, completion: nil)

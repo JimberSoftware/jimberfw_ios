@@ -109,31 +109,20 @@ class SettingsTableViewController: UITableViewController {
     }
 
     func getStorageAction() async {
-        do {
-            let tunnelsManager = try await createTunnelsManager()
+        let allData = SharedStorage.shared.getAll()
 
-            let userId = SharedStorage.shared.getCurrentUser()?.id
-            let tunnels = tunnelsManager.allTunnelsForUserId(userId: userId!)
-
-            print(tunnels)
-
-            tunnels.forEach { tunnel in
-                print("Tunnel: \(tunnel.name), userId: \(tunnel.tunnelConfiguration?.userId)")
-                print("Tunnel: \(tunnel.name), daemonId: \(tunnel.tunnelConfiguration?.daemonId)")
-            }
-        } catch {
-            print("Error: \(error)")
-        }
-
+        UIPasteboard.general.string = String(describing: allData)
+        showToast(message: "Storage info copied to clipboard")
     }
 
     func deleteStorageAction() {
         SharedStorage.shared.clearAll()
-        print("Deleted storage")
 
         let signInVC = SignInViewController()
         signInVC.modalPresentationStyle = .fullScreen
-        self.present(signInVC, animated: true, completion: nil)
+        self.present(signInVC, animated: true) {
+            signInVC.showToast(message: "Succesfully deleted storage")
+        }
     }
 }
 
@@ -162,11 +151,11 @@ extension SettingsTableViewController {
     }
 
     func signOut() async {
-        print("Deleted storage")
-
         do {
+            let userId = SharedStorage.shared.getCurrentUser()?.id;
+
             let tunnelsManager = try await createTunnelsManager()
-            let tunnels = tunnelsManager.allTunnels
+            let tunnels = tunnelsManager.allTunnelsForUserId(userId: userId!)
 
             for tunnel in tunnels {
                 tunnelsManager.startDeactivation(of: tunnel)
@@ -175,19 +164,16 @@ extension SettingsTableViewController {
             SharedStorage.shared.clearUserLoginData()
 
             let signInVC = SignInViewController()
-            signInVC.modalPresentationStyle = .fullScreen // Ensures the view controller covers the entire screen
-            self.present(signInVC, animated: true, completion: nil)
-
+            signInVC.modalPresentationStyle = .fullScreen
+            self.present(signInVC, animated: true) {
+                signInVC.showToast(message: "Succesfully signed out")
+            }
 
         }
 
         catch {
             print(error)
         }
-
-
-
-
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {

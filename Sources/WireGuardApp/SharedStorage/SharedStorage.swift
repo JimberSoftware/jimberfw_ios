@@ -144,8 +144,7 @@ class SharedStorage {
         let storedKeys: [String] = [
             Keys.refreshTokenKey,
             Keys.authenticationTokenKey,
-            Keys.currentUserKey,
-            Keys.wireGuardKeyPairKey
+            Keys.currentUserKey
         ]
 
         var filteredData: [String: Any] = [:]
@@ -155,6 +154,8 @@ class SharedStorage {
                 filteredData[key] = value
             }
         }
+
+        filteredData[Keys.wireGuardKeyPairKey] = getDaemonKeyPairs()
 
         return filteredData
     }

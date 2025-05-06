@@ -460,34 +460,34 @@ extension TunnelDetailTableViewController {
         cell.hasDestructiveAction = true
         cell.onTapped = { [weak self] in
             guard let self = self else { return }
-            ConfirmationAlertPresenter.showConfirmationAlert(message: tr("deleteTunnelConfirmationAlertMessage"),
-                                       buttonTitle: tr("deleteTunnelConfirmationAlertButtonTitle"),
-                                       from: cell, presentingVC: self) { [weak self] in
+
+            ConfirmationAlertPresenter.showConfirmationAlert(
+                message: tr("deleteTunnelConfirmationAlertMessage"),
+                buttonTitle: tr("deleteTunnelConfirmationAlertButtonTitle"),
+                from: cell,
+                presentingVC: self
+            ) { [weak self] in
                 guard let self = self else { return }
-                self.tunnelsManager.remove(tunnel: self.tunnel) { error in
-                    if let error = error {
+
+                Task {
+                    do {
+                        try await self.tunnelsManager.remove(tunnel: self.tunnel)
+
+                        let signInVC = SignInViewController()
+                        signInVC.modalPresentationStyle = .fullScreen
+                        self.present(signInVC, animated: true) {
+                            signInVC.showToast(message: "Successfully deleted connection")
+                        }
+                    } catch {
                         print("Error removing tunnel: \(error)")
-                        return
+                        self.showToast(message: "Failed to delete tunnel")
                     }
-
-                    DispatchQueue.main.async {
-                          let signInVC = SignInViewController()
-                          let nav = UINavigationController(rootViewController: signInVC)
-                          nav.modalPresentationStyle = .fullScreen
-
-                          if let window = UIApplication.shared.windows.first {
-                              window.rootViewController = nav
-                              window.makeKeyAndVisible()
-                          }
-                      }
                 }
-
-
             }
         }
+
         return cell
     }
-
 }
 
 extension TunnelDetailTableViewController {
