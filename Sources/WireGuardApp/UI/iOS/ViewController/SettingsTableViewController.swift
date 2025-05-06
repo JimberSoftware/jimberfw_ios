@@ -115,6 +115,8 @@ class SettingsTableViewController: UITableViewController {
             let userId = SharedStorage.shared.getCurrentUser()?.id
             let tunnels = tunnelsManager.allTunnelsForUserId(userId: userId!)
 
+            print(tunnels)
+
             tunnels.forEach { tunnel in
                 print("Tunnel: \(tunnel.name), userId: \(tunnel.tunnelConfiguration?.userId)")
                 print("Tunnel: \(tunnel.name), daemonId: \(tunnel.tunnelConfiguration?.daemonId)")
@@ -126,8 +128,12 @@ class SettingsTableViewController: UITableViewController {
     }
 
     func deleteStorageAction() {
-        print(SharedStorage.shared.clearAll())
+        SharedStorage.shared.clearAll()
         print("Deleted storage")
+
+        let signInVC = SignInViewController()
+        signInVC.modalPresentationStyle = .fullScreen
+        self.present(signInVC, animated: true, completion: nil)
     }
 }
 

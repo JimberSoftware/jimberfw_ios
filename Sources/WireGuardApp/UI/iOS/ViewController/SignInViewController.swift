@@ -175,11 +175,16 @@ class SignInViewController: BaseViewController {
 
                     let userAuthentication = try await getUserAuthentication(idToken: idToken!, authenticationType: .google)
 
-
                     let companyName = userAuthentication.companyName
                     let userId = userAuthentication.userId
 
                     let alreadyInStorage = SharedStorage.shared.getDaemonKeyPairByUserId(userId)
+                    print(alreadyInStorage)
+                    if(alreadyInStorage != nil) {
+                        self.loadExistingDaemons()
+                        return;
+                    }
+
 
                     let result = try await register(userAuthentication: userAuthentication, daemonName: "lennygdaemon")
 
@@ -196,6 +201,15 @@ class SignInViewController: BaseViewController {
             }
         }
     }
+
+    func loadExistingDaemons() {
+        print("GOING TO MAIN VIEW CONTROLLER")
+        
+        let mainViewController = MainViewController()
+        mainViewController.modalPresentationStyle = .fullScreen // Ensures the view controller covers the entire screen
+        self.present(mainViewController, animated: true, completion: nil)
+    }
+
 
     func createTunnelsManager() async throws -> TunnelsManager {
         return try await withCheckedThrowingContinuation { continuation in

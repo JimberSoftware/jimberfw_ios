@@ -38,17 +38,14 @@ class MainViewController: UISplitViewController {
         // On iPad, always show both masterVC and detailVC, even in portrait mode, like the Settings app
         preferredDisplayMode = .allVisible
 
-        // Create the tunnels manager, and when it's ready, inform tunnelsListVC
         TunnelsManager.create { [weak self] result in
             guard let self = self else { return }
 
             switch result {
             case .failure(let error):
-                let signInVC = SignInViewController()
-                signInVC.modalPresentationStyle = .fullScreen // Ensures the view controller covers the entire screen
-                self.present(signInVC, animated: true, completion: nil)
+                let signInVc = SignInViewController()
+                self.showDetailViewController(signInVc, sender: self)
 
-                // ErrorPresenter.showErrorAlert(error: error, from: self)
             case .success(let tunnelsManager):
                 self.tunnelsManager = tunnelsManager
                 self.tunnelsListVC?.setTunnelsManager(tunnelsManager: tunnelsManager)
@@ -58,10 +55,24 @@ class MainViewController: UISplitViewController {
                 self.onTunnelsManagerReady?(tunnelsManager)
                 self.onTunnelsManagerReady = nil
 
-                 // Check if there are no tunnels and navigate to WelcomeViewController if needed
-                if tunnelsManager.allTunnels.isEmpty {
+                print(tunnelsManager.allTunnels)
+
+                let userId = SharedStorage.shared.getCurrentUser()?.id;
+                if(userId == nil) {
+                    print("No UserId found")
+
                     let signInVc = SignInViewController()
                     self.showDetailViewController(signInVc, sender: self)
+                    return;
+                }
+
+                let existingTunnels = SharedStorage.shared.getDaemonKeyPairByUserId(userId!)
+                if(existingTunnels == nil) {
+                    print("No Tunnels found")
+
+                    let signInVc = SignInViewController()
+                    self.showDetailViewController(signInVc, sender: self)
+                    return
                 }
             }
         }
@@ -70,15 +81,6 @@ class MainViewController: UISplitViewController {
     func allTunnelNames() -> [String]? {
         guard let tunnelsManager = self.tunnelsManager else { return nil }
         return tunnelsManager.mapTunnels { $0.name }
-    }
-
-
-    func navigateToCorrectScreen() {
-        let userId = SharedStorage.shared.getCurrentUser()?.id
-        if(userId == nil) {
-            // TODO: got to sign in
-            return;
-        }
     }
 }
 
