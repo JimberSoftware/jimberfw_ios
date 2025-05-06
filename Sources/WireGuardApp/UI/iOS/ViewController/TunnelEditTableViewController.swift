@@ -251,6 +251,12 @@ extension TunnelEditTableViewController {
             cell.keyboardType = .numberPad
         case .publicKey, .generateKeyPair:
             cell.keyboardType = .default
+        case .daemonId:
+            cell.placeholderText = tr("lennieD")
+            cell.keyboardType = .default
+        case .userId:
+            cell.placeholderText = tr("lennieD2")
+            cell.keyboardType = .default
         case .status, .toggleStatus:
             fatalError("Unexpected interface field")
         }

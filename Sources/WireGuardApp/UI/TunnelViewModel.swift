@@ -15,6 +15,8 @@ class TunnelViewModel {
         case mtu
         case dns
         case status
+        case daemonId
+        case userId
         case toggleStatus
 
         var localizedUIString: String {
@@ -28,6 +30,8 @@ class TunnelViewModel {
             case .mtu: return tr("tunnelInterfaceMTU")
             case .dns: return tr("tunnelInterfaceDNS")
             case .status: return tr("tunnelInterfaceStatus")
+            case .daemonId: return tr("tunnelInterfaceDaemonId")
+            case .userId: return tr("tunnelInterfaceUserId")
             case .toggleStatus: return ""
             }
         }
@@ -144,6 +148,14 @@ class TunnelViewModel {
                 dns.append(contentsOf: config.dnsSearch)
                 scratchpad[.dns] = dns.joined(separator: ", ")
             }
+            if let daemonId = config.daemonId {
+                scratchpad[.daemonId] = String(daemonId)
+            }
+            if let userId = config.userId {
+                scratchpad[.userId] = String(userId)
+            }
+
+
             return scratchpad
         }
 
@@ -220,6 +232,7 @@ class TunnelViewModel {
                 if TunnelViewModel.interfaceFieldsWithControl.contains(field) {
                     return true
                 }
+
                 return !self[field].isEmpty
             }
         }
@@ -498,6 +511,10 @@ class TunnelViewModel {
         if let tunnelConfiguration = tunnelConfiguration {
             interfaceData.validatedConfiguration = tunnelConfiguration.interface
             interfaceData.validatedName = tunnelConfiguration.name
+
+            interfaceData.validatedConfiguration?.daemonId = tunnelConfiguration.daemonId;
+            interfaceData.validatedConfiguration?.userId = tunnelConfiguration.userId;
+
             for (index, peerConfiguration) in tunnelConfiguration.peers.enumerated() {
                 let peerData = PeerData(index: index)
                 peerData.validatedConfiguration = peerConfiguration

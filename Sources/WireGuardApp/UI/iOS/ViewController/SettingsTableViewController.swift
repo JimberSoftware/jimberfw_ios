@@ -10,6 +10,7 @@ class SettingsTableViewController: UITableViewController {
         case iosAppVersion
         case goBackendVersion
         case viewLog
+        case signOut
         case getStorage
         case deleteStorage
 
@@ -18,8 +19,9 @@ class SettingsTableViewController: UITableViewController {
             case .iosAppVersion: return tr("settingsVersionKeyWireGuardForIOS")
             case .goBackendVersion: return tr("settingsVersionKeyWireGuardGoBackend")
             case .viewLog: return tr("settingsViewLogButtonTitle")
-            case .getStorage: return "Get Storage"
-            case .deleteStorage: return "Delete Storage"
+            case .signOut: return tr("settingsViewLogButtonSignOut")
+            case .getStorage: return tr("settingsViewLogButtonGetStorage")
+            case .deleteStorage: return tr("settingsViewLogButtonClearStorage")
             }
         }
     }
@@ -27,6 +29,7 @@ class SettingsTableViewController: UITableViewController {
     let settingsFieldsBySection: [[SettingsFields]] = [
         [.iosAppVersion, .goBackendVersion],
         [.viewLog],
+        [.signOut],
         [.getStorage, .deleteStorage]
     ]
 
@@ -106,17 +109,16 @@ class SettingsTableViewController: UITableViewController {
     }
 
     func getStorageAction() async {
-        print(SharedStorage.shared.getAll())
-
         do {
             let tunnelsManager = try await createTunnelsManager()
             let tunnels = tunnelsManager.allTunnels
 
-            print(tunnels)
-        }
-        catch
-        {
-
+            tunnels.forEach { tunnel in
+                print("Tunnel: \(tunnel.name), userId: \(tunnel.tunnelConfiguration?.userId)")
+                print("Tunnel: \(tunnel.name), daemonId: \(tunnel.tunnelConfiguration?.daemonId)")
+            }
+        } catch {
+            print("Error: \(error)")
         }
 
     }
@@ -143,6 +145,8 @@ extension SettingsTableViewController {
         case 1:
             return tr("settingsSectionTitleTunnelLog")
         case 2:
+            return tr("settingsSectionTitleManagement")
+        case 3:
             return "Development Options"
         default:
             return nil
@@ -170,6 +174,15 @@ extension SettingsTableViewController {
             cell.buttonText = field.localizedUIString
             cell.onTapped = { [weak self] in
                 self?.presentLogView()
+            }
+            return cell
+        } else if field == .signOut {
+            let cell: ButtonCell = tableView.dequeueReusableCell(for: indexPath)
+            cell.buttonText = field.localizedUIString
+            cell.onTapped = { [weak self] in
+                Task {
+                    print("sign out")
+                }
             }
             return cell
         } else if field == .getStorage {

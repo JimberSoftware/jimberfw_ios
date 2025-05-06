@@ -15,7 +15,7 @@ class TunnelDetailTableViewController: UITableViewController {
 
     static let interfaceFields: [TunnelViewModel.InterfaceField] = [
         .name, .publicKey, .addresses,
-        .listenPort, .mtu, .dns
+        .listenPort, .mtu, .daemonId, .userId, .dns
     ]
 
     static let peerFields: [TunnelViewModel.PeerField] = [
@@ -97,6 +97,7 @@ class TunnelDetailTableViewController: UITableViewController {
 
     private func loadVisibleFields() {
         let visibleInterfaceFields = tunnelViewModel.interfaceData.filterFieldsWithValueOrControl(interfaceFields: TunnelDetailTableViewController.interfaceFields)
+
         interfaceFieldIsVisible = TunnelDetailTableViewController.interfaceFields.map { visibleInterfaceFields.contains($0) }
         peerFieldIsVisible = tunnelViewModel.peersData.map { peer in
             let visiblePeerFields = peer.filterFieldsWithValueOrControl(peerFields: TunnelDetailTableViewController.peerFields)
@@ -478,7 +479,7 @@ extension TunnelDetailTableViewController {
                               window.rootViewController = nav
                               window.makeKeyAndVisible()
                           }
-                      }  
+                      }
                 }
 
 

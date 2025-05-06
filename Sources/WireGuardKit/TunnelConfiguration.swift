@@ -10,6 +10,7 @@ public final class TunnelConfiguration {
     public let userId: Int?
     public let daemonId: Int?
 
+
     public init(name: String?, userId: Int?, daemonId: Int?, interface: InterfaceConfiguration, peers: [PeerConfiguration]) {
         self.interface = interface
         self.peers = peers

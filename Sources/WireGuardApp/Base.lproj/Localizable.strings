@@ -82,6 +82,8 @@
 "tunnelInterfaceListenPort" = "Listen port";
 "tunnelInterfaceMTU" = "MTU";
 "tunnelInterfaceDNS" = "DNS servers";
+"tunnelInterfaceDaemonId" = "Daemon ID";
+"tunnelInterfaceUserId" = "User ID";
 "tunnelInterfaceStatus" = "Status";
 
 "tunnelSectionTitlePeer" = "Peer";
@@ -216,7 +218,7 @@
 "settingsViewTitle" = "Settings";
 
 "settingsSectionTitleAbout" = "About";
-"settingsVersionKeyWireGuardForIOS" = "Network Isolation by Wireguard for iOS";
+"settingsVersionKeyWireGuardForIOS" = "Network Isolation by Wireguard";
 "settingsVersionKeyWireGuardGoBackend" = "Jimber Network Isolation Go Backend";
 
 "settingsSectionTitleExportConfigurations" = "Export configurations";
@@ -224,6 +226,11 @@
 
 "settingsSectionTitleTunnelLog" = "Log";
 "settingsViewLogButtonTitle" = "View log";
+"settingsViewLogButtonGetStorage" = "Get storage";
+"settingsViewLogButtonClearStorage" = "Clear storage";
+
+"settingsSectionTitleManagement" = "Management";
+"settingsViewLogButtonSignOut" = "Sign out";
 
 // Log view
 
