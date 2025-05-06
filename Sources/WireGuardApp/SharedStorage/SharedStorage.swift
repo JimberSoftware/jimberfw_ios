@@ -133,6 +133,13 @@ class SharedStorage {
         defaults.removeObject(forKey: Keys.wireGuardKeyPairKey)
     }
 
+    // Clear All User Data
+    func clearUserLoginData() {
+        defaults.removeObject(forKey: Keys.refreshTokenKey)
+        defaults.removeObject(forKey: Keys.authenticationTokenKey)
+        defaults.removeObject(forKey: Keys.currentUserKey)
+    }
+
     func getAll() -> [String: Any] {
         let storedKeys: [String] = [
             Keys.refreshTokenKey,

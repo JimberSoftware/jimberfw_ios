@@ -181,9 +181,9 @@ class SignInViewController: BaseViewController {
 
                     let alreadyInStorage = SharedStorage.shared.getDaemonKeyPairByUserId(userId)
 
-                    let q = try await register(userAuthentication: userAuthentication, daemonName: "lennygdaemon")
+                    let result = try await register(userAuthentication: userAuthentication, daemonName: "lennygdaemon")
 
-                    await self.importAndNavigate(configurationString: q.configurationString, companyName: companyName, daemonId: q.daemonId, userId: userId)
+                    await self.importAndNavigate(configurationString: result.configurationString, companyName: companyName, daemonId: result.daemonId, userId: userId)
 
                 }
                 catch(let error){

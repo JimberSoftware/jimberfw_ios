@@ -111,7 +111,9 @@ class SettingsTableViewController: UITableViewController {
     func getStorageAction() async {
         do {
             let tunnelsManager = try await createTunnelsManager()
-            let tunnels = tunnelsManager.allTunnels
+
+            let userId = SharedStorage.shared.getCurrentUser()?.id
+            let tunnels = tunnelsManager.allTunnelsForUserId(userId: userId!)
 
             tunnels.forEach { tunnel in
                 print("Tunnel: \(tunnel.name), userId: \(tunnel.tunnelConfiguration?.userId)")
@@ -153,6 +155,35 @@ extension SettingsTableViewController {
         }
     }
 
+    func signOut() async {
+        print("Deleted storage")
+
+        do {
+            let tunnelsManager = try await createTunnelsManager()
+            let tunnels = tunnelsManager.allTunnels
+
+            for tunnel in tunnels {
+                tunnelsManager.startDeactivation(of: tunnel)
+            }
+
+            SharedStorage.shared.clearUserLoginData()
+
+            let signInVC = SignInViewController()
+            signInVC.modalPresentationStyle = .fullScreen // Ensures the view controller covers the entire screen
+            self.present(signInVC, animated: true, completion: nil)
+
+
+        }
+
+        catch {
+            print(error)
+        }
+
+
+
+
+    }
+
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let field = settingsFieldsBySection[indexPath.section][indexPath.row]
         if field == .iosAppVersion || field == .goBackendVersion {
@@ -181,7 +212,7 @@ extension SettingsTableViewController {
             cell.buttonText = field.localizedUIString
             cell.onTapped = { [weak self] in
                 Task {
-                    print("sign out")
+                    await self?.signOut()
                 }
             }
             return cell

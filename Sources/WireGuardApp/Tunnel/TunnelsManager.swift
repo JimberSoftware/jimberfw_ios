@@ -38,26 +38,32 @@ class TunnelsManager {
         return tunnels
     }
 
-    func allTunnelsForUserId(userId: String) -> [TunnelContainer] {
-        return tunnels;
-//        var filteredTunnels: [TunnelContainer] = []
-//
-//        wg_log(.info, message: "FILTERING TUNNELS")
-//        wg_log(.info, message: "CURRENT_USER_ID: \(userId)")
-//
-//        for tunnel in tunnels {
-//            let daemonId = tunnel.getDaemonId()
-//            let keyPair = sharedStorage.getDaemonKeyPairByDaemonId(daemonId: daemonId)
-//
-//            let logString = "DAEMON ID: \(daemonId); FOUND KP: \(keyPair != nil); IS SAME USER ID: \(tunnel.getUserId() == userId)"
-//            wg_log(.info, message: logString)
-//
-//            if tunnel.getUserId() == userId, keyPair != nil {
-//                filteredTunnels.append(tunnel)
-//            }
-//        }
-//
-//        return filteredTunnels
+    func allTunnelsForUserId(userId: Int) -> [TunnelContainer] {
+        var filteredTunnels: [TunnelContainer] = []
+
+        wg_log(.info, message: "FILTERING TUNNELS")
+        wg_log(.info, message: "CURRENT_USER_ID: \(userId)")
+
+        for tunnel in tunnels {
+            let tunnelDaemonId = tunnel.tunnelConfiguration?.daemonId
+            let tunnelUserId = tunnel.tunnelConfiguration?.userId
+
+            if(tunnelDaemonId == nil || tunnelUserId == nil) {
+                wg_log(.info, message: "Could not add tunnel since userId or daemonid is nil UserId: \(tunnelUserId ?? 0) DaemonId: \(tunnelDaemonId ?? 0)")
+                continue;
+            }
+
+            let keyPair = SharedStorage.shared.getDaemonKeyPairByDaemonId(tunnelDaemonId!)
+
+            let logString = "DAEMON ID: \(tunnelDaemonId!); FOUND KP: \(keyPair != nil); IS SAME USER ID: \(tunnelUserId == userId)"
+            wg_log(.info, message: logString)
+
+            if tunnelUserId == userId, keyPair != nil {
+                filteredTunnels.append(tunnel)
+            }
+        }
+
+        return filteredTunnels
     }
 
     static func create(completionHandler: @escaping (Result<TunnelsManager, TunnelsManagerError>) -> Void) {
