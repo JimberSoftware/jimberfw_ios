@@ -16,7 +16,6 @@ class SignInViewController: BaseViewController {
     var currentAccount: MSALAccount?
 
     override func viewDidLoad() {
-        print("Loaded")
         super.viewDidLoad()
 
         GIDSignIn.sharedInstance.signOut()
@@ -72,14 +71,13 @@ class SignInViewController: BaseViewController {
         stackView.addArrangedSubview(emailSignInButton)
 
         do {
-                  try self.initMSAL()
-              } catch let error {
-                  print(error)
-              }
+            try self.initMSAL()
+        } catch let error {
+            print(error)
+        }
     }
 
     func initMSAL() throws {
-
            guard let authorityURL = URL(string: kAuthority) else {
                print("erreur")
                return
@@ -182,11 +180,14 @@ class SignInViewController: BaseViewController {
                     let userId = userAuthentication.userId
 
                     if let _ = SharedStorage.shared.getDaemonKeyPairByUserId(userId) {
+                        print("Found existing daemons for user")
                         self.loadExistingDaemons()
                         return
                     }
 
+                    print("Registering new daemon")
                     let result = try await register(userAuthentication: userAuthentication, daemonName: "lennygdaemon")
+                    print("Registered new daemon")
 
                     await self.importAndNavigate(
                         configurationString: result.configurationString,
@@ -202,9 +203,11 @@ class SignInViewController: BaseViewController {
     }
 
     func loadExistingDaemons() {
-        let mainViewController = MainViewController()
-        mainViewController.modalPresentationStyle = .fullScreen // Ensures the view controller covers the entire screen
-        self.present(mainViewController, animated: true, completion: nil)
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = windowScene.windows.first {
+            window.rootViewController = MainViewController()
+            window.makeKeyAndVisible()
+        }
     }
 
 
@@ -249,10 +252,10 @@ class SignInViewController: BaseViewController {
                 let masterVC = TunnelsListTableViewController()
                 masterVC.setTunnelsManager(tunnelsManager: tunnelsManager)
 
-                if let navigationController = self.navigationController {
-                    navigationController.setViewControllers([masterVC], animated: true)
-                } else {
-                    self.present(masterVC, animated: true, completion: nil)
+                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                   let window = windowScene.windows.first {
+                    window.rootViewController = MainViewController()
+                    window.makeKeyAndVisible()
                 }
             }
         } catch {

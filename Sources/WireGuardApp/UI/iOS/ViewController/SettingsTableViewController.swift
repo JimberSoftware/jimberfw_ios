@@ -111,17 +111,75 @@ class SettingsTableViewController: UITableViewController {
     func getStorageAction() async {
         let allData = SharedStorage.shared.getAll()
 
+        wg_log(.info, message: "Getting storage")
+        wg_log(.info, message: String(describing: allData))
+
         UIPasteboard.general.string = String(describing: allData)
         showToast(message: "Storage info copied to clipboard")
     }
 
-    func deleteStorageAction() {
-        SharedStorage.shared.clearAll()
+    func deleteStorageAction() async {
+        do {
+            let tunnelsManager = try await createTunnelsManager()
+            let tunnels = tunnelsManager.getAllTunnels()
 
+            wg_log(.info, message: "All tunnels that will be removed")
+            wg_log(.info, message: tunnels.map { $0.name}.joined(separator: ", "))
+
+            for tunnel in tunnels {
+                tunnelsManager.remove(tunnel: tunnel) { error in
+                    if error != nil {
+                        ErrorPresenter.showErrorAlert(error: error!, from: self)
+                    } else {
+                    }
+                }
+                wg_log(.info, message: "Removed \(tunnel.name)")
+            }
+
+            wg_log(.info, message: "Removing all storage")
+            SharedStorage.shared.clearAll()
+            
+            navigateToSignIn(message: "Succesfully deleted storage")
+
+        } catch {
+            wg_log(.error, message: "Could not clear storage: \(error)")
+        }
+    }
+
+    func signOutAction() async {
+        do {
+            let userId = SharedStorage.shared.getCurrentUser()?.id;
+
+            let tunnelsManager = try await createTunnelsManager()
+            let tunnels = tunnelsManager.allTunnelsOfUserId(userId: userId!)
+
+            wg_log(.info, message: "Deactivating tunnels")
+            for tunnel in tunnels {
+                wg_log(.info, message: "Deactivating tunnel \(tunnel.name)")
+                tunnelsManager.startDeactivation(of: tunnel)
+            }
+
+            wg_log(.info, message: "Clearing user login data")
+            SharedStorage.shared.clearUserLoginData()
+
+            navigateToSignIn(message: "Succesfully signed out")
+        }
+
+        catch {
+            wg_log(.error, message: "Error in sign out action: \(error)")
+        }
+    }
+
+    func navigateToSignIn(message: String) {
         let signInVC = SignInViewController()
-        signInVC.modalPresentationStyle = .fullScreen
-        self.present(signInVC, animated: true) {
-            signInVC.showToast(message: "Succesfully deleted storage")
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = windowScene.windows.first {
+            window.rootViewController = signInVC
+            window.makeKeyAndVisible()
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                signInVC.showToast(message: message)
+            }
         }
     }
 }
@@ -147,32 +205,6 @@ extension SettingsTableViewController {
             return "Development Options"
         default:
             return nil
-        }
-    }
-
-    func signOut() async {
-        do {
-            let userId = SharedStorage.shared.getCurrentUser()?.id;
-
-            let tunnelsManager = try await createTunnelsManager()
-            let tunnels = tunnelsManager.allTunnelsForUserId(userId: userId!)
-
-            for tunnel in tunnels {
-                tunnelsManager.startDeactivation(of: tunnel)
-            }
-
-            SharedStorage.shared.clearUserLoginData()
-
-            let signInVC = SignInViewController()
-            signInVC.modalPresentationStyle = .fullScreen
-            self.present(signInVC, animated: true) {
-                signInVC.showToast(message: "Succesfully signed out")
-            }
-
-        }
-
-        catch {
-            print(error)
         }
     }
 
@@ -204,7 +236,7 @@ extension SettingsTableViewController {
             cell.buttonText = field.localizedUIString
             cell.onTapped = { [weak self] in
                 Task {
-                    await self?.signOut()
+                    await self?.signOutAction()
                 }
             }
             return cell
@@ -221,7 +253,9 @@ extension SettingsTableViewController {
             let cell: ButtonCell = tableView.dequeueReusableCell(for: indexPath)
             cell.buttonText = field.localizedUIString
             cell.onTapped = { [weak self] in
-                self?.deleteStorageAction()
+                Task {
+                    await self?.deleteStorageAction()
+                }
             }
             return cell
         }

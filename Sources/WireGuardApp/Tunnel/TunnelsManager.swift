@@ -21,6 +21,9 @@ protocol TunnelsManagerActivationDelegate: AnyObject {
 
 class TunnelsManager {
     private var tunnels: [TunnelContainer]
+    private var allTunnels: [TunnelContainer]
+
+
     weak var tunnelsListDelegate: TunnelsManagerListDelegate?
     weak var activationDelegate: TunnelsManagerActivationDelegate?
     private var statusObservationToken: NotificationToken?
@@ -28,6 +31,7 @@ class TunnelsManager {
     private var configurationsObservationToken: NotificationToken?
 
     init(tunnelProviders: [NETunnelProviderManager]) {
+        allTunnels =  tunnelProviders.map { TunnelContainer(tunnel: $0) }.sorted { TunnelsManager.tunnelNameIsLessThan($0.name, $1.name) }
         tunnels = tunnelProviders.map { TunnelContainer(tunnel: $0) }.sorted { TunnelsManager.tunnelNameIsLessThan($0.name, $1.name) }
 
         let userId = SharedStorage.shared.getCurrentUser()?.id
@@ -38,39 +42,17 @@ class TunnelsManager {
                 .sorted { TunnelsManager.tunnelNameIsLessThan($0.name, $1.name) }
         }
 
-        print("these are all the tunnels")
-        print(tunnels)
-
         startObservingTunnelStatuses()
         startObservingTunnelConfigurations()
     }
 
-    func allTunnelsForUserId(userId: Int) -> [TunnelContainer] {
-        var filteredTunnels: [TunnelContainer] = []
+    func getAllTunnels() -> [TunnelContainer] {
+        return allTunnels
+    }
 
-        wg_log(.info, message: "FILTERING TUNNELS")
-        wg_log(.info, message: "CURRENT_USER_ID: \(userId)")
-
-        for tunnel in tunnels {
-            let tunnelDaemonId = tunnel.tunnelConfiguration?.daemonId
-            let tunnelUserId = tunnel.tunnelConfiguration?.userId
-
-            if(tunnelDaemonId == nil || tunnelUserId == nil) {
-                wg_log(.info, message: "Could not add tunnel since userId or daemonid is nil UserId: \(tunnelUserId ?? 0) DaemonId: \(tunnelDaemonId ?? 0)")
-                continue;
-            }
-
-            let keyPair = SharedStorage.shared.getDaemonKeyPairByDaemonId(tunnelDaemonId!)
-
-            let logString = "DAEMON ID: \(tunnelDaemonId!); FOUND KP: \(keyPair != nil); IS SAME USER ID: \(tunnelUserId == userId)"
-            wg_log(.info, message: logString)
-
-            if tunnelUserId == userId, keyPair != nil {
-                filteredTunnels.append(tunnel)
-            }
-        }
-
-        return filteredTunnels
+    func allTunnelsOfUserId(userId: Int) -> [TunnelContainer] {
+        let userId = SharedStorage.shared.getCurrentUser()?.id
+        return tunnels.filter { $0.tunnelConfiguration?.userId == userId }
     }
 
     static func create(completionHandler: @escaping (Result<TunnelsManager, TunnelsManagerError>) -> Void) {
@@ -110,18 +92,7 @@ class TunnelsManager {
 
             let userId = SharedStorage.shared.getCurrentUser()?.id
 
-            print("this is the user id")
-            print(userId)
-
-            // Only mount tunnelmanagers related with their userId
-            let allTunnelManagers = tunnelManagers.filter{ $0.tunnelConfiguration?.userId == userId }
-
-            print("these are all the tunnel managers")
-            print(tunnelManagers)
-            
-            print("returning these tunnel managers")
-            print(allTunnelManagers)
-            completionHandler(.success(TunnelsManager(tunnelProviders: allTunnelManagers)))
+            completionHandler(.success(TunnelsManager(tunnelProviders: tunnelManagers)))
         }
     }
 
@@ -354,71 +325,59 @@ class TunnelsManager {
     }
 
     func remove(tunnel: TunnelContainer, completionHandler: @escaping (TunnelsManagerError?) -> Void) {
-        let tunnelProviderManager = tunnel.tunnelProvider
+           let tunnelProviderManager = tunnel.tunnelProvider
 
-        let daemonId = tunnel.tunnelConfiguration?.daemonId
-        let daemonKeyPair = SharedStorage.shared.getDaemonKeyPairByDaemonId(daemonId!)
+           let daemonId = tunnel.tunnelConfiguration?.daemonId
+           let daemonKeyPair = SharedStorage.shared.getDaemonKeyPairByDaemonId(daemonId!)
 
-        #if os(macOS)
-        if tunnel.isTunnelAvailableToUser {
-            (tunnelProviderManager.protocolConfiguration as? NETunnelProviderProtocol)?.destroyConfigurationReference()
-        }
-        #elseif os(iOS)
-        (tunnelProviderManager.protocolConfiguration as? NETunnelProviderProtocol)?.destroyConfigurationReference()
+           (tunnelProviderManager.protocolConfiguration as? NETunnelProviderProtocol)?.destroyConfigurationReference()
 
+           Task {
+               do {
+                   let res = try await deleteDaemon(daemonId: daemonId!, company: daemonKeyPair!.companyName, sk: daemonKeyPair!.baseEncodedSkEd25519)
 
-        #else
-        #error("Unimplemented")
-        #endif
+                   // Delete daemon in shared storage
+                   SharedStorage.shared.clearDaemonKeys(daemonId: daemonId!)
 
-        Task {
-            do {
-                let res = try await deleteDaemon(daemonId: daemonId!, company: daemonKeyPair!.companyName, sk: daemonKeyPair!.baseEncodedSkEd25519)
+                   tunnelProviderManager.removeFromPreferences { [weak self] error in
+                       if let error = error {
+                           wg_log(.error, message: "Remove: Saving configuration failed: \(error)")
+                           completionHandler(TunnelsManagerError.systemErrorOnRemoveTunnel(systemError: error))
+                           return
+                       }
+                       if let self = self, let index = self.tunnels.firstIndex(of: tunnel) {
+                           self.tunnels.remove(at: index)
+                           self.tunnelsListDelegate?.tunnelRemoved(at: index, tunnel: tunnel)
+                       }
+                       completionHandler(nil)
 
-                // Delete daemon in shared storage
-                SharedStorage.shared.clearDaemonKeys(daemonId: daemonId!)
+                       #if os(iOS)
+                       RecentTunnelsTracker.handleTunnelRemoved(tunnelName: tunnel.name)
+                       #endif
+                   }
+               }
+               catch{
+                   SharedStorage.shared.clearDaemonKeys(daemonId: daemonId!)
 
-                tunnelProviderManager.removeFromPreferences { [weak self] error in
-                    if let error = error {
-                        wg_log(.error, message: "Remove: Saving configuration failed: \(error)")
-                        completionHandler(TunnelsManagerError.systemErrorOnRemoveTunnel(systemError: error))
-                        return
-                    }
-                    if let self = self, let index = self.tunnels.firstIndex(of: tunnel) {
-                        self.tunnels.remove(at: index)
-                        self.tunnelsListDelegate?.tunnelRemoved(at: index, tunnel: tunnel)
-                    }
-                    completionHandler(nil)
+                   tunnelProviderManager.removeFromPreferences { [weak self] error in
+                       if let error = error {
+                           wg_log(.error, message: "Remove: Saving configuration failed: \(error)")
+                           completionHandler(TunnelsManagerError.systemErrorOnRemoveTunnel(systemError: error))
+                           return
+                       }
+                       if let self = self, let index = self.tunnels.firstIndex(of: tunnel) {
+                           self.tunnels.remove(at: index)
+                           self.tunnelsListDelegate?.tunnelRemoved(at: index, tunnel: tunnel)
+                       }
+                       completionHandler(nil)
 
-                    #if os(iOS)
-                    RecentTunnelsTracker.handleTunnelRemoved(tunnelName: tunnel.name)
-                    #endif
-                }
-            }
-            catch{
-                print("Error in delete daemon")
-
-                SharedStorage.shared.clearDaemonKeys(daemonId: daemonId!)
-
-                tunnelProviderManager.removeFromPreferences { [weak self] error in
-                    if let error = error {
-                        wg_log(.error, message: "Remove: Saving configuration failed: \(error)")
-                        completionHandler(TunnelsManagerError.systemErrorOnRemoveTunnel(systemError: error))
-                        return
-                    }
-                    if let self = self, let index = self.tunnels.firstIndex(of: tunnel) {
-                        self.tunnels.remove(at: index)
-                        self.tunnelsListDelegate?.tunnelRemoved(at: index, tunnel: tunnel)
-                    }
-                    completionHandler(nil)
-
-                    #if os(iOS)
-                    RecentTunnelsTracker.handleTunnelRemoved(tunnelName: tunnel.name)
-                    #endif
-                }
-            }
-        }
-    }
+                       #if os(iOS)
+                       RecentTunnelsTracker.handleTunnelRemoved(tunnelName: tunnel.name)
+                       #endif
+                   }
+               }
+           }
+       }
 
     func removeMultiple(tunnels: [TunnelContainer], completionHandler: @escaping (TunnelsManagerError?) -> Void) {
         // Temporarily pause observation of changes to VPN configurations to prevent the feedback

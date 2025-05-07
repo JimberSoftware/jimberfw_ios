@@ -39,6 +39,7 @@ class TunnelsListTableViewController: UIViewController {
     }
 
     override func loadView() {
+        print("Tunnel list initialized")
         view = UIView()
         view.backgroundColor = .systemBackground
 
@@ -62,6 +63,8 @@ class TunnelsListTableViewController: UIViewController {
         ])
 
         busyIndicator.startAnimating()
+
+        print("Tunnel list done")
     }
 
     override func viewDidLoad() {

@@ -43,6 +43,8 @@ class MainViewController: UISplitViewController {
 
             switch result {
             case .failure(let error):
+                wg_log(.error, message: "Error when creating tunnelmanager: \(error)")
+
                 let signInVc = SignInViewController()
                 self.showDetailViewController(signInVc, sender: self)
 
@@ -55,21 +57,29 @@ class MainViewController: UISplitViewController {
                 self.onTunnelsManagerReady?(tunnelsManager)
                 self.onTunnelsManagerReady = nil
 
-                let userId = SharedStorage.shared.getCurrentUser()?.id;
+                let userId = SharedStorage.shared.getCurrentUser()?.id
                 if(userId == nil) {
-                    print("No UserId found")
+                    wg_log(.info, message: "No UserId found, navigating to sign in")
 
-                    let signInVc = SignInViewController()
-                    self.showDetailViewController(signInVc, sender: self)
-                    return;
+                    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                       let window = windowScene.windows.first {
+                        window.rootViewController = SignInViewController()
+                        window.makeKeyAndVisible()
+                    }
+
+                    return
                 }
 
                 let existingTunnels = SharedStorage.shared.getDaemonKeyPairByUserId(userId!)
                 if(existingTunnels == nil) {
-                    print("No Tunnels found")
+                    wg_log(.info, message: "UserId found, but no related tunnels, navigating to sign in")
 
-                    let signInVc = SignInViewController()
-                    self.showDetailViewController(signInVc, sender: self)
+                    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                       let window = windowScene.windows.first {
+                        window.rootViewController = SignInViewController()
+                        window.makeKeyAndVisible()
+                    }
+
                     return
                 }
             }

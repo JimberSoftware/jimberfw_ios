@@ -455,39 +455,45 @@ extension TunnelDetailTableViewController {
     }
 
     private func deleteConfigurationCell(for tableView: UITableView, at indexPath: IndexPath) -> UITableViewCell {
-        let cell: ButtonCell = tableView.dequeueReusableCell(for: indexPath)
-        cell.buttonText = tr("deleteTunnelButtonTitle")
-        cell.hasDestructiveAction = true
-        cell.onTapped = { [weak self] in
-            guard let self = self else { return }
+        print("hallo dit is het begin")
+          let cell: ButtonCell = tableView.dequeueReusableCell(for: indexPath)
+          cell.buttonText = tr("deleteTunnelButtonTitle")
+          cell.hasDestructiveAction = true
+          cell.onTapped = { [weak self] in
+              guard let self = self else { return }
+              ConfirmationAlertPresenter.showConfirmationAlert(message: tr("deleteTunnelConfirmationAlertMessage"),
+                                         buttonTitle: tr("deleteTunnelConfirmationAlertButtonTitle"),
+                                         from: cell, presentingVC: self) { [weak self] in
+                  guard let self = self else { return }
+                  self.tunnelsManager.remove(tunnel: self.tunnel) { error in
+                      if let error = error {
+                          print("Error removing tunnel: \(error)")
+                          return
+                      }
 
-            ConfirmationAlertPresenter.showConfirmationAlert(
-                message: tr("deleteTunnelConfirmationAlertMessage"),
-                buttonTitle: tr("deleteTunnelConfirmationAlertButtonTitle"),
-                from: cell,
-                presentingVC: self
-            ) { [weak self] in
-                guard let self = self else { return }
+                      print("we hebben de tunnel geremoved 1")
+                      let signInVC = SignInViewController()
 
-                Task {
-                    do {
-                        try await self.tunnelsManager.remove(tunnel: self.tunnel)
+                      if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                         let window = windowScene.windows.first {
+                          window.rootViewController = signInVC
+                          window.makeKeyAndVisible()
 
-                        let signInVC = SignInViewController()
-                        signInVC.modalPresentationStyle = .fullScreen
-                        self.present(signInVC, animated: true) {
-                            signInVC.showToast(message: "Successfully deleted connection")
-                        }
-                    } catch {
-                        print("Error removing tunnel: \(error)")
-                        self.showToast(message: "Failed to delete tunnel")
-                    }
-                }
-            }
-        }
+                          // Optionally show the toast after the view has appeared
+                          DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                              signInVC.showToast(message: "Successfully deleted connection")
+                          }
+                      }
 
-        return cell
-    }
+                  }
+
+                  print("we hebben de tunnel geremoved 2")
+
+
+              }
+          }
+          return cell
+      }
 }
 
 extension TunnelDetailTableViewController {
