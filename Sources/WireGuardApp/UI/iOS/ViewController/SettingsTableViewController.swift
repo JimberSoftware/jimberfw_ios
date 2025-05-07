@@ -10,6 +10,7 @@ class SettingsTableViewController: UITableViewController {
         case iosAppVersion
         case goBackendVersion
         case viewLog
+        case loggedInUser
         case signOut
         case getStorage
         case deleteStorage
@@ -19,6 +20,7 @@ class SettingsTableViewController: UITableViewController {
             case .iosAppVersion: return tr("settingsVersionKeyWireGuardForIOS")
             case .goBackendVersion: return tr("settingsVersionKeyWireGuardGoBackend")
             case .viewLog: return tr("settingsViewLogButtonTitle")
+            case .loggedInUser: return tr("settingsViewLoggedInUser")
             case .signOut: return tr("settingsViewLogButtonSignOut")
             case .getStorage: return tr("settingsViewLogButtonGetStorage")
             case .deleteStorage: return tr("settingsViewLogButtonClearStorage")
@@ -26,12 +28,20 @@ class SettingsTableViewController: UITableViewController {
         }
     }
 
-    let settingsFieldsBySection: [[SettingsFields]] = [
-        [.iosAppVersion, .goBackendVersion],
-        [.viewLog],
-        [.signOut],
-        [.getStorage, .deleteStorage]
-    ]
+    lazy var settingsFieldsBySection: [[SettingsFields]] = {
+        var sections: [[SettingsFields]] = [
+            [.iosAppVersion, .goBackendVersion],
+            [.viewLog]
+        ]
+
+        if SharedStorage.shared.getCurrentUser() != nil {
+            sections.append([.loggedInUser, .signOut])
+        }
+
+        sections.append([.getStorage, .deleteStorage]) // Always include development options
+
+        return sections
+    }()
 
     let tunnelsManager: TunnelsManager?
     var wireguardCaptionedImage: (view: UIView, size: CGSize)?
@@ -138,7 +148,7 @@ class SettingsTableViewController: UITableViewController {
 
             wg_log(.info, message: "Removing all storage")
             SharedStorage.shared.clearAll()
-            
+
             navigateToSignIn(message: "Succesfully deleted storage")
 
         } catch {
@@ -231,6 +241,16 @@ extension SettingsTableViewController {
                 self?.presentLogView()
             }
             return cell
+        } else if field == .loggedInUser {
+            let cell: KeyValueCell = tableView.dequeueReusableCell(for: indexPath)
+            cell.copyableGesture = false
+            cell.key = field.localizedUIString
+
+            let email = SharedStorage.shared.getCurrentUser()?.email
+            cell.value = email!
+
+            return cell
+
         } else if field == .signOut {
             let cell: ButtonCell = tableView.dequeueReusableCell(for: indexPath)
             cell.buttonText = field.localizedUIString

@@ -77,7 +77,16 @@ class TunnelsListTableViewController: UIViewController {
     func handleTableStateChange() {
         switch tableState {
         case .normal:
-            navigationItem.leftBarButtonItem = UIBarButtonItem(title: tr("tunnelsListSettingsButtonTitle"), style: .plain, target: self, action: #selector(settingsButtonTapped(sender:)))
+            let settingsButton = UIButton(type: .system)
+            settingsButton.setTitle("⋯", for: .normal) // Unicode ellipsis
+            settingsButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 28)
+            settingsButton.tintColor = UIColor(hex: "#111279")
+            settingsButton.addTarget(self, action: #selector(settingsButtonTapped(sender:)), for: .touchUpInside)
+
+            let barButtonItem = UIBarButtonItem(customView: settingsButton)
+            navigationItem.rightBarButtonItem = barButtonItem
+            navigationItem.leftBarButtonItem = nil
+
         case .rowSwiped:
             navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonTapped))
             navigationItem.leftBarButtonItem = UIBarButtonItem(title: tr("tunnelsListSelectButtonTitle"), style: .plain, target: self, action: #selector(selectButtonTapped))

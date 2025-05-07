@@ -21,12 +21,27 @@ class SignInViewController: BaseViewController {
         GIDSignIn.sharedInstance.signOut()
         GIDSignIn.sharedInstance.disconnect()
 
-        self.navigationItem.hidesBackButton = true
-
-        // Set the background color of the view (optional, in case the image is not fully loaded)
+        // Background color
         view.backgroundColor = .white
 
-        // Create a container for vertical stacking (like LinearLayout)
+        // Create custom "three dots" settings button
+        let settingsButton = UIButton(type: .system)
+        settingsButton.setTitle("⋯", for: .normal) // Unicode ellipsis
+        settingsButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 28)
+        settingsButton.tintColor =  UIColor(hex: "#111279")
+        settingsButton.translatesAutoresizingMaskIntoConstraints = false
+        settingsButton.addTarget(self, action: #selector(openSettings), for: .touchUpInside)
+        view.addSubview(settingsButton)
+
+        // Pin the button to top-right corner
+        NSLayoutConstraint.activate([
+            settingsButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
+            settingsButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            settingsButton.widthAnchor.constraint(equalToConstant: 30),
+            settingsButton.heightAnchor.constraint(equalToConstant: 30)
+        ])
+
+        // Create the main stack view
         let stackView = UIStackView()
         stackView.axis = .vertical
         stackView.alignment = .center
@@ -34,21 +49,18 @@ class SignInViewController: BaseViewController {
         stackView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(stackView)
 
-        // Set up constraints for the stack view
         NSLayoutConstraint.activate([
             stackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             stackView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
             stackView.widthAnchor.constraint(equalToConstant: 280)
         ])
 
-        // Add the logo image (like AppCompatImageView)
         let logoImageView = UIImageView(image: UIImage(named: "jimber_logo_full"))
         logoImageView.contentMode = .scaleAspectFit
         logoImageView.translatesAutoresizingMaskIntoConstraints = false
         stackView.addArrangedSubview(logoImageView)
         logoImageView.heightAnchor.constraint(equalToConstant: 100).isActive = true
 
-        // Add sign-in title (like TextView)
         let titleLabel = UILabel()
         titleLabel.text = "Sign in to your account"
         titleLabel.textAlignment = .center
@@ -58,15 +70,12 @@ class SignInViewController: BaseViewController {
         stackView.addArrangedSubview(titleLabel)
         titleLabel.heightAnchor.constraint(equalToConstant: 40).isActive = true
 
-        // Add Google sign-in button
         let googleSignInButton = createSignInButton(title: "Sign in with Google", imageName: "google_icon", action: #selector(googleSignInTapped))
         stackView.addArrangedSubview(googleSignInButton)
 
-        // Add Microsoft sign-in button
         let microsoftSignInButton = createSignInButton(title: "Sign in with Microsoft", imageName: "microsoft_icon", action: #selector(microsoftSignInTapped))
         stackView.addArrangedSubview(microsoftSignInButton)
 
-        // Add Email sign-in button
         let emailSignInButton = createSignInButton(title: "Sign in with Email", imageName: "email_icon", action: #selector(emailSignInTapped))
         stackView.addArrangedSubview(emailSignInButton)
 
@@ -76,6 +85,16 @@ class SignInViewController: BaseViewController {
             print(error)
         }
     }
+
+    @objc func openSettings() {
+        let settingsVC = SettingsTableViewController(tunnelsManager: nil)
+        let navController = UINavigationController(rootViewController: settingsVC)
+        navController.modalPresentationStyle = .fullScreen
+        present(navController, animated: true)
+    }
+
+
+
 
     func initMSAL() throws {
            guard let authorityURL = URL(string: kAuthority) else {
@@ -246,7 +265,7 @@ class SignInViewController: BaseViewController {
 
         do {
             let tunnelsManager = try await createTunnelsManager()
-            let tunnel = try await addTunnel(tunnelsManager: tunnelsManager, configuration: scannedTunnelConfiguration)
+            _ = try await addTunnel(tunnelsManager: tunnelsManager, configuration: scannedTunnelConfiguration)
 
             DispatchQueue.main.async {
                 let masterVC = TunnelsListTableViewController()
