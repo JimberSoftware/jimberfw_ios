@@ -22,13 +22,13 @@ class SignInViewController: BaseViewController {
         GIDSignIn.sharedInstance.disconnect()
 
         // Background color
-        view.backgroundColor = .white
+        view.backgroundColor = UIColor(hex: "#1c1b20")
 
         // Create custom "three dots" settings button
         let settingsButton = UIButton(type: .system)
         settingsButton.setTitle("⋯", for: .normal) // Unicode ellipsis
         settingsButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 28)
-        settingsButton.tintColor =  UIColor(hex: "#111279")
+        settingsButton.tintColor =  .white
         settingsButton.translatesAutoresizingMaskIntoConstraints = false
         settingsButton.addTarget(self, action: #selector(openSettings), for: .touchUpInside)
         view.addSubview(settingsButton)
@@ -55,17 +55,18 @@ class SignInViewController: BaseViewController {
             stackView.widthAnchor.constraint(equalToConstant: 280)
         ])
 
-        let logoImageView = UIImageView(image: UIImage(named: "jimber_logo_full"))
+        let logoImageView = UIImageView(image: UIImage(named: "jimber_logo_white"))
         logoImageView.contentMode = .scaleAspectFit
+        logoImageView.tintColor = .white
         logoImageView.translatesAutoresizingMaskIntoConstraints = false
         stackView.addArrangedSubview(logoImageView)
-        logoImageView.heightAnchor.constraint(equalToConstant: 100).isActive = true
+        logoImageView.heightAnchor.constraint(equalToConstant: 200).isActive = true
 
         let titleLabel = UILabel()
         titleLabel.text = "Sign in to your account"
         titleLabel.textAlignment = .center
         titleLabel.font = UIFont.boldSystemFont(ofSize: 18)
-        titleLabel.textColor = UIColor(hex: "#111279")
+        titleLabel.textColor = .white
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         stackView.addArrangedSubview(titleLabel)
         titleLabel.heightAnchor.constraint(equalToConstant: 40).isActive = true
@@ -118,13 +119,11 @@ class SignInViewController: BaseViewController {
     // Helper function to create sign-in buttons
     func createSignInButton(title: String, imageName: String, action: Selector) -> UIButton {
        // Create the button
-       let button = UIButton(type: .system)
-       button.setTitleColor(.white, for: .normal)
-       button.backgroundColor = UIColor(hex: "#111279") // Customize the background color
-       button.layer.cornerRadius = 4
-       button.tintColor = .white
-       button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 16)
-       button.translatesAutoresizingMaskIntoConstraints = false
+        let button = UIButton(type: .system)
+        button.backgroundColor = .white
+        button.layer.cornerRadius = 4
+        button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 16)
+        button.translatesAutoresizingMaskIntoConstraints = false
 
        // Create a horizontal stack view for the title and icon
        let stackView = UIStackView()
@@ -136,7 +135,7 @@ class SignInViewController: BaseViewController {
 
        // Create and add the icon image view to the stack
        let iconImageView = UIImageView(image: UIImage(named: imageName)?.withRenderingMode(.alwaysTemplate))
-       iconImageView.tintColor = .white
+       iconImageView.tintColor = UIColor(hex: "#1c1b20")
        iconImageView.contentMode = .scaleAspectFit
        iconImageView.translatesAutoresizingMaskIntoConstraints = false
        iconImageView.widthAnchor.constraint(equalToConstant: 24).isActive = true
@@ -144,12 +143,13 @@ class SignInViewController: BaseViewController {
        stackView.addArrangedSubview(iconImageView)
 
        // Create and add the title label to the stack
-       let titleLabel = UILabel()
-       titleLabel.text = title
-       titleLabel.textColor = .white
-       titleLabel.font = UIFont.boldSystemFont(ofSize: 14)
-       titleLabel.textAlignment = .center
-       stackView.addArrangedSubview(titleLabel)
+        let titleLabel = UILabel()
+        titleLabel.text = title
+        titleLabel.textColor = UIColor(hex: "#1c1b20")
+        titleLabel.font = UIFont.systemFont(ofSize: 14, weight: .heavy) // Bigger and bolder
+        titleLabel.textAlignment = .center
+        stackView.addArrangedSubview(titleLabel)
+
 
        // Add the stack view to the button
        button.addSubview(stackView)
