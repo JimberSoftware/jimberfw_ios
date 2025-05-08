@@ -131,8 +131,12 @@ class TunnelsManager {
     }
 
     func add(tunnelConfiguration: TunnelConfiguration, onDemandOption: ActivateOnDemandOption = .off, completionHandler: @escaping (Result<TunnelContainer, TunnelsManagerError>) -> Void) {
-        print(tunnelConfiguration)
-        let tunnelName = tunnelConfiguration.name ?? ""
+        let name = tunnelConfiguration.name ?? ""
+        let suffix = tunnelConfiguration.daemonId.map { "-\($0)" } ?? ""
+        let tunnelName = name + suffix
+
+        print(tunnelName)
+
         if tunnelName.isEmpty {
             completionHandler(.failure(TunnelsManagerError.tunnelNameEmpty))
             return
@@ -665,6 +669,8 @@ class TunnelContainer: NSObject {
     }
 
     init(tunnel: NETunnelProviderManager) {
+        print("THIS IS THE NAME")
+        print(tunnel.localizedDescription)
         name = tunnel.localizedDescription ?? "Unnamed"
 
         let status = TunnelStatus(from: tunnel.connection.status)

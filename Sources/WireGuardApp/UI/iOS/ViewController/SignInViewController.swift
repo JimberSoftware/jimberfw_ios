@@ -257,11 +257,12 @@ class SignInViewController: BaseViewController {
     }
 
     func importAndNavigate(configurationString: String, companyName: String, daemonId: Int, userId: Int ) async {
-        guard let scannedTunnelConfiguration = try? TunnelConfiguration(fromWgQuickConfig: configurationString, called: "Registered", userId: userId, daemonId: daemonId) else {
+        let tunnelName = companyName + "-" + String(daemonId)
+
+        guard let scannedTunnelConfiguration = try? TunnelConfiguration(fromWgQuickConfig: configurationString, called: tunnelName, userId: userId, daemonId: daemonId) else {
             print("Invalid configuration")
             return
         }
-        scannedTunnelConfiguration.name = companyName
 
         do {
             let tunnelsManager = try await createTunnelsManager()

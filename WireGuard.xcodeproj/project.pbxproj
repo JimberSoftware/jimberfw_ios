@@ -201,6 +201,8 @@
 		6FFA5DA42197085D0001E2F7 /* ActivateOnDemandOption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FFA5DA32197085D0001E2F7 /* ActivateOnDemandOption.swift */; };
 		6FFACD2021E4D8D500E9A2A5 /* ParseError+WireGuardAppError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FFACD1E21E4D89600E9A2A5 /* ParseError+WireGuardAppError.swift */; };
 		9FA346CE2DCA25EA00963384 /* ToastExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FA346CD2DCA25E700963384 /* ToastExtension.swift */; };
+		9FA346D12DCCCE6C00963384 /* Clibsodium in Frameworks */ = {isa = PBXBuildFile; productRef = 9FA346D02DCCCE6C00963384 /* Clibsodium */; };
+		9FA346D32DCCCE6C00963384 /* Sodium in Frameworks */ = {isa = PBXBuildFile; productRef = 9FA346D22DCCCE6C00963384 /* Sodium */; };
 		9FE0E2292D560A78006A5835 /* BaseViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FE0E2282D560A73006A5835 /* BaseViewController.swift */; };
 		9FE0E22B2D59DA92006A5835 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 9FE0E22A2D59DA92006A5835 /* GoogleSignIn */; };
 		9FE0E22D2D59DA97006A5835 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 9FE0E22C2D59DA97006A5835 /* GoogleSignInSwift */; };
@@ -482,7 +484,9 @@
 				9FE0E22D2D59DA97006A5835 /* GoogleSignInSwift in Frameworks */,
 				9FE0E2302D5B8D98006A5835 /* MSAL in Frameworks */,
 				6B653B86220DE2960050E69C /* NetworkExtension.framework in Frameworks */,
+				9FA346D32DCCCE6C00963384 /* Sodium in Frameworks */,
 				9FE0E22B2D59DA92006A5835 /* GoogleSignIn in Frameworks */,
+				9FA346D12DCCCE6C00963384 /* Clibsodium in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1076,6 +1080,7 @@
 				9FEAD4E32CDBA0D80004D766 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 				9FE0E22E2D5B8C0C006A5835 /* XCRemoteSwiftPackageReference "microsoft-authentication-library-for-objc" */,
 				9FE0E2382D5C98F9006A5835 /* XCRemoteSwiftPackageReference "Alamofire" */,
+				9FA346CF2DCCCE0B00963384 /* XCRemoteSwiftPackageReference "swift-sodium" */,
 			);
 			productRefGroup = 6FF4AC15211EC46F002C96EB /* Products */;
 			projectDirPath = "";
@@ -1987,6 +1992,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		9FA346CF2DCCCE0B00963384 /* XCRemoteSwiftPackageReference "swift-sodium" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/jedisct1/swift-sodium";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.9.1;
+			};
+		};
 		9FE0E22E2D5B8C0C006A5835 /* XCRemoteSwiftPackageReference "microsoft-authentication-library-for-objc" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/AzureAD/microsoft-authentication-library-for-objc";
@@ -2014,6 +2027,16 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		9FA346D02DCCCE6C00963384 /* Clibsodium */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9FA346CF2DCCCE0B00963384 /* XCRemoteSwiftPackageReference "swift-sodium" */;
+			productName = Clibsodium;
+		};
+		9FA346D22DCCCE6C00963384 /* Sodium */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9FA346CF2DCCCE0B00963384 /* XCRemoteSwiftPackageReference "swift-sodium" */;
+			productName = Sodium;
+		};
 		9FE0E22A2D59DA92006A5835 /* GoogleSignIn */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 9FEAD4E32CDBA0D80004D766 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;

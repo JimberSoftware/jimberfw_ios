@@ -6,6 +6,8 @@ import UIKit
 class TunnelListCell: UITableViewCell {
     var tunnel: TunnelContainer? {
         didSet {
+            print("this is the tunnelname")
+            print(tunnel?.name)
             // Bind to the tunnel's name
             nameLabel.text = tunnel?.name ?? ""
             nameObservationToken = tunnel?.observe(\.name) { [weak self] tunnel, _ in

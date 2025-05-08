@@ -121,16 +121,6 @@ class SettingsTableViewController: UITableViewController {
     func getStorageAction() async {
         let allData = SharedStorage.shared.getAll()
 
-
-        let pk = "2JRCMmXUwKCalXG8OzoCp7mbwyk/kqSTCmkbHP6c9Og="
-        let sk = "3HliYd7haohMc0a8IQTUYXFkMkmBkrO1yWQrJGOjKcY="
-
-
-        let kp = generateWireguardConfigurationKeys(pk: pk, sk: sk)
-
-        print(kp?.base64EncodedPkCurveX25519)
-        print(kp?.base64EncodedSkCurveX25519)
-
         wg_log(.info, message: "Getting storage")
         wg_log(.info, message: String(describing: allData))
 
