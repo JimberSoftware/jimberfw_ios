@@ -90,8 +90,6 @@ class TunnelsManager {
             Keychain.deleteReferences(except: refs)
             RecentTunnelsTracker.cleanupTunnels(except: tunnelNames)
 
-            let userId = SharedStorage.shared.getCurrentUser()?.id
-
             completionHandler(.success(TunnelsManager(tunnelProviders: tunnelManagers)))
         }
     }
@@ -134,8 +132,6 @@ class TunnelsManager {
         let name = tunnelConfiguration.name ?? ""
         let suffix = tunnelConfiguration.daemonId.map { "-\($0)" } ?? ""
         let tunnelName = name + suffix
-
-        print(tunnelName)
 
         if tunnelName.isEmpty {
             completionHandler(.failure(TunnelsManagerError.tunnelNameEmpty))
@@ -330,59 +326,41 @@ class TunnelsManager {
     }
 
     func remove(tunnel: TunnelContainer, completionHandler: @escaping (TunnelsManagerError?) -> Void) {
-           let tunnelProviderManager = tunnel.tunnelProvider
+        let tunnelProviderManager = tunnel.tunnelProvider
+        let daemonId = tunnel.tunnelConfiguration?.daemonId
 
-           let daemonId = tunnel.tunnelConfiguration?.daemonId
-           let daemonKeyPair = SharedStorage.shared.getDaemonKeyPairByDaemonId(daemonId!)
+        if(daemonId != nil) {
+            let daemonKeyPair = SharedStorage.shared.getDaemonKeyPairByDaemonId(daemonId!)
 
-           (tunnelProviderManager.protocolConfiguration as? NETunnelProviderProtocol)?.destroyConfigurationReference()
+            Task {
+                _ =  await deleteDaemon(daemonId: daemonId!, company: daemonKeyPair!.companyName, sk: daemonKeyPair!.baseEncodedSkEd25519)
 
-           Task {
-               do {
-                   let res = try await deleteDaemon(daemonId: daemonId!, company: daemonKeyPair!.companyName, sk: daemonKeyPair!.baseEncodedSkEd25519)
+                // Delete daemon in shared storage
+                SharedStorage.shared.clearDaemonKeys(daemonId: daemonId!)
+            }
+        } else {
+            wg_log(.error, message: "Strange, daemonId is somehow nil, so cannot remove in signal / storage, but bringing down tunnel")
 
-                   // Delete daemon in shared storage
-                   SharedStorage.shared.clearDaemonKeys(daemonId: daemonId!)
+        }
 
-                   tunnelProviderManager.removeFromPreferences { [weak self] error in
-                       if let error = error {
-                           wg_log(.error, message: "Remove: Saving configuration failed: \(error)")
-                           completionHandler(TunnelsManagerError.systemErrorOnRemoveTunnel(systemError: error))
-                           return
-                       }
-                       if let self = self, let index = self.tunnels.firstIndex(of: tunnel) {
-                           self.tunnels.remove(at: index)
-                           self.tunnelsListDelegate?.tunnelRemoved(at: index, tunnel: tunnel)
-                       }
-                       completionHandler(nil)
+        (tunnelProviderManager.protocolConfiguration as? NETunnelProviderProtocol)?.destroyConfigurationReference()
+        tunnelProviderManager.removeFromPreferences { [weak self] error in
+            if let error = error {
+                wg_log(.error, message: "Remove: Saving configuration failed: \(error)")
+                completionHandler(TunnelsManagerError.systemErrorOnRemoveTunnel(systemError: error))
+                return
+            }
+            if let self = self, let index = self.tunnels.firstIndex(of: tunnel) {
+                self.tunnels.remove(at: index)
+                self.tunnelsListDelegate?.tunnelRemoved(at: index, tunnel: tunnel)
+            }
+            completionHandler(nil)
 
-                       #if os(iOS)
-                       RecentTunnelsTracker.handleTunnelRemoved(tunnelName: tunnel.name)
-                       #endif
-                   }
-               }
-               catch{
-                   SharedStorage.shared.clearDaemonKeys(daemonId: daemonId!)
-
-                   tunnelProviderManager.removeFromPreferences { [weak self] error in
-                       if let error = error {
-                           wg_log(.error, message: "Remove: Saving configuration failed: \(error)")
-                           completionHandler(TunnelsManagerError.systemErrorOnRemoveTunnel(systemError: error))
-                           return
-                       }
-                       if let self = self, let index = self.tunnels.firstIndex(of: tunnel) {
-                           self.tunnels.remove(at: index)
-                           self.tunnelsListDelegate?.tunnelRemoved(at: index, tunnel: tunnel)
-                       }
-                       completionHandler(nil)
-
-                       #if os(iOS)
-                       RecentTunnelsTracker.handleTunnelRemoved(tunnelName: tunnel.name)
-                       #endif
-                   }
-               }
-           }
-       }
+            #if os(iOS)
+            RecentTunnelsTracker.handleTunnelRemoved(tunnelName: tunnel.name)
+            #endif
+        }
+    }
 
     func removeMultiple(tunnels: [TunnelContainer], completionHandler: @escaping (TunnelsManagerError?) -> Void) {
         // Temporarily pause observation of changes to VPN configurations to prevent the feedback
@@ -485,6 +463,7 @@ class TunnelsManager {
     }
 
     func startActivation(of tunnel: TunnelContainer) {
+
         guard tunnels.contains(tunnel) else { return } // Ensure it's not deleted
         guard tunnel.status == .inactive else {
             activationDelegate?.tunnelActivationAttemptFailed(tunnel: tunnel, error: .tunnelIsNotInactive)
@@ -494,6 +473,8 @@ class TunnelsManager {
         if let alreadyWaitingTunnel = tunnels.first(where: { $0.status == .waiting }) {
             alreadyWaitingTunnel.status = .inactive
         }
+
+        retrieveAndUpdateWireguardConfig(tunnel: tunnel)
 
         if let tunnelInOperation = tunnels.first(where: { $0.status != .inactive }) {
             wg_log(.info, message: "Tunnel '\(tunnel.name)' waiting for deactivation of '\(tunnelInOperation.name)'")
@@ -525,6 +506,56 @@ class TunnelsManager {
         RecentTunnelsTracker.handleTunnelActivated(tunnelName: tunnel.name)
         #endif
     }
+
+    func retrieveAndUpdateWireguardConfig(tunnel: TunnelContainer) {
+        let currentConfigString = tunnel.tunnelConfiguration!.asWgQuickConfig()
+
+        let daemonId = tunnel.tunnelConfiguration!.daemonId
+        let userId = tunnel.tunnelConfiguration!.userId
+
+        let kp = SharedStorage.shared.getDaemonKeyPairByDaemonId(daemonId!)
+
+        Task {
+            do {
+                let ncData = try await getDaemonConnectionData(daemonId: daemonId!, companyName:kp!.companyName, sk: kp!.baseEncodedSkEd25519)
+
+                let newEndpointAddress = ncData.endpointAddress
+                let newDnsServer = ncData.ipAddress
+                let newIpRange = ncData.allowedIps
+                let newPublicKey = parseEdPublicKeyToCurveX25519(pk: ncData.routerPublicKey)!
+
+                let newEndpointAddressLine = "Endpoint = \(newEndpointAddress)"
+                let newDNSServerLine = "DNS = \(newDnsServer)"
+                let newIpRangeLine = "AllowedIPs = \(newIpRange)"
+                let newPublicKeyLine = "PublicKey = \(newPublicKey)"
+
+                let newConfig = updateWireGuardConfig(currentConfig: currentConfigString, newPublicKeyLine:  newPublicKeyLine, newAllowedIpsLine: newIpRangeLine, newDnsServerLine: newDNSServerLine, newEndpointLine: newEndpointAddressLine)
+
+                let scannedTunnelConfiguration: TunnelConfiguration = {
+                    if let parsed = try? TunnelConfiguration(fromWgQuickConfig: newConfig, called: tunnel.name, userId: userId, daemonId: daemonId) {
+                        wg_log(.info, message: "New configuration retrieved, will use the new configuration")
+                        return parsed
+                    } else {
+                        wg_log(.error, message: "Could not parse retrieved configuration, using old one")
+                        return tunnel.tunnelConfiguration!
+                    }
+                }()
+
+                // We're modifying an existing tunnel
+                modify(tunnel: tunnel, tunnelConfiguration: scannedTunnelConfiguration, onDemandOption: ActivateOnDemandOption.off) { [weak self] error in
+                    if let error = error {
+                        wg_log(.error, message: "Error in modifying tunnel on activation \(error)")
+                        ErrorPresenter.showErrorAlert(error: error, from: self)
+                    } else {
+                        wg_log(.info, message: "Successfully modified tunnel configuration")
+                    }
+                }
+            } catch {
+                wg_log(.error, message: "Could not retrieve daemon connection data, will use old configuration")
+            }
+        }
+    }
+
 
     func startDeactivation(of tunnel: TunnelContainer) {
         tunnel.isAttemptingActivation = false
@@ -570,7 +601,7 @@ class TunnelsManager {
                     if let (title, message) = lastErrorTextFromNetworkExtension(for: tunnel) {
                         self.activationDelegate?.tunnelActivationFailed(tunnel: tunnel, error: .activationFailedWithExtensionError(title: title, message: message, wasOnDemandEnabled: tunnelProvider.isOnDemandEnabled))
                     } else {
-                        self.activationDelegate?.tunnelActivationFailed(tunnel: tunnel, error: .activationFailed(wasOnDemandEnabled: tunnelProvider.isOnDemandEnabled))
+                        wg_log(.error , message: "Activation failed, is it still failed? Do you have an internet connection?")
                     }
                 }
             }
@@ -669,8 +700,6 @@ class TunnelContainer: NSObject {
     }
 
     init(tunnel: NETunnelProviderManager) {
-        print("THIS IS THE NAME")
-        print(tunnel.localizedDescription)
         name = tunnel.localizedDescription ?? "Unnamed"
 
         let status = TunnelStatus(from: tunnel.connection.status)
@@ -794,17 +823,17 @@ extension NETunnelProviderManager {
             if let savedDaemonIdUnwrapped = tunnelProtocol.providerConfiguration?["daemonId"] as? Int {
                savedDaemonId = savedDaemonIdUnwrapped
             } else {
-                print("Failed to retrieve daemonId")
+                wg_log(.error, message: "Failed to retrieve daemonId")
             }
 
             if let savedUserIdUnwrapped = tunnelProtocol.providerConfiguration?["userId"] as? Int {
                savedUserId = savedUserIdUnwrapped
             } else {
-                print("Failed to retrieve userId")
+                wg_log(.error, message: "Failed to retrieve userId")
             }
 
         } else {
-            print("Failed to cast protocolConfiguration to NETunnelProviderProtocol A")
+            wg_log(.error, message: "Failed to cast to NETunnelProviderProtocol")
         }
 
         let config = (protocolConfiguration as? NETunnelProviderProtocol)?.asTunnelConfiguration(called: localizedDescription, userId: savedUserId, daemonId: savedDaemonId)
@@ -815,7 +844,16 @@ extension NETunnelProviderManager {
     }
 
     func setTunnelConfiguration(_ tunnelConfiguration: TunnelConfiguration) {
-        protocolConfiguration = NETunnelProviderProtocol(tunnelConfiguration: tunnelConfiguration, previouslyFrom: protocolConfiguration)
+        wg_log(.info, message: "Received new tunnel configuration, loading...")
+    
+        protocolConfiguration = NETunnelProviderProtocol(tunnelConfiguration: tunnelConfiguration, previouslyFrom: protocolConfiguration) as NETunnelProviderProtocol?
+
+        if let tunnelProtocol = protocolConfiguration as? NETunnelProviderProtocol {
+            tunnelProtocol.providerConfiguration = ["daemonId": tunnelConfiguration.daemonId!, "userId": tunnelConfiguration.userId!]
+        } else {
+            wg_log(.error, message: "Failed to set daemonId or userId in providerConfiguration")
+        }
+
         localizedDescription = tunnelConfiguration.name
         objc_setAssociatedObject(self, &NETunnelProviderManager.cachedConfigKey, tunnelConfiguration, objc_AssociationPolicy.OBJC_ASSOCIATION_RETAIN_NONATOMIC)
     }

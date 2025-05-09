@@ -36,9 +36,11 @@ extension NETunnelProviderProtocol {
     func asTunnelConfiguration(called name: String? = nil, userId: Int? = nil, daemonId: Int? = nil) -> TunnelConfiguration? {
         if let passwordReference = passwordReference,
             let config = Keychain.openReference(called: passwordReference) {
+
             let tunnelConfig = try? TunnelConfiguration(fromWgQuickConfig: config, called: name, userId: userId, daemonId: daemonId)
             return tunnelConfig
         }
+
         if let oldConfig = providerConfiguration?["WgQuickConfig"] as? String {
             let tunnelConfig = try? TunnelConfiguration(fromWgQuickConfig: oldConfig, called: name, userId: userId, daemonId: daemonId)
             return tunnelConfig
