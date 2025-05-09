@@ -81,12 +81,15 @@ class TunnelEditTableViewController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+
         title = tunnel == nil ? tr("newTunnelViewTitle") : tr("editTunnelViewTitle")
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .save, target: self, action: #selector(saveTapped))
         navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancelTapped))
 
         tableView.estimatedRowHeight = 44
         tableView.rowHeight = UITableView.automaticDimension
+
+        tableView.backgroundColor = UIColor(hex: "#1c1b20")
 
         tableView.register(TunnelEditKeyValueCell.self)
         tableView.register(TunnelEditEditableKeyValueCell.self)
@@ -210,6 +213,9 @@ extension TunnelEditTableViewController {
 
     private func generateKeyPairCell(for tableView: UITableView, at indexPath: IndexPath, with field: TunnelViewModel.InterfaceField) -> UITableViewCell {
         let cell: ButtonCell = tableView.dequeueReusableCell(for: indexPath)
+        cell.backgroundColor = UIColor(hex: "#302e33")
+        cell.contentView.backgroundColor = UIColor(hex: "#302e33")
+
         cell.buttonText = field.localizedUIString
         cell.onTapped = { [weak self] in
             guard let self = self else { return }
@@ -227,6 +233,9 @@ extension TunnelEditTableViewController {
 
     private func publicKeyCell(for tableView: UITableView, at indexPath: IndexPath, with field: TunnelViewModel.InterfaceField) -> UITableViewCell {
         let cell: TunnelEditKeyValueCell = tableView.dequeueReusableCell(for: indexPath)
+        cell.backgroundColor = UIColor(hex: "#302e33")
+        cell.contentView.backgroundColor = UIColor(hex: "#302e33")
+
         cell.key = field.localizedUIString
         cell.value = tunnelViewModel.interfaceData[field]
         return cell
@@ -235,6 +244,9 @@ extension TunnelEditTableViewController {
     private func interfaceFieldKeyValueCell(for tableView: UITableView, at indexPath: IndexPath, with field: TunnelViewModel.InterfaceField) -> UITableViewCell {
         let cell: TunnelEditEditableKeyValueCell = tableView.dequeueReusableCell(for: indexPath)
         cell.key = field.localizedUIString
+
+        cell.backgroundColor = UIColor(hex: "#302e33")
+        cell.contentView.backgroundColor = UIColor(hex: "#302e33")
 
         switch field {
         case .name, .privateKey:
@@ -247,15 +259,16 @@ extension TunnelEditTableViewController {
             cell.placeholderText = tunnelViewModel.peersData.contains(where: { $0.shouldStronglyRecommendDNS }) ? tr("tunnelEditPlaceholderTextStronglyRecommended") : tr("tunnelEditPlaceholderTextOptional")
             cell.keyboardType = .numbersAndPunctuation
         case .listenPort, .mtu:
+            cell.tintColor = .white
             cell.placeholderText = tr("tunnelEditPlaceholderTextAutomatic")
             cell.keyboardType = .numberPad
         case .publicKey, .generateKeyPair:
             cell.keyboardType = .default
         case .daemonId:
-            cell.placeholderText = tr("lennieD")
+            cell.placeholderText = tr("_")
             cell.keyboardType = .default
         case .userId:
-            cell.placeholderText = tr("lennieD2")
+            cell.placeholderText = tr("_")
             cell.keyboardType = .default
         case .status, .toggleStatus:
             fatalError("Unexpected interface field")
@@ -313,6 +326,10 @@ extension TunnelEditTableViewController {
 
     private func deletePeerCell(for tableView: UITableView, at indexPath: IndexPath, peerData: TunnelViewModel.PeerData, field: TunnelViewModel.PeerField) -> UITableViewCell {
         let cell: ButtonCell = tableView.dequeueReusableCell(for: indexPath)
+
+        cell.backgroundColor = UIColor(hex: "#302e33")
+        cell.contentView.backgroundColor = UIColor(hex: "#302e33")
+
         cell.buttonText = field.localizedUIString
         cell.hasDestructiveAction = true
         cell.onTapped = { [weak self, weak peerData] in
@@ -341,6 +358,10 @@ extension TunnelEditTableViewController {
 
     private func excludePrivateIPsCell(for tableView: UITableView, at indexPath: IndexPath, peerData: TunnelViewModel.PeerData, field: TunnelViewModel.PeerField) -> UITableViewCell {
         let cell: SwitchCell = tableView.dequeueReusableCell(for: indexPath)
+
+        cell.backgroundColor = UIColor(hex: "#302e33")
+        cell.contentView.backgroundColor = UIColor(hex: "#302e33")
+
         cell.message = field.localizedUIString
         cell.isEnabled = peerData.shouldAllowExcludePrivateIPsControl
         cell.isOn = peerData.excludePrivateIPsValue
@@ -356,6 +377,10 @@ extension TunnelEditTableViewController {
 
     private func peerFieldKeyValueCell(for tableView: UITableView, at indexPath: IndexPath, peerData: TunnelViewModel.PeerData, field: TunnelViewModel.PeerField) -> UITableViewCell {
         let cell: TunnelEditEditableKeyValueCell = tableView.dequeueReusableCell(for: indexPath)
+
+        cell.backgroundColor = UIColor(hex: "#302e33")
+        cell.contentView.backgroundColor = UIColor(hex: "#302e33")
+
         cell.key = field.localizedUIString
 
         switch field {
@@ -411,6 +436,10 @@ extension TunnelEditTableViewController {
 
     private func addPeerCell(for tableView: UITableView, at indexPath: IndexPath) -> UITableViewCell {
         let cell: ButtonCell = tableView.dequeueReusableCell(for: indexPath)
+
+        cell.backgroundColor = UIColor(hex: "#302e33")
+        cell.contentView.backgroundColor = UIColor(hex: "#302e33")
+
         cell.buttonText = tr("addPeerButtonTitle")
         cell.onTapped = { [weak self] in
             guard let self = self else { return }
@@ -431,8 +460,12 @@ extension TunnelEditTableViewController {
 
     private func onDemandCell(for tableView: UITableView, at indexPath: IndexPath) -> UITableViewCell {
         let field = onDemandFields[indexPath.row]
+
         if indexPath.row < 2 {
             let cell: SwitchCell = tableView.dequeueReusableCell(for: indexPath)
+            cell.backgroundColor = UIColor(hex: "#302e33")
+            cell.contentView.backgroundColor = UIColor(hex: "#302e33")
+
             cell.message = field.localizedUIString
             cell.isOn = onDemandViewModel.isEnabled(field: field)
             cell.onSwitchToggled = { [weak self] isOn in
@@ -451,6 +484,9 @@ extension TunnelEditTableViewController {
             return cell
         } else {
             let cell: ChevronCell = tableView.dequeueReusableCell(for: indexPath)
+            cell.backgroundColor = UIColor(hex: "#302e33")
+            cell.contentView.backgroundColor = UIColor(hex: "#302e33")
+
             cell.message = field.localizedUIString
             cell.detailMessage = onDemandViewModel.localizedSSIDDescription
             return cell

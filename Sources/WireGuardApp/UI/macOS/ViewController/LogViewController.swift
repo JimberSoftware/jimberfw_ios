@@ -96,6 +96,8 @@ class LogViewController: NSViewController {
         tableView.dataSource = self
         tableView.delegate = self
 
+        tableView.backgroundColor = UIColor(hex: "#1c1b20")
+
         closeButton.target = self
         closeButton.action = #selector(closeClicked)
 

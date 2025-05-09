@@ -6,8 +6,6 @@ import UIKit
 class TunnelListCell: UITableViewCell {
     var tunnel: TunnelContainer? {
         didSet {
-            print("this is the tunnelname")
-            print(tunnel?.name)
             // Bind to the tunnel's name
             nameLabel.text = tunnel?.name ?? ""
             nameObservationToken = tunnel?.observe(\.name) { [weak self] tunnel, _ in
@@ -73,6 +71,9 @@ class TunnelListCell: UITableViewCell {
             subview.translatesAutoresizingMaskIntoConstraints = false
             contentView.addSubview(subview)
         }
+
+        backgroundColor = UIColor(hex: "#1c1b20")
+        contentView.backgroundColor = UIColor(hex: "#1c1b20")
 
         nameLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         onDemandLabel.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)

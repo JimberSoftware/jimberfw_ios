@@ -74,6 +74,8 @@ class TunnelDetailTableViewController: UITableViewController {
         title = tunnelViewModel.interfaceData[.name]
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .edit, target: self, action: #selector(editTapped))
 
+        tableView.backgroundColor = UIColor(hex: "#1c1b20")
+
         tableView.estimatedRowHeight = 44
         tableView.rowHeight = UITableView.automaticDimension
         tableView.register(SwitchCell.self)
@@ -325,6 +327,9 @@ extension TunnelDetailTableViewController {
     private func statusCell(for tableView: UITableView, at indexPath: IndexPath) -> UITableViewCell {
         let cell: SwitchCell = tableView.dequeueReusableCell(for: indexPath)
 
+        cell.backgroundColor = UIColor(hex: "#302e33")
+        cell.contentView.backgroundColor = UIColor(hex: "#302e33")
+
         func update(cell: SwitchCell?, with tunnel: TunnelContainer) {
             guard let cell = cell else { return }
 
@@ -409,6 +414,10 @@ extension TunnelDetailTableViewController {
         let visibleInterfaceFields = TunnelDetailTableViewController.interfaceFields.enumerated().filter { interfaceFieldIsVisible[$0.offset] }.map { $0.element }
         let field = visibleInterfaceFields[indexPath.row]
         let cell: KeyValueCell = tableView.dequeueReusableCell(for: indexPath)
+
+        cell.backgroundColor = UIColor(hex: "#302e33")
+        cell.contentView.backgroundColor = UIColor(hex: "#302e33")
+
         cell.key = field.localizedUIString
         cell.value = tunnelViewModel.interfaceData[field]
         return cell
@@ -418,6 +427,10 @@ extension TunnelDetailTableViewController {
         let visiblePeerFields = TunnelDetailTableViewController.peerFields.enumerated().filter { peerFieldIsVisible[peerIndex][$0.offset] }.map { $0.element }
         let field = visiblePeerFields[indexPath.row]
         let cell: KeyValueCell = tableView.dequeueReusableCell(for: indexPath)
+
+        cell.backgroundColor = UIColor(hex: "#302e33")
+        cell.contentView.backgroundColor = UIColor(hex: "#302e33")
+
         cell.key = field.localizedUIString
         if field == .persistentKeepAlive {
             cell.value = tr(format: "tunnelPeerPersistentKeepaliveValue (%@)", peerData[field])
@@ -436,6 +449,10 @@ extension TunnelDetailTableViewController {
             cell.key = field.localizedUIString
             cell.value = onDemandViewModel.localizedInterfaceDescription
             cell.copyableGesture = false
+
+            cell.backgroundColor = UIColor(hex: "#302e33")
+            cell.contentView.backgroundColor = UIColor(hex: "#302e33")
+
             return cell
         } else {
             assert(field == .ssid)
@@ -444,19 +461,30 @@ extension TunnelDetailTableViewController {
                 cell.key = field.localizedUIString
                 cell.value = onDemandViewModel.ssidOption.localizedUIString
                 cell.copyableGesture = false
+
+                cell.backgroundColor = UIColor(hex: "#302e33")
+                cell.contentView.backgroundColor = UIColor(hex: "#302e33")
+
                 return cell
             } else {
                 let cell: ChevronCell = tableView.dequeueReusableCell(for: indexPath)
                 cell.message = field.localizedUIString
                 cell.detailMessage = onDemandViewModel.localizedSSIDDescription
+
+                cell.backgroundColor = UIColor(hex: "#302e33")
+                cell.contentView.backgroundColor = UIColor(hex: "#302e33")
+
                 return cell
             }
         }
     }
 
     private func deleteConfigurationCell(for tableView: UITableView, at indexPath: IndexPath) -> UITableViewCell {
-        print("hallo dit is het begin")
           let cell: ButtonCell = tableView.dequeueReusableCell(for: indexPath)
+
+          cell.backgroundColor = UIColor(hex: "#302e33")
+          cell.contentView.backgroundColor = UIColor(hex: "#302e33")
+
           cell.buttonText = tr("deleteTunnelButtonTitle")
           cell.hasDestructiveAction = true
           cell.onTapped = { [weak self] in

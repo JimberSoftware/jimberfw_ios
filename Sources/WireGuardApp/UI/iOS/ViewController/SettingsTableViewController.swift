@@ -64,6 +64,8 @@ class SettingsTableViewController: UITableViewController {
         tableView.rowHeight = UITableView.automaticDimension
         tableView.allowsSelection = false
 
+        tableView.backgroundColor = UIColor(hex: "#1c1b20")
+
         tableView.register(KeyValueCell.self)
         tableView.register(ButtonCell.self)
 
@@ -222,6 +224,10 @@ extension SettingsTableViewController {
         let field = settingsFieldsBySection[indexPath.section][indexPath.row]
         if field == .iosAppVersion || field == .goBackendVersion {
             let cell: KeyValueCell = tableView.dequeueReusableCell(for: indexPath)
+
+            cell.backgroundColor = UIColor(hex: "#302e33")
+            cell.contentView.backgroundColor = UIColor(hex: "#302e33")
+
             cell.copyableGesture = false
             cell.key = field.localizedUIString
             if field == .iosAppVersion {
@@ -236,6 +242,10 @@ extension SettingsTableViewController {
             return cell
         } else if field == .viewLog {
             let cell: ButtonCell = tableView.dequeueReusableCell(for: indexPath)
+
+            cell.backgroundColor = UIColor(hex: "#302e33")
+            cell.contentView.backgroundColor = UIColor(hex: "#302e33")
+
             cell.buttonText = field.localizedUIString
             cell.onTapped = { [weak self] in
                 self?.presentLogView()
@@ -243,6 +253,10 @@ extension SettingsTableViewController {
             return cell
         } else if field == .loggedInUser {
             let cell: KeyValueCell = tableView.dequeueReusableCell(for: indexPath)
+
+            cell.backgroundColor = UIColor(hex: "#302e33")
+            cell.contentView.backgroundColor = UIColor(hex: "#302e33")
+
             cell.copyableGesture = false
             cell.key = field.localizedUIString
 
@@ -253,6 +267,10 @@ extension SettingsTableViewController {
 
         } else if field == .signOut {
             let cell: ButtonCell = tableView.dequeueReusableCell(for: indexPath)
+
+            cell.backgroundColor = UIColor(hex: "#302e33")
+            cell.contentView.backgroundColor = UIColor(hex: "#302e33")
+
             cell.buttonText = field.localizedUIString
             cell.onTapped = { [weak self] in
                 Task {
@@ -262,6 +280,10 @@ extension SettingsTableViewController {
             return cell
         } else if field == .getStorage {
             let cell: ButtonCell = tableView.dequeueReusableCell(for: indexPath)
+
+            cell.backgroundColor = UIColor(hex: "#302e33")
+            cell.contentView.backgroundColor = UIColor(hex: "#302e33")
+
             cell.buttonText = field.localizedUIString
             cell.onTapped = { [weak self] in
                 Task {
@@ -271,6 +293,10 @@ extension SettingsTableViewController {
             return cell
         } else if field == .deleteStorage {
             let cell: ButtonCell = tableView.dequeueReusableCell(for: indexPath)
+
+            cell.backgroundColor = UIColor(hex: "#302e33")
+            cell.contentView.backgroundColor = UIColor(hex: "#302e33")
+
             cell.buttonText = field.localizedUIString
             cell.onTapped = { [weak self] in
                 Task {

@@ -40,6 +40,8 @@ class ManageTunnelsRootViewController: NSViewController {
         tunnelsListVC!.delegate = self
         let tunnelsListView = tunnelsListVC!.view
 
+        view.backgroundColor = UIColor(hex: "#1c1b20")
+
         addChild(tunnelsListVC!)
         view.addSubview(tunnelsListView)
         view.addSubview(tunnelDetailContainerView)

@@ -39,9 +39,12 @@ class TunnelsListTableViewController: UIViewController {
     }
 
     override func loadView() {
-        print("Tunnel list initialized")
         view = UIView()
-        view.backgroundColor = .systemBackground
+
+        view.backgroundColor = UIColor(hex: "#1c1b20")
+        tableView.backgroundColor = UIColor(hex: "#1c1b20")
+
+
 
         tableView.dataSource = self
         tableView.delegate = self

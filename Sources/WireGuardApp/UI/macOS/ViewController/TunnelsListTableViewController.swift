@@ -78,6 +78,8 @@ class TunnelsListTableViewController: NSViewController {
         tableView.dataSource = self
         tableView.delegate = self
 
+        tableView.backgroundColor = UIColor(hex: "#1c1b20")
+
         tableView.doubleAction = #selector(listDoubleClicked(sender:))
 
         let isSelected = selectTunnelInOperation() || selectTunnel(at: 0)

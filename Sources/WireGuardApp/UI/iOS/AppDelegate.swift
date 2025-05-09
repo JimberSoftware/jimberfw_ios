@@ -25,6 +25,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         let window = UIWindow(frame: UIScreen.main.bounds)
         self.window = window
 
+        // UIView.appearance().backgroundColor = UIColor(hex: "#1c1b20") // or .white, .blue, etc.
+
         let mainVC = MainViewController()
         window.rootViewController = mainVC
         window.makeKeyAndVisible()
