@@ -24,13 +24,6 @@ class TunnelsListTableViewController: UIViewController {
         return tableView
     }()
 
-    let busyIndicator: UIActivityIndicatorView = {
-        let busyIndicator: UIActivityIndicatorView
-        busyIndicator = UIActivityIndicatorView(style: .medium)
-        busyIndicator.hidesWhenStopped = true
-        return busyIndicator
-    }()
-
     var detailDisplayedTunnel: TunnelContainer?
     var tableState: TableState = .normal {
         didSet {
@@ -44,8 +37,6 @@ class TunnelsListTableViewController: UIViewController {
         view.backgroundColor = UIColor(hex: "#1c1b20")
         tableView.backgroundColor = UIColor(hex: "#1c1b20")
 
-
-
         tableView.dataSource = self
         tableView.delegate = self
 
@@ -58,16 +49,7 @@ class TunnelsListTableViewController: UIViewController {
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
 
-        view.addSubview(busyIndicator)
-        busyIndicator.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            busyIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            busyIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor)
-        ])
-
-        busyIndicator.startAnimating()
-
-        print("Tunnel list done")
+        wg_log(.info, message: "Tunnel list loaded")
     }
 
     override func viewDidLoad() {
@@ -118,7 +100,6 @@ class TunnelsListTableViewController: UIViewController {
         self.tunnelsManager = tunnelsManager
         tunnelsManager.tunnelsListDelegate = self
 
-        busyIndicator.stopAnimating()
         tableView.reloadData()
     }
 

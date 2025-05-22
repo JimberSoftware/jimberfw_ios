@@ -94,9 +94,6 @@ class SignInViewController: BaseViewController {
         present(navController, animated: true)
     }
 
-
-
-
     func initMSAL() throws {
            guard let authorityURL = URL(string: kAuthority) else {
                print("erreur")
@@ -106,7 +103,7 @@ class SignInViewController: BaseViewController {
            let authority = try MSALAADAuthority(url: authorityURL)
 
            let msalConfiguration = MSALPublicClientApplicationConfig(clientId: kClientID, redirectUri: nil, authority: authority)
-            MSALGlobalConfig.brokerAvailability = .none;
+           MSALGlobalConfig.brokerAvailability = .none
            self.applicationContext = try MSALPublicClientApplication(configuration: msalConfiguration)
            self.initWebViewParams()
        }
@@ -182,7 +179,7 @@ class SignInViewController: BaseViewController {
             additionalScopes: nil
         ) { signInResult, error in
             if let error = error {
-                print("Google Sign-In error: \(error)")
+                wg_log(.error, message: "Google SignIn error: \(error)")
                 self.showToast(message: "Sign-In failed: \(error.localizedDescription)")
                 return
             }
@@ -199,14 +196,21 @@ class SignInViewController: BaseViewController {
                     let userId = userAuthentication.userId
 
                     if let _ = SharedStorage.shared.getDaemonKeyPairByUserId(userId) {
-                        print("Found existing daemons for user")
+                        wg_log(.info, message: "Found daemons for user, loading...")
                         self.loadExistingDaemons()
                         return
                     }
 
-                    print("Registering new daemon")
-                    let result = try await register(userAuthentication: userAuthentication, daemonName: "lennygdaemon")
-                    print("Registered new daemon")
+                    guard let daemonName = await self.promptTunnelNameAsync() else {
+                        self.showToast(message: "Tunnel creation cancelled")
+                        return
+                    }
+
+                    wg_log(.info, message: "Registering new daemon")
+
+                    let result = try await register(userAuthentication: userAuthentication, daemonName: daemonName)
+
+                    wg_log(.info, message: "Registered new daemon \(result.daemonId)")
 
                     await self.importAndNavigate(
                         configurationString: result.configurationString,
@@ -228,7 +232,6 @@ class SignInViewController: BaseViewController {
             window.makeKeyAndVisible()
         }
     }
-
 
     func createTunnelsManager() async throws -> TunnelsManager {
         return try await withCheckedThrowingContinuation { continuation in
@@ -260,7 +263,7 @@ class SignInViewController: BaseViewController {
         let tunnelName = companyName + "-" + String(daemonId)
 
         guard let scannedTunnelConfiguration = try? TunnelConfiguration(fromWgQuickConfig: configurationString, called: tunnelName, userId: userId, daemonId: daemonId) else {
-            print("Invalid configuration")
+            wg_log(.error, message: "Invalid configuration \(configurationString)")
             return
         }
 
@@ -279,7 +282,7 @@ class SignInViewController: BaseViewController {
                 }
             }
         } catch {
-            print("Error: \(error)")
+            wg_log(.error, message: "Error occured in importAndNavigate \(error)")
         }
     }
     func acquireTokenInteractively() {

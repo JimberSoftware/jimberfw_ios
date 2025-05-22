@@ -845,7 +845,7 @@ extension NETunnelProviderManager {
 
     func setTunnelConfiguration(_ tunnelConfiguration: TunnelConfiguration) {
         wg_log(.info, message: "Received new tunnel configuration, loading...")
-    
+
         protocolConfiguration = NETunnelProviderProtocol(tunnelConfiguration: tunnelConfiguration, previouslyFrom: protocolConfiguration) as NETunnelProviderProtocol?
 
         if let tunnelProtocol = protocolConfiguration as? NETunnelProviderProtocol {
