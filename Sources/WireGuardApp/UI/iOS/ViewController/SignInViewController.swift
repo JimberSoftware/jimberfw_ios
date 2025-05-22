@@ -253,6 +253,18 @@ class SignInViewController: BaseViewController {
                 case .success(let tunnelContainer):
                     continuation.resume(returning: tunnelContainer)
                 case .failure(let error):
+                    let daemonId = configuration.daemonId
+                    let daemonKeyPair = SharedStorage.shared.getDaemonKeyPairByDaemonId(configuration.daemonId!)
+
+                    Task {
+                        _ =  await deleteDaemon(daemonId: daemonId!, company: daemonKeyPair!.companyName, sk: daemonKeyPair!.baseEncodedSkEd25519)
+
+                        // Delete daemon in shared storage
+                        SharedStorage.shared.clearDaemonKeys(daemonId: daemonId!)
+                        SharedStorage.shared.clearUserLoginData()
+                    }
+
+                    self.showToast(message: "Cancellation in process")
                     continuation.resume(throwing: error)  // Throw the error if it fails
                 }
             }
