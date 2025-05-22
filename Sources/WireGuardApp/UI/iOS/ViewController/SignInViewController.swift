@@ -8,9 +8,8 @@ class SignInViewController: BaseViewController {
     let kClientID = "f1373772-6623-4090-9204-3cb04b9d46c9"
     let kAuthority = "https://login.microsoftonline.com/common"
 
-    let kScopes: [String] = ["user.read"] // request permission to read the profile of the signed-in user
+    let kScopes: [String] = ["f1373772-6623-4090-9204-3cb04b9d46c9/.default"] // request permission to read the profile of the signed-in user
 
-    var accessToken = String()
     var applicationContext : MSALPublicClientApplication?
     var webViewParameters : MSALWebviewParameters?
     var currentAccount: MSALAccount?
@@ -170,6 +169,8 @@ class SignInViewController: BaseViewController {
     }
 
     @objc func googleSignInTapped() {
+        wg_log(.info, message: "Google Sign In tapped")
+
         GIDSignIn.sharedInstance.disconnect()
         GIDSignIn.sharedInstance.signOut()
 
@@ -192,6 +193,60 @@ class SignInViewController: BaseViewController {
             Task {
                 do {
                     let userAuthentication = try await getUserAuthentication(idToken: idToken, authenticationType: .google)
+                    let companyName = userAuthentication.companyName
+                    let userId = userAuthentication.userId
+
+                    if let _ = SharedStorage.shared.getDaemonKeyPairByUserId(userId) {
+                        wg_log(.info, message: "Found daemons for user, loading...")
+                        self.loadExistingDaemons()
+                        return
+                    }
+
+                    guard let daemonName = await self.promptTunnelNameAsync() else {
+                        self.showToast(message: "Tunnel creation cancelled")
+                        return
+                    }
+
+                    wg_log(.info, message: "Registering new daemon")
+
+                    let result = try await register(userAuthentication: userAuthentication, daemonName: daemonName)
+
+                    wg_log(.info, message: "Registered new daemon \(result.daemonId)")
+
+                    await self.importAndNavigate(
+                        configurationString: result.configurationString,
+                        companyName: companyName,
+                        daemonId: result.daemonId,
+                        userId: userId
+                    )
+                } catch {
+                    self.showToast(message: error.localizedDescription)
+                }
+            }
+        }
+    }
+
+    @objc func microsoftSignInTapped() {
+        wg_log(.info, message: "Microsoft Sign In tapped")
+
+        guard let applicationContext = self.applicationContext else { return }
+        guard let webViewParameters = self.webViewParameters else { return }
+
+        let parameters = MSALInteractiveTokenParameters(scopes: kScopes, webviewParameters: webViewParameters)
+        parameters.promptType = .selectAccount
+
+        applicationContext.acquireToken(with: parameters) { (result, error) in
+            if let error = error {
+                wg_log(.error, message: "Error in acquire token 1: \(error.localizedDescription)")
+                return
+            }
+
+            let accessToken = result!.accessToken
+            self.updateCurrentAccount(account: result!.account)
+
+            Task {
+                do {
+                    let userAuthentication = try await getUserAuthentication(idToken: accessToken, authenticationType: .microsoft)
                     let companyName = userAuthentication.companyName
                     let userId = userAuthentication.userId
 
@@ -297,44 +352,6 @@ class SignInViewController: BaseViewController {
             wg_log(.error, message: "Error occured in importAndNavigate \(error)")
         }
     }
-    func acquireTokenInteractively() {
-
-        guard let applicationContext = self.applicationContext else { return }
-        guard let webViewParameters = self.webViewParameters else { return }
-
-        // #1
-        let parameters = MSALInteractiveTokenParameters(scopes: kScopes, webviewParameters: webViewParameters)
-        parameters.promptType = .selectAccount
-
-        // #2
-        applicationContext.acquireToken(with: parameters) { (result, error) in
-
-            // #3
-            if let error = error {
-
-                print("error 1 " + error.localizedDescription)
-                return
-            }
-
-            guard let result = result else {
-
-                print("error" + error!.localizedDescription)
-                return
-            }
-
-            // #4
-            self.accessToken = result.accessToken
-            self.updateCurrentAccount(account: result.account)
-
-            print(self.accessToken)
-        }
-    }
-
-    @objc func microsoftSignInTapped() {
-        acquireTokenInteractively()
-        print("Microsoft Sign-In Tapped")
-    }
-
 
     @objc func emailSignInTapped() {
         print("Email Sign-In Tapped")
