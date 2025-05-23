@@ -59,7 +59,7 @@ func updateWireGuardConfig(
             with: endpointReplacement
         )
     } catch {
-        print("Failed to update config: \(error)")
+        wg_log(.error, message: "Failed to update config: \(error)")
     }
     return updated
 }

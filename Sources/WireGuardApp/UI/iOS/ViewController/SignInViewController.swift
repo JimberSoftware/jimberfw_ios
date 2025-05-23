@@ -92,7 +92,7 @@ class SignInViewController: BaseViewController {
         do {
             try self.initMSAL()
         } catch let error {
-            print(error)
+            wg_log(.error, message: "Could not init MSAL: \(error)")
         }
     }
 
@@ -105,7 +105,7 @@ class SignInViewController: BaseViewController {
 
     func initMSAL() throws {
            guard let authorityURL = URL(string: kAuthority) else {
-               print("erreur")
+               wg_log(.error, message: "Could not create authority URL")
                return
            }
 

@@ -495,10 +495,11 @@ extension TunnelDetailTableViewController {
                   guard let self = self else { return }
                   self.tunnelsManager.remove(tunnel: self.tunnel) { error in
                       if let error = error {
-                          print("Error removing tunnel: \(error)")
+                          wg_log(.error, message: "Error removing tunnel: \(error)")
                           return
                       }
 
+                      SharedStorage.shared.clearUserLoginData()
 
                       let signInVC = SignInViewController()
                       let navController = UINavigationController(rootViewController: signInVC)

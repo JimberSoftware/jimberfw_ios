@@ -151,7 +151,7 @@ class TunnelsManager {
         if let tunnelProtocol = tunnelProviderManager.protocolConfiguration as? NETunnelProviderProtocol {
             tunnelProtocol.providerConfiguration = ["daemonId": tunnelConfiguration.daemonId, "userId": tunnelConfiguration.userId]
         } else {
-            print("Failed to set daemonId or userId in providerConfiguration")
+            wg_log(.error, message: "Failed to set daemonId or userId in providerConfiguration")
         }
 
         onDemandOption.apply(on: tunnelProviderManager)
@@ -186,9 +186,9 @@ class TunnelsManager {
             self.tunnelsListDelegate?.tunnelAdded(at: self.tunnels.firstIndex(of: tunnel)!)
 
             if let savedDaemonId = (tunnelProviderManager.protocolConfiguration as? NETunnelProviderProtocol)?
-                       .providerConfiguration?["daemonId"] as? Int {
-                       print("Successfully saved daemonId: \(savedDaemonId)")
-                   }
+                .providerConfiguration?["daemonId"] as? Int {
+                wg_log(.info, message: "Successfully saved daemonId: \(savedDaemonId)")
+            }
 
             completionHandler(.success(tunnel))
         }

@@ -55,7 +55,7 @@ func generateSignedMessage(message: Data, privateKey: String) -> String? {
 func parseEdPublicKeyToCurveX25519(pk: String) -> String? {
     // Decode base64 input
     guard let ed25519Data = Data(base64Encoded: pk), ed25519Data.count == 32 else {
-        print("Invalid Ed25519 public key")
+        wg_log(.error, message: "Invalid ED public key: \(pk)")
         return nil
     }
 
@@ -70,7 +70,7 @@ func parseEdPublicKeyToCurveX25519(pk: String) -> String? {
     }
 
     guard result == 0 else {
-        print("Conversion failed")
+        wg_log(.error, message: "Conversion failed")
         return nil
     }
 
@@ -80,7 +80,7 @@ func parseEdPublicKeyToCurveX25519(pk: String) -> String? {
 func parseEdPrivateKeyToCurveX25519(sk: String) -> String? {
     // Decode base64 input
     guard let ed25519SecretKeyData = Data(base64Encoded: sk), ed25519SecretKeyData.count == 32 || ed25519SecretKeyData.count == 64 else {
-        print("Invalid Ed25519 private key")
+        wg_log(.error, message: "Invalid ED private key")
         return nil
     }
 
@@ -97,7 +97,7 @@ func parseEdPrivateKeyToCurveX25519(sk: String) -> String? {
     }
 
     guard result == 0 else {
-        print("Conversion failed")
+        wg_log(.error, message: "Conversion failed")
         return nil
     }
 
