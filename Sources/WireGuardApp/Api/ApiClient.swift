@@ -241,7 +241,11 @@ class ApiServiceImpl: ApiService {
                    switch response.result {
                    case .success(let data):
                        do {
-                           let result = try JSONDecoder().decode(UserAuthenticationApiResult.self, from: data)
+                           var result = try JSONDecoder().decode(UserAuthenticationApiResult.self, from: data)
+                           if let headers = response.response?.allHeaderFields as? [String: String],
+                              let setCookie = headers["Set-Cookie"] {
+                               result.authCookie = setCookie
+                           }
                            completion(.success(result))
                        } catch {
                            completion(.failure(error))

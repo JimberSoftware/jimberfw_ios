@@ -499,25 +499,20 @@ extension TunnelDetailTableViewController {
                           return
                       }
 
-                      print("we hebben de tunnel geremoved 1")
+
                       let signInVC = SignInViewController()
+                      let navController = UINavigationController(rootViewController: signInVC)
 
                       if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                         let window = windowScene.windows.first {
-                          window.rootViewController = signInVC
+                         let window = windowScene.windows.first(where: { $0.isKeyWindow }) {
+                          window.rootViewController = navController
                           window.makeKeyAndVisible()
 
-                          // Optionally show the toast after the view has appeared
                           DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                               signInVC.showToast(message: "Successfully deleted connection")
                           }
                       }
-
                   }
-
-                  print("we hebben de tunnel geremoved 2")
-
-
               }
           }
           return cell

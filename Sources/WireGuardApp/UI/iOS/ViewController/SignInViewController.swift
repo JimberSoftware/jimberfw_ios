@@ -14,6 +14,16 @@ class SignInViewController: BaseViewController {
     var webViewParameters : MSALWebviewParameters?
     var currentAccount: MSALAccount?
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        self.navigationController?.setNavigationBarHidden(true, animated: animated)
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        self.navigationController?.setNavigationBarHidden(false, animated: animated)
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -354,7 +364,10 @@ class SignInViewController: BaseViewController {
     }
 
     @objc func emailSignInTapped() {
-        print("Email Sign-In Tapped")
+        wg_log(.info, message: "Email Sign In tapped")
+
+        let emailVC = EmailRegistrationViewController()
+        navigationController?.pushViewController(emailVC, animated: true)
     }
 
     func updateCurrentAccount(account: MSALAccount?) {

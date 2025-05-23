@@ -63,7 +63,10 @@ class MainViewController: UISplitViewController {
 
                     if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                        let window = windowScene.windows.first {
-                        window.rootViewController = SignInViewController()
+                        let signInVC = SignInViewController()
+                        let navController = UINavigationController(rootViewController: signInVC)
+                        navController.modalPresentationStyle = .fullScreen
+                        window.rootViewController = navController
                         window.makeKeyAndVisible()
                     }
 
@@ -76,7 +79,10 @@ class MainViewController: UISplitViewController {
 
                     if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                        let window = windowScene.windows.first {
-                        window.rootViewController = SignInViewController()
+                        let signInVC = SignInViewController()
+                        let navController = UINavigationController(rootViewController: signInVC)
+                        navController.modalPresentationStyle = .fullScreen
+                        window.rootViewController = navController
                         window.makeKeyAndVisible()
                     }
 
