@@ -88,7 +88,7 @@ class AuthInterceptor: RequestInterceptor {
 
 // MARK: - ApiClient
 class ApiClient {
-    static let BASE_URL = "https://signal.staging.jimber.io/api/v1/"
+    static let BASE_URL = Config.API_BASE_URL
 
     static let apiService: ApiService = {
         return ApiServiceImpl()

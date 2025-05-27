@@ -1,18 +1,20 @@
 default_platform(:ios)
 
 platform :ios do
-  desc "Push a new beta build to TestFlight"
-  lane :beta do
-    # Set version and build number first
-    increment_version_number(version_number: "1.2.0")
-    increment_build_number(build_number: Time.now.strftime("%Y%m%d%H%M"))
+  desc "Build and upload for a given environment"
+  lane :release do |options|
+    env = options[:env] || "production"  # default to production if no env provided
 
-    # Then build
+    # Run your switch-env.sh script with the environment argument
+    sh "../../switch-env.sh #{env}"
+
+    # Now build your app (adjust scheme and export_method as needed)
     build_app(
-      scheme: "WireGuardiOS"
+      scheme: "WireGuardiOS",
+      export_method: "app-store"
     )
 
-    # Upload
+    # Upload to TestFlight or App Store Connect
     upload_to_testflight
   end
 end
