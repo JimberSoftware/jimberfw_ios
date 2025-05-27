@@ -15,13 +15,13 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 
 ## iOS
 
-### ios release
+### ios dc
 
 ```sh
-[bundle exec] fastlane ios release
+[bundle exec] fastlane ios dc
 ```
 
-Build and upload for a given environment
+Build and upload dc environment to TestFlight
 
 ----
 

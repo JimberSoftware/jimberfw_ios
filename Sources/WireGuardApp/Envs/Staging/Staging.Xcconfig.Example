@@ -4,8 +4,8 @@ DEVELOPMENT_TEAM = 792AMT5536
 // The bundle identifier of the apps.
 // Should be an app id created at developer.apple.com
 // with Network Extensions capabilty.
-APP_ID_IOS = io.jimber.networkisolation.dc
-APP_ID_MACOS = io.jimber.networkisolation.dc
+APP_ID_IOS = io.jimber.networkisolation.staging
+APP_ID_MACOS = io.jimber.networkisolation.staging
 
 VERSION_NAME = 1.3.0
 VERSION_ID = 34

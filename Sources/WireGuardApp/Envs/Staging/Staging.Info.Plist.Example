@@ -5,7 +5,7 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>$(DEVELOPMENT_LANGUAGE)</string>
     <key>CFBundleDisplayName</key>
-    <string>DC Jimber SASE</string>
+    <string>Staging Jimber SASE</string>
     <key>CFBundleDocumentTypes</key>
     <array>
         <dict>
@@ -80,7 +80,7 @@
             <key>CFBundleURLSchemes</key>
             <array>
                 <string>com.googleusercontent.apps.107269124183-2u340vnj231dh29f15iqh3mm2jtllb64</string>
-                <string>msauth.io.jimber.networkisolation.dc</string>
+                <string>msauth.io.jimber.networkisolation.staging</string>
             </array>
         </dict>
     </array>
