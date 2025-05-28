@@ -10,7 +10,7 @@
 	<true/>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>group.io.jimber.networkisolation.beta</string>
+		<string>group.io.jimber.networkisolation.staging</string>
 	</array>
 	<key>keychain-access-groups</key>
 	<array>
