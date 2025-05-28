@@ -447,14 +447,94 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		9F9645C52DE4951A00E2AA2F /* ClientConfig */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = ClientConfig; sourceTree = "<group>"; };
-		9F9645C62DE4952100E2AA2F /* Envs */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Envs; sourceTree = "<group>"; };
-		9FE0E2322D5C9707006A5835 /* Api */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Api; sourceTree = "<group>"; };
-		9FE0E23F2D5C9A97006A5835 /* Authentication */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Authentication; sourceTree = "<group>"; };
-		9FE0E2452D5C9AAE006A5835 /* Daemon */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Daemon; sourceTree = "<group>"; };
-		9FE0E24B2D5C9AC1006A5835 /* NetworkController */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = NetworkController; sourceTree = "<group>"; };
-		9FE0E26F2D5CC7D5006A5835 /* SharedStorage */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = SharedStorage; sourceTree = "<group>"; };
-		9FE0E27A2D5CCB00006A5835 /* Utils */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Utils; sourceTree = "<group>"; };
+		9F9645C52DE4951A00E2AA2F /* ClientConfig */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = ClientConfig;
+			sourceTree = "<group>";
+		};
+		9F9645C62DE4952100E2AA2F /* Envs */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = Envs;
+			sourceTree = "<group>";
+		};
+		9FE0E2322D5C9707006A5835 /* Api */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = Api;
+			sourceTree = "<group>";
+		};
+		9FE0E23F2D5C9A97006A5835 /* Authentication */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = Authentication;
+			sourceTree = "<group>";
+		};
+		9FE0E2452D5C9AAE006A5835 /* Daemon */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = Daemon;
+			sourceTree = "<group>";
+		};
+		9FE0E24B2D5C9AC1006A5835 /* NetworkController */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = NetworkController;
+			sourceTree = "<group>";
+		};
+		9FE0E26F2D5CC7D5006A5835 /* SharedStorage */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = SharedStorage;
+			sourceTree = "<group>";
+		};
+		9FE0E27A2D5CCB00006A5835 /* Utils */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1594,13 +1674,13 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_ID_IOS).network-extension";
-				"PRODUCT_BUNDLE_IDENTIFIER[sdk=iphoneos*]" = "io.jimber.networkisolation.dc.network-extension";
+				PRODUCT_BUNDLE_IDENTIFIER = "io.jimber.networkisolation.beta.network-extension";
 				PRODUCT_NAME = WireGuardNetworkExtension;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "Sources/WireGuardNetworkExtension/WireGuardNetworkExtension-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
+				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Debug;
 		};
@@ -1620,13 +1700,13 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_ID_IOS).network-extension";
-				"PRODUCT_BUNDLE_IDENTIFIER[sdk=iphoneos*]" = "io.jimber.networkisolation.dc.network-extension";
+				PRODUCT_BUNDLE_IDENTIFIER = "io.jimber.networkisolation.beta.network-extension";
 				PRODUCT_NAME = WireGuardNetworkExtension;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "Sources/WireGuardNetworkExtension/WireGuardNetworkExtension-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
+				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Release;
 		};
@@ -1712,7 +1792,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_ID_MACOS).network-extension";
+				PRODUCT_BUNDLE_IDENTIFIER = "io.jimber.networkisolation.beta.network-extension";
 				PRODUCT_NAME = WireGuardNetworkExtension;
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
@@ -1735,7 +1815,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_ID_MACOS).network-extension";
+				PRODUCT_BUNDLE_IDENTIFIER = "io.jimber.networkisolation.beta.network-extension";
 				PRODUCT_NAME = WireGuardNetworkExtension;
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
@@ -1813,6 +1893,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES_AGGRESSIVE;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 26;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 792AMT5536;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -1833,6 +1914,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				MARKETING_VERSION = 2.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -1843,6 +1925,7 @@
 				SWIFT_PRECOMPILE_BRIDGING_HEADER = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Debug;
 		};
@@ -1881,6 +1964,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES_AGGRESSIVE;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 26;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 792AMT5536;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -1897,6 +1981,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				MARKETING_VERSION = 2.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
@@ -1907,6 +1992,7 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
+				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Release;
 		};
@@ -1917,17 +2003,19 @@
 				CODE_SIGN_ENTITLEMENTS = Sources/WireGuardApp/UI/iOS/WireGuard.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 26;
 				DEVELOPMENT_TEAM = 792AMT5536;
 				INFOPLIST_FILE = Sources/WireGuardApp/UI/iOS/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_ID_IOS)";
-				"PRODUCT_BUNDLE_IDENTIFIER[sdk=iphoneos*]" = io.jimber.networkisolation.dc;
+				MARKETING_VERSION = 2.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.jimber.networkisolation.beta;
 				PRODUCT_NAME = WireGuard;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
+				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Debug;
 		};
@@ -1938,17 +2026,19 @@
 				CODE_SIGN_ENTITLEMENTS = Sources/WireGuardApp/UI/iOS/WireGuard.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 26;
 				DEVELOPMENT_TEAM = 792AMT5536;
 				INFOPLIST_FILE = Sources/WireGuardApp/UI/iOS/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_ID_IOS)";
-				"PRODUCT_BUNDLE_IDENTIFIER[sdk=iphoneos*]" = io.jimber.networkisolation.dc;
+				MARKETING_VERSION = 2.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.jimber.networkisolation.beta;
 				PRODUCT_NAME = WireGuard;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
+				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Release;
 		};

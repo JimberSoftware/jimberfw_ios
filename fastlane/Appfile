@@ -1,4 +1,4 @@
-app_identifier("io.jimber.networkisolation.dc") # The bundle identifier of your app
+app_identifier("io.jimber.networkisolation.beta") # The bundle identifier of your app
 apple_id("lennert.defauw@jimber.org") # Your Apple Developer Portal username
 
 itc_team_id("122990385") # App Store Connect Team ID

@@ -1,0 +1,99 @@
+default_platform(:ios)
+
+platform :ios do
+  # Helper to get certs and profiles, and build+upload for given env
+  def build_and_upload(env:, scheme:, app_id:, ext_app_id:, main_profile_name:, ext_profile_name:)
+    sh("../switch-env.sh #{env}")
+
+    app_store_connect_api_key(
+      key_id: "ZUH8B83727",
+      issuer_id: "ac9930d9-ad19-41dc-a2d1-674e40ac9cf8",
+      key_filepath: "./fastlane/AuthKey_Fastlane.p8"
+    )
+
+    get_certificates
+    get_provisioning_profile(app_identifier: app_id)
+    get_provisioning_profile(app_identifier: ext_app_id)
+
+    increment_build_number(
+      xcodeproj: "WireGuard.xcodeproj"
+    )
+    
+    update_app_identifier(
+      xcodeproj: "WireGuard.xcodeproj",
+      plist_path: "Sources/WireGuardApp/UI/iOS/Info.plist",
+      app_identifier: app_id
+    )
+
+    update_app_identifier(
+      xcodeproj: "WireGuard.xcodeproj",
+      plist_path: "Sources/WireGuardNetworkExtension/Info.plist", 
+      app_identifier: ext_app_id
+    )
+
+    sigh(app_identifier: app_id, provisioning_name: main_profile_name)
+    sigh(app_identifier: ext_app_id, provisioning_name: ext_profile_name)
+    
+    build_app(
+      project: "./WireGuard.xcodeproj",
+      scheme: scheme,
+      export_method: "app-store",
+      export_options: {
+        provisioningProfiles: {
+          app_id => main_profile_name,
+          ext_app_id => ext_profile_name
+        }
+      }
+    )
+
+    upload_to_testflight(skip_waiting_for_build_processing: true)
+  end
+
+  desc "Build and upload beta environment"
+  lane :beta do
+    build_and_upload(
+      env: "beta",
+      scheme: "WireGuardiOS",
+      app_id: "io.jimber.networkisolation.beta",
+      ext_app_id: "io.jimber.networkisolation.beta.network-extension",
+      main_profile_name: "io.jimber.networkisolation.beta AppStore 1748350076",
+      ext_profile_name: "io.jimber.networkisolation.beta.network-extension AppStore 1748350093"
+    )
+  end
+
+  desc "Build and upload dc environment"
+  lane :dc do
+    build_and_upload(
+      env: "dc",
+      scheme: "WireGuardiOS",
+      app_id: "io.jimber.networkisolation.dc",
+      ext_app_id: "io.jimber.networkisolation.dc.network-extension",
+      main_profile_name: "Prov SASE DC",
+      ext_profile_name: "Prov SASE DC NetExt"
+    )
+  end
+
+  desc "Build and upload staging environment"
+  lane :staging do
+    build_and_upload(
+      env: "staging",
+      scheme: "WireGuardiOS",
+      app_id: "io.jimber.networkisolation.staging",
+      ext_app_id: "io.jimber.networkisolation.staging.network-extension",
+      main_profile_name: "Provisioning SASE Staging",
+      ext_profile_name: "Prov SASE Staging NetExt"
+    )
+  end
+
+  desc "Build and upload prod environment"
+  lane :prod do
+    build_and_upload(
+      env: "prod",
+      scheme: "WireGuardiOS",
+      app_id: "io.jimber.networkisolation",
+      ext_app_id: "io.jimber.networkisolation.network-extension",
+      main_profile_name: "Provisioning SASE Prod",
+      ext_profile_name: "Prov SASE Prod NetExt"
+    )
+  end
+end

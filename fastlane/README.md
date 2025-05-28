@@ -15,13 +15,37 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 
 ## iOS
 
+### ios beta
+
+```sh
+[bundle exec] fastlane ios beta
+```
+
+Build and upload beta environment
+
 ### ios dc
 
 ```sh
 [bundle exec] fastlane ios dc
 ```
 
-Build and upload dc environment to TestFlight
+Build and upload dc environment
+
+### ios staging
+
+```sh
+[bundle exec] fastlane ios staging
+```
+
+Build and upload staging environment
+
+### ios prod
+
+```sh
+[bundle exec] fastlane ios prod
+```
+
+Build and upload prod environment
 
 ----
 
