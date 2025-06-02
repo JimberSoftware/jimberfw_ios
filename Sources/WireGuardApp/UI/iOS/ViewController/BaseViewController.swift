@@ -4,7 +4,7 @@ class BaseViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        view.backgroundColor = UIColor(hex: "#1c1b20")
+        view.backgroundColor =  .white
 
         // Set the background image
         let backgroundImageView = UIImageView(image: UIImage(named: "jimber_bg"))

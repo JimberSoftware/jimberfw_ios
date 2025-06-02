@@ -41,7 +41,7 @@ class ButtonedDetailViewController: NSViewController {
             view.heightAnchor.constraint(greaterThanOrEqualToConstant: 120)
         ])
 
-        view.backgroundColor = UIColor(hex: "#1c1b20")
+        view.backgroundColor = UIColor(hex: "#111279")
         self.view = view
     }
 

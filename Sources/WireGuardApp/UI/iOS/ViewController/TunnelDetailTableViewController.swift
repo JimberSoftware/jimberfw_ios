@@ -72,9 +72,13 @@ class TunnelDetailTableViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         title = tunnelViewModel.interfaceData[.name]
-        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .edit, target: self, action: #selector(editTapped))
 
-        tableView.backgroundColor = UIColor(hex: "#1c1b20")
+        let customColor = UIColor(hex: "#111279")
+         navigationController?.navigationBar.titleTextAttributes = [
+             .foregroundColor: customColor
+         ]
+
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .edit, target: self, action: #selector(editTapped))
 
         tableView.estimatedRowHeight = 44
         tableView.rowHeight = UITableView.automaticDimension
@@ -82,6 +86,8 @@ class TunnelDetailTableViewController: UITableViewController {
         tableView.register(KeyValueCell.self)
         tableView.register(ButtonCell.self)
         tableView.register(ChevronCell.self)
+
+        tableView.backgroundColor = .white
 
         restorationIdentifier = "TunnelDetailVC:\(tunnel.name)"
     }
@@ -294,6 +300,26 @@ extension TunnelDetailTableViewController {
         }
     }
 
+    override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        let label = UILabel()
+        label.textColor = UIColor(hex: "#111279")
+        label.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
+        label.text = self.tableView(tableView, titleForHeaderInSection: section)
+
+        let containerView = UIView()
+        containerView.addSubview(label)
+
+        label.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            label.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),
+            label.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
+            label.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 4),
+            label.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -4)
+        ])
+
+        return containerView
+    }
+
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         switch sections[section] {
         case .status:
@@ -327,8 +353,8 @@ extension TunnelDetailTableViewController {
     private func statusCell(for tableView: UITableView, at indexPath: IndexPath) -> UITableViewCell {
         let cell: SwitchCell = tableView.dequeueReusableCell(for: indexPath)
 
-        cell.backgroundColor = UIColor(hex: "#302e33")
-        cell.contentView.backgroundColor = UIColor(hex: "#302e33")
+        cell.backgroundColor = .white
+        cell.contentView.backgroundColor = .white
 
         func update(cell: SwitchCell?, with tunnel: TunnelContainer) {
             guard let cell = cell else { return }
@@ -376,6 +402,7 @@ extension TunnelDetailTableViewController {
                 text = tr("tunnelStatusOnDemandDisabled")
             }
 
+            cell.textLabel?.textColor = .gray
             cell.textLabel?.text = text
         }
 
@@ -415,8 +442,8 @@ extension TunnelDetailTableViewController {
         let field = visibleInterfaceFields[indexPath.row]
         let cell: KeyValueCell = tableView.dequeueReusableCell(for: indexPath)
 
-        cell.backgroundColor = UIColor(hex: "#302e33")
-        cell.contentView.backgroundColor = UIColor(hex: "#302e33")
+        cell.backgroundColor = .white
+        cell.contentView.backgroundColor = .white
 
         cell.key = field.localizedUIString
         cell.value = tunnelViewModel.interfaceData[field]
@@ -428,8 +455,8 @@ extension TunnelDetailTableViewController {
         let field = visiblePeerFields[indexPath.row]
         let cell: KeyValueCell = tableView.dequeueReusableCell(for: indexPath)
 
-        cell.backgroundColor = UIColor(hex: "#302e33")
-        cell.contentView.backgroundColor = UIColor(hex: "#302e33")
+        cell.backgroundColor = .white
+        cell.contentView.backgroundColor = .white
 
         cell.key = field.localizedUIString
         if field == .persistentKeepAlive {
@@ -450,8 +477,8 @@ extension TunnelDetailTableViewController {
             cell.value = onDemandViewModel.localizedInterfaceDescription
             cell.copyableGesture = false
 
-            cell.backgroundColor = UIColor(hex: "#302e33")
-            cell.contentView.backgroundColor = UIColor(hex: "#302e33")
+            cell.backgroundColor = .white
+            cell.contentView.backgroundColor = .white
 
             return cell
         } else {
@@ -462,8 +489,8 @@ extension TunnelDetailTableViewController {
                 cell.value = onDemandViewModel.ssidOption.localizedUIString
                 cell.copyableGesture = false
 
-                cell.backgroundColor = UIColor(hex: "#302e33")
-                cell.contentView.backgroundColor = UIColor(hex: "#302e33")
+                cell.backgroundColor = .white
+                cell.contentView.backgroundColor = .white
 
                 return cell
             } else {
@@ -471,8 +498,8 @@ extension TunnelDetailTableViewController {
                 cell.message = field.localizedUIString
                 cell.detailMessage = onDemandViewModel.localizedSSIDDescription
 
-                cell.backgroundColor = UIColor(hex: "#302e33")
-                cell.contentView.backgroundColor = UIColor(hex: "#302e33")
+                cell.backgroundColor = .white
+                cell.contentView.backgroundColor = .white
 
                 return cell
             }
@@ -480,10 +507,10 @@ extension TunnelDetailTableViewController {
     }
 
     private func deleteConfigurationCell(for tableView: UITableView, at indexPath: IndexPath) -> UITableViewCell {
-          let cell: ButtonCell = tableView.dequeueReusableCell(for: indexPath)
+        let cell: ButtonCell = tableView.dequeueReusableCell(for: indexPath)
 
-          cell.backgroundColor = UIColor(hex: "#302e33")
-          cell.contentView.backgroundColor = UIColor(hex: "#302e33")
+        cell.backgroundColor = .white
+        cell.contentView.backgroundColor = .white
 
           cell.buttonText = tr("deleteTunnelButtonTitle")
           cell.hasDestructiveAction = true

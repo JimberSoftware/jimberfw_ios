@@ -1674,7 +1674,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "io.jimber.networkisolation.staging.network-extension";
+				PRODUCT_BUNDLE_IDENTIFIER = "io.jimber.networkisolation.beta.network-extension";
 				PRODUCT_NAME = WireGuardNetworkExtension;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -1700,7 +1700,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "io.jimber.networkisolation.staging.network-extension";
+				PRODUCT_BUNDLE_IDENTIFIER = "io.jimber.networkisolation.beta.network-extension";
 				PRODUCT_NAME = WireGuardNetworkExtension;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -1792,7 +1792,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "io.jimber.networkisolation.staging.network-extension";
+				PRODUCT_BUNDLE_IDENTIFIER = "io.jimber.networkisolation.beta.network-extension";
 				PRODUCT_NAME = WireGuardNetworkExtension;
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
@@ -1815,7 +1815,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "io.jimber.networkisolation.staging.network-extension";
+				PRODUCT_BUNDLE_IDENTIFIER = "io.jimber.networkisolation.beta.network-extension";
 				PRODUCT_NAME = WireGuardNetworkExtension;
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
@@ -1893,7 +1893,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES_AGGRESSIVE;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 28;
+				CURRENT_PROJECT_VERSION = 31;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 792AMT5536;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -1964,7 +1964,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES_AGGRESSIVE;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 28;
+				CURRENT_PROJECT_VERSION = 31;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 792AMT5536;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -2003,7 +2003,7 @@
 				CODE_SIGN_ENTITLEMENTS = Sources/WireGuardApp/UI/iOS/WireGuard.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 28;
+				CURRENT_PROJECT_VERSION = 31;
 				DEVELOPMENT_TEAM = 792AMT5536;
 				INFOPLIST_FILE = Sources/WireGuardApp/UI/iOS/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -2011,7 +2011,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 2.0;
-				PRODUCT_BUNDLE_IDENTIFIER = io.jimber.networkisolation.staging;
+				PRODUCT_BUNDLE_IDENTIFIER = io.jimber.networkisolation.beta;
 				PRODUCT_NAME = WireGuard;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
@@ -2026,7 +2026,7 @@
 				CODE_SIGN_ENTITLEMENTS = Sources/WireGuardApp/UI/iOS/WireGuard.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 28;
+				CURRENT_PROJECT_VERSION = 31;
 				DEVELOPMENT_TEAM = 792AMT5536;
 				INFOPLIST_FILE = Sources/WireGuardApp/UI/iOS/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -2034,7 +2034,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 2.0;
-				PRODUCT_BUNDLE_IDENTIFIER = io.jimber.networkisolation.staging;
+				PRODUCT_BUNDLE_IDENTIFIER = io.jimber.networkisolation.beta;
 				PRODUCT_NAME = WireGuard;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;

@@ -9,7 +9,7 @@ class KeyValueCell: UITableViewCell {
         let keyLabel = UILabel()
         keyLabel.font = UIFont.preferredFont(forTextStyle: .body)
         keyLabel.adjustsFontForContentSizeCategory = true
-        keyLabel.textColor = .label
+        keyLabel.textColor = .gray
         keyLabel.textAlignment = .left
         return keyLabel
     }()
@@ -31,7 +31,8 @@ class KeyValueCell: UITableViewCell {
         valueTextField.autocapitalizationType = .none
         valueTextField.autocorrectionType = .no
         valueTextField.spellCheckingType = .no
-        valueTextField.textColor = .secondaryLabel
+        valueTextField.textColor = .gray
+        valueTextField.font = UIFont.systemFont(ofSize: 11)
         return valueTextField
     }()
 
@@ -47,8 +48,15 @@ class KeyValueCell: UITableViewCell {
     }
     var placeholderText: String {
         get { return valueTextField.placeholder ?? "" }
-        set(value) { valueTextField.placeholder = value }
+        set {
+            let color = UIColor.gray
+            valueTextField.attributedPlaceholder = NSAttributedString(
+                string: newValue,
+                attributes: [.foregroundColor: color]
+            )
+        }
     }
+
     var keyboardType: UIKeyboardType {
         get { return valueTextField.keyboardType }
         set(value) { valueTextField.keyboardType = value }
@@ -57,7 +65,7 @@ class KeyValueCell: UITableViewCell {
     var isValueValid = true {
         didSet {
             if isValueValid {
-                keyLabel.textColor = .label
+                keyLabel.textColor = .gray
             } else {
                 keyLabel.textColor = .systemRed
             }

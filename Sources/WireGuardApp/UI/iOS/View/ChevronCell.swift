@@ -9,9 +9,19 @@ class ChevronCell: UITableViewCell {
         set(value) { textLabel?.text = value }
     }
 
+    var messageTextColor: UIColor? {
+        get { return textLabel?.textColor }
+        set { textLabel?.textColor = newValue }
+    }
+
     var detailMessage: String {
         get { return detailTextLabel?.text ?? "" }
         set(value) { detailTextLabel?.text = value }
+    }
+
+    var detailMessageTextColor: UIColor? {
+        get { return detailTextLabel?.textColor }
+        set { detailTextLabel?.textColor = newValue }
     }
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -26,5 +36,8 @@ class ChevronCell: UITableViewCell {
     override func prepareForReuse() {
         super.prepareForReuse()
         message = ""
+        detailMessage = ""
+        messageTextColor = nil
+        detailMessageTextColor = nil
     }
 }

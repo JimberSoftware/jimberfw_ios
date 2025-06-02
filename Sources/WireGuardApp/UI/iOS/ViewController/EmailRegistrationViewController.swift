@@ -4,7 +4,9 @@ class EmailRegistrationViewController: BaseViewController {
 
     private let logoImageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.image = UIImage(named: "jimber_logo_white")
+        let originalImage = UIImage(named: "jimber_logo_white")
+        imageView.image = originalImage?.withRenderingMode(.alwaysTemplate)
+        imageView.tintColor = UIColor(hex: "#111279")
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
         return imageView
@@ -14,7 +16,7 @@ class EmailRegistrationViewController: BaseViewController {
         let label = UILabel()
         label.text = "Sign in to your account"
         label.font = UIFont.boldSystemFont(ofSize: 20)
-        label.textColor = .white
+        label.textColor = UIColor(hex: "#111279")
         label.textAlignment = .center
         return label
     }()
@@ -23,7 +25,7 @@ class EmailRegistrationViewController: BaseViewController {
         let label = UILabel()
         label.text = "Email"
         label.font = UIFont.boldSystemFont(ofSize: 14)
-        label.textColor = .white
+        label.textColor = UIColor(hex: "#111279")
         return label
     }()
 
@@ -34,10 +36,10 @@ class EmailRegistrationViewController: BaseViewController {
         tf.autocorrectionType = .no
         tf.layer.cornerRadius = 4
         tf.layer.borderWidth = 1
-        tf.layer.borderColor = UIColor.white.cgColor
+        tf.layer.borderColor = UIColor(hex: "#111279").cgColor
         tf.setLeftPaddingPoints(12)
         tf.setRightPaddingPoints(12)
-        tf.textColor = .white
+        tf.textColor = UIColor(hex: "#111279")
         return tf
     }()
 
@@ -55,8 +57,8 @@ class EmailRegistrationViewController: BaseViewController {
         let btn = UIButton(type: .system)
         btn.setTitle("Continue", for: .normal)
         btn.titleLabel?.font = UIFont.boldSystemFont(ofSize: 17)
-        btn.backgroundColor = .white
-        btn.setTitleColor(UIColor(hex: "#1c1b20"), for: .normal)
+        btn.backgroundColor = UIColor(hex: "#111279")
+        btn.setTitleColor(.white, for: .normal)
         btn.layer.cornerRadius = 4
         btn.contentEdgeInsets = UIEdgeInsets(top: 10, left: 20, bottom: 10, right: 20)
         btn.isEnabled = false
@@ -66,7 +68,7 @@ class EmailRegistrationViewController: BaseViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = UIColor(hex: "#1c1b20")
+        view.backgroundColor = .white
 
         setupNavigationBar()
         setupViews()
@@ -79,7 +81,7 @@ class EmailRegistrationViewController: BaseViewController {
         navigationItem.leftBarButtonItem = nil
 
         // Enable default back button appearance and tint color
-        navigationController?.navigationBar.tintColor = .white
+        navigationController?.navigationBar.tintColor = UIColor(hex: "#111279")
 
         // Remove right bar button item (the 3 dots)
         navigationItem.rightBarButtonItem = nil

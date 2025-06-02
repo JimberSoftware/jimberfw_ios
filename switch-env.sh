@@ -2,14 +2,14 @@
 
 # Check if exactly one argument is provided
 if [ "$#" -ne 1 ]; then
-    echo "Usage: $0 {staging|production|local|dc|beta}"
+    echo "Usage: $0 {staging|prod|local|dc|beta}"
     exit 1
 fi
 
 ENVIRONMENT=$1
 
-if [[ "$ENVIRONMENT" != "staging" && "$ENVIRONMENT" != "production" && "$ENVIRONMENT" != "local" && "$ENVIRONMENT" != "dc" && "$ENVIRONMENT" != "beta" ]]; then
-    echo "Error: Argument must be 'staging' or 'production' or 'local' or 'dc' or 'beta'."
+if [[ "$ENVIRONMENT" != "staging" && "$ENVIRONMENT" != "prod" && "$ENVIRONMENT" != "local" && "$ENVIRONMENT" != "dc" && "$ENVIRONMENT" != "beta" ]]; then
+    echo "Error: Argument must be 'staging' or 'prod' or 'local' or 'dc' or 'beta'."
     exit 1
 fi
 
@@ -40,7 +40,7 @@ case "$ENVIRONMENT" in
         cp "$ROOT_DIR/Sources/WireGuardApp/Envs/Staging/Staging.Info.Plist.example" "$ROOT_DIR/Sources/WireGuardApp/UI/iOS/Info.plist"
         cp "$ROOT_DIR/Sources/WireGuardApp/Envs/Staging/Staging.xcconfig.example" "$ROOT_DIR/Sources/WireGuardApp/Config/Config.xcconfig"    
         ;;
-    production)
+    prod)
         echo "Changing configs to the production environment..."
         cp "$ROOT_DIR/Sources/WireGuardApp/Envs/Prod/Prod.Config.Example" "$ROOT_DIR/Sources/WireGuardApp/ClientConfig/Config.swift"
         cp "$ROOT_DIR/Sources/WireGuardApp/Envs/Prod/Prod.FastLane.example" "$ROOT_DIR/fastlane/Appfile"

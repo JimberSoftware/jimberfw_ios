@@ -1,3 +1,3 @@
 struct Config {
-    static let API_BASE_URL = "https://signal.staging.jimber.io/api/v1/"
+    static let API_BASE_URL = "https://signal.jimber.io/api/v1/"
 }

@@ -34,8 +34,8 @@ class TunnelsListTableViewController: UIViewController {
     override func loadView() {
         view = UIView()
 
-        view.backgroundColor = UIColor(hex: "#1c1b20")
-        tableView.backgroundColor = UIColor(hex: "#1c1b20")
+        view.backgroundColor = .white
+        tableView.backgroundColor = .white
 
         tableView.dataSource = self
         tableView.delegate = self
@@ -65,7 +65,7 @@ class TunnelsListTableViewController: UIViewController {
             let settingsButton = UIButton(type: .system)
             settingsButton.setTitle("⋯", for: .normal) // Unicode ellipsis
             settingsButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 28)
-            settingsButton.tintColor = .white
+            settingsButton.tintColor = UIColor(hex: "#111279")
             settingsButton.addTarget(self, action: #selector(settingsButtonTapped(sender:)), for: .touchUpInside)
 
             let barButtonItem = UIBarButtonItem(customView: settingsButton)
@@ -88,6 +88,11 @@ class TunnelsListTableViewController: UIViewController {
             navigationItem.title = tr(format: "tunnelsListSelectedTitle (%d)", selectionCount)
         } else {
             navigationItem.title = tr("tunnelsListTitle")
+
+            let customColor = UIColor(hex: "#111279")
+             navigationController?.navigationBar.titleTextAttributes = [
+                 .foregroundColor: customColor
+             ]
         }
         if case .multiSelect = tableState {
             tableView.allowsMultipleSelectionDuringEditing = true
@@ -302,7 +307,7 @@ extension TunnelsListTableViewController: TunnelsManagerListDelegate {
                 (splitViewController.viewControllers[0] as? UINavigationController)?.popToRootViewController(animated: false)
             } else {
                 let detailVC = UIViewController()
-                detailVC.view.backgroundColor = .systemBackground
+                detailVC.view.backgroundColor = UIColor(hex: "#111279")
                 let detailNC = UINavigationController(rootViewController: detailVC)
                 splitViewController.showDetailViewController(detailNC, sender: self)
             }

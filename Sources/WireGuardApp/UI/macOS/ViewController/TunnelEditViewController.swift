@@ -179,8 +179,6 @@ class TunnelEditViewController: NSViewController {
         ])
         containerView.frame = NSRect(x: 0, y: 0, width: 600, height: 480)
 
-        view.backgroundColor = UIColor(hex: "#1c1b20")
-
         self.view = containerView
     }
 

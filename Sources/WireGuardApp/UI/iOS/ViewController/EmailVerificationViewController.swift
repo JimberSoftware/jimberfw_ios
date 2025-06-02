@@ -22,6 +22,7 @@ class EmailVerificationViewController: BaseViewController {
         label.text = "Enter the 6-digit code we sent to your email"
         label.font = .systemFont(ofSize: 18, weight: .medium)
         label.numberOfLines = 0
+        label.textColor = UIColor(hex: "#111279")
         label.textAlignment = .center
         return label
     }()
@@ -29,8 +30,8 @@ class EmailVerificationViewController: BaseViewController {
     private let confirmButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Confirm", for: .normal)
-        button.backgroundColor = .white
-        button.setTitleColor(UIColor(hex: "#1c1b20"), for: .normal)
+        button.backgroundColor = UIColor(hex: "#111279")
+        button.setTitleColor(.white, for: .normal)
         button.layer.cornerRadius = 8
         return button
     }()
@@ -39,7 +40,7 @@ class EmailVerificationViewController: BaseViewController {
         let button = UIButton(type: .system)
         let title = "Resend Code"
         let attributes: [NSAttributedString.Key: Any] = [
-            .foregroundColor: UIColor.white,
+            .foregroundColor: UIColor(hex: "#111279"),
             .underlineStyle: NSUnderlineStyle.single.rawValue
         ]
         let attributedTitle = NSAttributedString(string: title, attributes: attributes)
@@ -49,16 +50,19 @@ class EmailVerificationViewController: BaseViewController {
 
     private let logoImageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.image = UIImage(named: "jimber_logo_white")
+        let originalImage = UIImage(named: "jimber_logo_white")
+        imageView.image = originalImage?.withRenderingMode(.alwaysTemplate)
+        imageView.tintColor = UIColor(hex: "#111279")
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
         return imageView
     }()
 
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        view.backgroundColor = UIColor(hex: "#1c1b20")
+        view.backgroundColor = .white
 
         setupLogo()
         setupCodeFields()
@@ -95,8 +99,10 @@ class EmailVerificationViewController: BaseViewController {
             field.translatesAutoresizingMaskIntoConstraints = false
             field.heightAnchor.constraint(equalToConstant: 44).isActive = true
 
-            field.backgroundColor = UIColor(hex: "#1c1b20")
-            field.layer.borderColor = UIColor.white.cgColor
+            field.textColor = UIColor(hex: "#111279")
+
+            field.backgroundColor = .white
+            field.layer.borderColor = UIColor(hex: "#111279").cgColor
             field.layer.borderWidth = 1
             field.layer.cornerRadius = 5
             field.clipsToBounds = true

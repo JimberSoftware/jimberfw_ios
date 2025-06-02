@@ -56,8 +56,8 @@ platform :ios do
       scheme: "WireGuardiOS",
       app_id: "io.jimber.networkisolation.beta",
       ext_app_id: "io.jimber.networkisolation.beta.network-extension",
-      main_profile_name: "io.jimber.networkisolation.beta AppStore 1748350076",
-      ext_profile_name: "io.jimber.networkisolation.beta.network-extension AppStore 1748350093"
+      main_profile_name: "Prov SASE Beta",
+      ext_profile_name: "Prov SASE Beta NetExt"
     )
   end
 
@@ -80,7 +80,7 @@ platform :ios do
       scheme: "WireGuardiOS",
       app_id: "io.jimber.networkisolation.staging",
       ext_app_id: "io.jimber.networkisolation.staging.network-extension",
-      main_profile_name: "Provisioning SASE Staging",
+      main_profile_name: "Prov SASE Staging",
       ext_profile_name: "Prov SASE Staging NetExt"
     )
   end
@@ -92,7 +92,7 @@ platform :ios do
       scheme: "WireGuardiOS",
       app_id: "io.jimber.networkisolation",
       ext_app_id: "io.jimber.networkisolation.network-extension",
-      main_profile_name: "Provisioning SASE Prod",
+      main_profile_name: "Prov SASE Prod",
       ext_profile_name: "Prov SASE Prod NetExt"
     )
   end

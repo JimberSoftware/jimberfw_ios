@@ -65,15 +65,37 @@ class TunnelListCell: UITableViewCell {
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
 
-        accessoryType = .disclosureIndicator
+        selectionStyle = .none
+
+        // Remove default accessory
+        accessoryType = .none
+
+        // Create and configure the custom chevron
+        let chevronImage = UIImage(systemName: "chevron.right")?.withRenderingMode(.alwaysTemplate)
+        let chevronImageView = UIImageView(image: chevronImage)
+        chevronImageView.tintColor = UIColor(hex: "#111279")  // Your custom color
+
+        // Wrap the chevron in a container view for proper sizing/alignment
+        let containerView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 24))
+        chevronImageView.translatesAutoresizingMaskIntoConstraints = false
+        containerView.addSubview(chevronImageView)
+        NSLayoutConstraint.activate([
+            chevronImageView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
+            chevronImageView.centerXAnchor.constraint(equalTo: containerView.centerXAnchor),
+            chevronImageView.widthAnchor.constraint(equalToConstant: 8),
+            chevronImageView.heightAnchor.constraint(equalToConstant: 14)
+        ])
+        accessoryView = containerView
 
         for subview in [statusSwitch, busyIndicator, onDemandLabel, nameLabel] {
             subview.translatesAutoresizingMaskIntoConstraints = false
             contentView.addSubview(subview)
         }
 
-        backgroundColor = UIColor(hex: "#1c1b20")
-        contentView.backgroundColor = UIColor(hex: "#1c1b20")
+        backgroundColor = .white
+        contentView.backgroundColor = .white
+
+        nameLabel.textColor = UIColor(hex: "#111279")
 
         nameLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         onDemandLabel.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
@@ -153,7 +175,6 @@ class TunnelListCell: UITableViewCell {
             }
             statusSwitch.isUserInteractionEnabled = (status == .inactive || status == .active)
         }
-
     }
 
     private func reset(animated: Bool) {

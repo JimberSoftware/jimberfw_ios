@@ -58,13 +58,19 @@ class SettingsTableViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         title = tr("settingsViewTitle")
+
+        let customColor = UIColor(hex: "#111279")
+         navigationController?.navigationBar.titleTextAttributes = [
+             .foregroundColor: customColor
+         ]
+
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneTapped))
 
         tableView.estimatedRowHeight = 44
         tableView.rowHeight = UITableView.automaticDimension
         tableView.allowsSelection = false
 
-        tableView.backgroundColor = UIColor(hex: "#1c1b20")
+        tableView.backgroundColor = .white
 
         tableView.register(KeyValueCell.self)
         tableView.register(ButtonCell.self)
@@ -184,9 +190,11 @@ class SettingsTableViewController: UITableViewController {
 
     func navigateToSignIn(message: String) {
         let signInVC = SignInViewController()
+        let navController = UINavigationController(rootViewController: signInVC)
+
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let window = windowScene.windows.first {
-            window.rootViewController = signInVC
+           let window = windowScene.windows.first(where: { $0.isKeyWindow }) {
+            window.rootViewController = navController
             window.makeKeyAndVisible()
 
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
@@ -220,13 +228,33 @@ extension SettingsTableViewController {
         }
     }
 
+    override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        let label = UILabel()
+        label.textColor = UIColor(hex: "#111279")
+        label.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
+        label.text = self.tableView(tableView, titleForHeaderInSection: section)
+
+        let containerView = UIView()
+        containerView.addSubview(label)
+
+        label.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            label.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),
+            label.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
+            label.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 4),
+            label.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -4)
+        ])
+
+        return containerView
+    }
+
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let field = settingsFieldsBySection[indexPath.section][indexPath.row]
         if field == .iosAppVersion || field == .goBackendVersion {
             let cell: KeyValueCell = tableView.dequeueReusableCell(for: indexPath)
 
-            cell.backgroundColor = UIColor(hex: "#302e33")
-            cell.contentView.backgroundColor = UIColor(hex: "#302e33")
+            cell.backgroundColor = .white
+            cell.contentView.backgroundColor = .white
 
             cell.copyableGesture = false
             cell.key = field.localizedUIString
@@ -243,8 +271,8 @@ extension SettingsTableViewController {
         } else if field == .viewLog {
             let cell: ButtonCell = tableView.dequeueReusableCell(for: indexPath)
 
-            cell.backgroundColor = UIColor(hex: "#302e33")
-            cell.contentView.backgroundColor = UIColor(hex: "#302e33")
+            cell.backgroundColor = .white
+            cell.contentView.backgroundColor = .white
 
             cell.buttonText = field.localizedUIString
             cell.onTapped = { [weak self] in
@@ -254,8 +282,8 @@ extension SettingsTableViewController {
         } else if field == .loggedInUser {
             let cell: KeyValueCell = tableView.dequeueReusableCell(for: indexPath)
 
-            cell.backgroundColor = UIColor(hex: "#302e33")
-            cell.contentView.backgroundColor = UIColor(hex: "#302e33")
+            cell.backgroundColor = .white
+            cell.contentView.backgroundColor = .white
 
             cell.copyableGesture = false
             cell.key = field.localizedUIString
@@ -268,8 +296,8 @@ extension SettingsTableViewController {
         } else if field == .signOut {
             let cell: ButtonCell = tableView.dequeueReusableCell(for: indexPath)
 
-            cell.backgroundColor = UIColor(hex: "#302e33")
-            cell.contentView.backgroundColor = UIColor(hex: "#302e33")
+            cell.backgroundColor = .white
+            cell.contentView.backgroundColor = .white
 
             cell.buttonText = field.localizedUIString
             cell.onTapped = { [weak self] in
@@ -281,8 +309,8 @@ extension SettingsTableViewController {
         } else if field == .getStorage {
             let cell: ButtonCell = tableView.dequeueReusableCell(for: indexPath)
 
-            cell.backgroundColor = UIColor(hex: "#302e33")
-            cell.contentView.backgroundColor = UIColor(hex: "#302e33")
+            cell.backgroundColor = .white
+            cell.contentView.backgroundColor = .white
 
             cell.buttonText = field.localizedUIString
             cell.onTapped = { [weak self] in
@@ -294,8 +322,8 @@ extension SettingsTableViewController {
         } else if field == .deleteStorage {
             let cell: ButtonCell = tableView.dequeueReusableCell(for: indexPath)
 
-            cell.backgroundColor = UIColor(hex: "#302e33")
-            cell.contentView.backgroundColor = UIColor(hex: "#302e33")
+            cell.backgroundColor = .white
+            cell.contentView.backgroundColor = .white
 
             cell.buttonText = field.localizedUIString
             cell.onTapped = { [weak self] in

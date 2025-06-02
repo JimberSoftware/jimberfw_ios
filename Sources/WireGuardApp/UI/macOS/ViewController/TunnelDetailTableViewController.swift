@@ -50,7 +50,6 @@ class TunnelDetailTableViewController: NSViewController {
 
     let tableView: NSTableView = {
         let tableView = NSTableView()
-        tableView.backgroundColor = UIColor(hex: "#1c1b20")
 
         tableView.addTableColumn(NSTableColumn(identifier: NSUserInterfaceItemIdentifier("TunnelDetail")))
         tableView.headerView = nil
@@ -121,8 +120,6 @@ class TunnelDetailTableViewController: NSViewController {
     override func loadView() {
         tableView.dataSource = self
         tableView.delegate = self
-
-        tableView.backgroundColor = UIColor(hex: "#1c1b20")
 
         editButton.target = self
         editButton.action = #selector(handleEditTunnelAction)

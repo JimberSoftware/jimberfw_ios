@@ -82,7 +82,7 @@ class LogViewController: UIViewController {
             let captionFont = UIFont.preferredFont(forTextStyle: UIFont.TextStyle.caption1)
             for logEntry in fetchedLogEntries {
                 let bgColor: UIColor = self.isNextLineHighlighted ? .systemGray3 : .systemBackground
-                let fgColor: UIColor = .label
+                let fgColor: UIColor = .green
                 let timestampText = NSAttributedString(string: logEntry.timestamp + "\n", attributes: [.font: captionFont, .backgroundColor: bgColor, .foregroundColor: fgColor, .paragraphStyle: self.paragraphStyle])
                 let messageText = NSAttributedString(string: logEntry.message + "\n", attributes: [.font: bodyFont, .backgroundColor: bgColor, .foregroundColor: fgColor, .paragraphStyle: self.paragraphStyle])
                 richText.append(timestampText)
