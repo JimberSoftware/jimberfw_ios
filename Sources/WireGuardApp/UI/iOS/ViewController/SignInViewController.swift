@@ -225,9 +225,9 @@ class SignInViewController: BaseViewController {
 
                     await self.importAndNavigate(
                         configurationString: result.configurationString,
-                        companyName: companyName,
                         daemonId: result.daemonId,
-                        userId: userId
+                        userId: userId,
+                        daemonName: daemonName
                     )
                 } catch {
                     self.showToast(message: error.localizedDescription)
@@ -279,9 +279,9 @@ class SignInViewController: BaseViewController {
 
                     await self.importAndNavigate(
                         configurationString: result.configurationString,
-                        companyName: companyName,
                         daemonId: result.daemonId,
-                        userId: userId
+                        userId: userId,
+                        daemonName: daemonName
                     )
                 } catch {
                     self.showToast(message: error.localizedDescription)
@@ -336,10 +336,8 @@ class SignInViewController: BaseViewController {
         }
     }
 
-    func importAndNavigate(configurationString: String, companyName: String, daemonId: Int, userId: Int ) async {
-        let tunnelName = companyName + "-" + String(daemonId)
-
-        guard let scannedTunnelConfiguration = try? TunnelConfiguration(fromWgQuickConfig: configurationString, called: tunnelName, userId: userId, daemonId: daemonId) else {
+    func importAndNavigate(configurationString: String, daemonId: Int, userId: Int, daemonName: String) async {
+        guard let scannedTunnelConfiguration = try? TunnelConfiguration(fromWgQuickConfig: configurationString, called: daemonName, userId: userId, daemonId: daemonId) else {
             wg_log(.error, message: "Invalid configuration \(configurationString)")
             return
         }

@@ -9,12 +9,12 @@ public extension UIViewController {
         completion: @escaping (String?) -> Void
     ) {
         let alert = UIAlertController(
-            title: "New Daemon",
-            message: "Enter a name for your daemon",
+            title: "New Device",
+            message: "Enter a name for this device:",
             preferredStyle: .alert
         )
         alert.addTextField { textField in
-            textField.placeholder = "Daemon name"
+            textField.placeholder = "Device name"
         }
 
         // Cancel action
@@ -27,13 +27,16 @@ public extension UIViewController {
         let createAction = UIAlertAction(title: "Create", style: .default) { _ in
             let rawText = alert.textFields?.first?.text ?? ""
             let name = rawText.trimmingCharacters(in: .whitespaces)
-            if (1...256).contains(name.count) {
+
+            var (isValid, errorMessage) = isValidMobileHostname(name)
+
+            if (isValid) {
                 completion(name)
             } else {
                 // Show error and re-present prompt
                 let errorAlert = UIAlertController(
                     title: "Invalid Name",
-                    message: "Invalid daemon name",
+                    message: errorMessage,
                     preferredStyle: .alert
                 )
                 errorAlert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
