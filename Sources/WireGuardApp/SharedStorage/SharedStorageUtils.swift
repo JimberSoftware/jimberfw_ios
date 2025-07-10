@@ -13,8 +13,8 @@ func saveDataToLocalStorage(cookies: String, user: User) {
 
 func getCookieString() -> String {
     let sharedStorage = SharedStorage.shared
-    let authToken = sharedStorage.getAuthenticationToken()!
-    let refreshToken = sharedStorage.getRefreshToken()!
+    let authToken = sharedStorage.getAuthenticationToken() ?? ""
+    let refreshToken = sharedStorage.getRefreshToken() ?? ""
 
     return "Authentication=\(authToken); Refresh=\(refreshToken)"
 }

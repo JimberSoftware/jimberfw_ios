@@ -156,6 +156,7 @@ class EmailVerificationViewController: BaseViewController {
         Task {
             do {
                 let userAuthentication = try await verifyEmailWithCode(email: self.email, token: code)
+
                 let companyName = userAuthentication.companyName
                 let userId = userAuthentication.userId
 
@@ -183,7 +184,7 @@ class EmailVerificationViewController: BaseViewController {
                     daemonName: daemonName
                 )
             } catch {
-                self.showToast(message: error.localizedDescription)
+                self.showToast(message: "Unauthorized")
             }
         }
     }

@@ -47,6 +47,7 @@ class CustomLogger: EventMonitor {
 // MARK: - Auth Interceptor
 class AuthInterceptor: RequestInterceptor {
     private let excludedUrls: [String] = ["\(ApiClient.BASE_URL)auth/refresh"]
+    private var hasRenewedToken = false  // Flag to track JWT renewal
 
     func adapt(_ urlRequest: URLRequest, for session: Session, completion: @escaping (Result<URLRequest, Error>) -> Void) {
         if excludedUrls.contains(where: { urlRequest.url?.absoluteString.starts(with: $0) == true }) {
@@ -58,16 +59,27 @@ class AuthInterceptor: RequestInterceptor {
     }
 
     func retry(_ request: Request, for session: Session, dueTo error: Error, completion: @escaping (RetryResult) -> Void) {
+        // If the status code is not 401, don't retry.
         guard let response = request.task?.response as? HTTPURLResponse, response.statusCode == 401 else {
             completion(.doNotRetry)
             return
         }
 
+        // If the token has already been renewed once, don't attempt it again
+        if hasRenewedToken {
+            completion(.doNotRetry)
+            return
+        }
+
+        // Mark that we're attempting to renew the token
+        hasRenewedToken = true
+
+        // Renew the JWT token
         renewJwt { newToken in
             if let token = newToken {
-                completion(.retryWithDelay(0.5))
+                completion(.retryWithDelay(2))  // Retry the request after 2 seconds
             } else {
-                completion(.doNotRetry)
+                completion(.doNotRetry)  // Don't retry if JWT renewal failed
             }
         }
     }
