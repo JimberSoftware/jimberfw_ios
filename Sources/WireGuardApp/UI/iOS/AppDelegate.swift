@@ -3,6 +3,8 @@
 
 import UIKit
 import os.log
+import GoogleSignIn
+import MSAL
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -23,6 +25,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         let window = UIWindow(frame: UIScreen.main.bounds)
         self.window = window
 
+        // UIView.appearance().backgroundColor = UIColor(hex: "#1c1b20") // or .white, .blue, etc.
+
         let mainVC = MainViewController()
         window.rootViewController = mainVC
         window.makeKeyAndVisible()
@@ -33,8 +37,22 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
-        mainVC?.importFromDisposableFile(url: url)
-        return true
+        // Handle Google Sign-In
+        if GIDSignIn.sharedInstance.handle(url) {
+            return true
+        }
+
+        // Handle MSAL Authentication
+        if MSALPublicClientApplication.handleMSALResponse(
+            url,
+            sourceApplication: options[UIApplication.OpenURLOptionsKey.sourceApplication] as? String
+        ) {
+            return true
+        }
+
+        // Handle other custom URL types if needed.
+
+        return false // Return false if the URL was not handled.
     }
 
     func applicationDidBecomeActive(_ application: UIApplication) {
@@ -52,13 +70,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             return
         }
         let tunnelName = shortcutItem.localizedTitle
-        mainVC?.showTunnelDetailForTunnel(named: tunnelName, animated: false, shouldToggleStatus: true)
+        mainVC?.showTunnelDetailForTunnel(named : tunnelName, animated: false, shouldToggleStatus: true)
         completionHandler(true)
     }
 }
 
 extension AppDelegate {
-    func application(_ application: UIApplication, shouldSaveApplicationState coder: NSCoder) -> Bool {
+    func application(_ application: UIApplication, shouldSaveSecureApplicationState coder: NSCoder) -> Bool {
         return true
     }
 

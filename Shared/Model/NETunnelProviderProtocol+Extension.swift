@@ -22,9 +22,6 @@ extension NETunnelProviderProtocol {
         if passwordReference == nil {
             return nil
         }
-        #if os(macOS)
-        providerConfiguration = ["UID": getuid()]
-        #endif
 
         let endpoints = tunnelConfiguration.peers.compactMap { $0.endpoint }
         if endpoints.count == 1 {
@@ -36,13 +33,17 @@ extension NETunnelProviderProtocol {
         }
     }
 
-    func asTunnelConfiguration(called name: String? = nil) -> TunnelConfiguration? {
+    func asTunnelConfiguration(called name: String? = nil, userId: Int? = nil, daemonId: Int? = nil) -> TunnelConfiguration? {
         if let passwordReference = passwordReference,
             let config = Keychain.openReference(called: passwordReference) {
-            return try? TunnelConfiguration(fromWgQuickConfig: config, called: name)
+
+            let tunnelConfig = try? TunnelConfiguration(fromWgQuickConfig: config, called: name, userId: userId, daemonId: daemonId)
+            return tunnelConfig
         }
+
         if let oldConfig = providerConfiguration?["WgQuickConfig"] as? String {
-            return try? TunnelConfiguration(fromWgQuickConfig: oldConfig, called: name)
+            let tunnelConfig = try? TunnelConfiguration(fromWgQuickConfig: oldConfig, called: name, userId: userId, daemonId: daemonId)
+            return tunnelConfig
         }
         return nil
     }

@@ -78,7 +78,7 @@ extension TunnelConfiguration {
         interfaceConfiguration?.mtu = base?.interface.mtu
 
         if let interfaceConfiguration = interfaceConfiguration {
-            self.init(name: base?.name, interface: interfaceConfiguration, peers: peerConfigurations)
+            self.init(name: base?.name, userId: 69, daemonId: 69, interface: interfaceConfiguration, peers: peerConfigurations)
         } else {
             throw ParseError.noInterface
         }

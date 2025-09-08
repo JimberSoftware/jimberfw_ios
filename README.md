@@ -2,6 +2,12 @@
 
 This project contains an application for iOS and for macOS, as well as many components shared between the two of them. You may toggle between the two platforms by selecting the target from within Xcode.
 
+## Jimber SASE
+
+For deploying automatically to AppStore
+
+export FASTLANE_PASSWORD="XXXX-XXXX-XXXX"
+
 ## Building
 
 - Clone this repo:

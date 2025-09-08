@@ -10,20 +10,38 @@ class SettingsTableViewController: UITableViewController {
         case iosAppVersion
         case goBackendVersion
         case viewLog
+        case loggedInUser
+        case signOut
+        case getStorage
+        case deleteStorage
 
         var localizedUIString: String {
             switch self {
             case .iosAppVersion: return tr("settingsVersionKeyWireGuardForIOS")
             case .goBackendVersion: return tr("settingsVersionKeyWireGuardGoBackend")
             case .viewLog: return tr("settingsViewLogButtonTitle")
+            case .loggedInUser: return tr("settingsViewLoggedInUser")
+            case .signOut: return tr("settingsViewLogButtonSignOut")
+            case .getStorage: return tr("settingsViewLogButtonGetStorage")
+            case .deleteStorage: return tr("settingsViewLogButtonClearStorage")
             }
         }
     }
 
-    let settingsFieldsBySection: [[SettingsFields]] = [
-        [.iosAppVersion, .goBackendVersion],
-        [.viewLog]
-    ]
+    lazy var settingsFieldsBySection: [[SettingsFields]] = {
+        var sections: [[SettingsFields]] = [
+            [.iosAppVersion, .goBackendVersion],
+            [.viewLog]
+        ]
+
+        if SharedStorage.shared.getCurrentUser() != nil {
+            sections.append([.loggedInUser, .signOut])
+        }
+
+        sections.append([.getStorage, .deleteStorage]) // Always include development options
+
+        return sections
+    }()
 
     let tunnelsManager: TunnelsManager?
     var wireguardCaptionedImage: (view: UIView, size: CGSize)?
@@ -40,11 +58,19 @@ class SettingsTableViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         title = tr("settingsViewTitle")
+
+        let customColor = UIColor(hex: "#111279")
+         navigationController?.navigationBar.titleTextAttributes = [
+             .foregroundColor: customColor
+         ]
+
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneTapped))
 
         tableView.estimatedRowHeight = 44
         tableView.rowHeight = UITableView.automaticDimension
         tableView.allowsSelection = false
+
+        tableView.backgroundColor = .white
 
         tableView.register(KeyValueCell.self)
         tableView.register(ButtonCell.self)
@@ -82,33 +108,99 @@ class SettingsTableViewController: UITableViewController {
         dismiss(animated: true, completion: nil)
     }
 
-    func exportConfigurationsAsZipFile(sourceView: UIView) {
-        PrivateDataConfirmation.confirmAccess(to: tr("iosExportPrivateData")) { [weak self] in
-            guard let self = self else { return }
-            guard let tunnelsManager = self.tunnelsManager else { return }
-            guard let destinationDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else { return }
+    func presentLogView() {
+        let logVC = LogViewController()
+        navigationController?.pushViewController(logVC, animated: true)
+    }
 
-            let destinationURL = destinationDir.appendingPathComponent("wireguard-export.zip")
-            _ = FileManager.deleteFile(at: destinationURL)
-
-            let count = tunnelsManager.numberOfTunnels()
-            let tunnelConfigurations = (0 ..< count).compactMap { tunnelsManager.tunnel(at: $0).tunnelConfiguration }
-            ZipExporter.exportConfigFiles(tunnelConfigurations: tunnelConfigurations, to: destinationURL) { [weak self] error in
-                if let error = error {
-                    ErrorPresenter.showErrorAlert(error: error, from: self)
-                    return
+    func createTunnelsManager() async throws -> TunnelsManager {
+        return try await withCheckedThrowingContinuation { continuation in
+            TunnelsManager.create { result in
+                switch result {
+                case .success(let tunnelsManager):
+                    continuation.resume(returning: tunnelsManager)
+                case .failure(let error):
+                    continuation.resume(throwing: error)
                 }
-
-                let fileExportVC = UIDocumentPickerViewController(url: destinationURL, in: .exportToService)
-                self?.present(fileExportVC, animated: true, completion: nil)
             }
         }
     }
 
-    func presentLogView() {
-        let logVC = LogViewController()
-        navigationController?.pushViewController(logVC, animated: true)
+    func getStorageAction() async {
+        let allData = SharedStorage.shared.getAll()
 
+        wg_log(.info, message: "Getting storage")
+        wg_log(.info, message: String(describing: allData))
+
+        UIPasteboard.general.string = String(describing: allData)
+        showToast(message: "Storage info copied to clipboard")
+    }
+
+    func deleteStorageAction() async {
+        do {
+            let tunnelsManager = try await createTunnelsManager()
+            let tunnels = tunnelsManager.getAllTunnels()
+
+            wg_log(.info, message: "All tunnels that will be removed")
+            wg_log(.info, message: tunnels.map { $0.name}.joined(separator: ", "))
+
+            for tunnel in tunnels {
+                tunnelsManager.remove(tunnel: tunnel) { error in
+                    if error != nil {
+                        ErrorPresenter.showErrorAlert(error: error!, from: self)
+                    } else {
+                    }
+                }
+                wg_log(.info, message: "Removed \(tunnel.name)")
+            }
+
+            wg_log(.info, message: "Removing all storage")
+            SharedStorage.shared.clearAll()
+
+            navigateToSignIn(message: "Succesfully deleted storage")
+
+        } catch {
+            wg_log(.error, message: "Could not clear storage: \(error)")
+        }
+    }
+
+    func signOutAction() async {
+        do {
+            let userId = SharedStorage.shared.getCurrentUser()?.id;
+
+            let tunnelsManager = try await createTunnelsManager()
+            let tunnels = tunnelsManager.allTunnelsOfUserId(userId: userId!)
+
+            wg_log(.info, message: "Deactivating tunnels")
+            for tunnel in tunnels {
+                wg_log(.info, message: "Deactivating tunnel \(tunnel.name)")
+                tunnelsManager.startDeactivation(of: tunnel)
+            }
+
+            wg_log(.info, message: "Clearing user login data")
+            SharedStorage.shared.clearUserLoginData()
+
+            navigateToSignIn(message: "Succesfully signed out")
+        }
+
+        catch {
+            wg_log(.error, message: "Error in sign out action: \(error)")
+        }
+    }
+
+    func navigateToSignIn(message: String) {
+        let signInVC = SignInViewController()
+        let navController = UINavigationController(rootViewController: signInVC)
+
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = windowScene.windows.first(where: { $0.isKeyWindow }) {
+            window.rootViewController = navController
+            window.makeKeyAndVisible()
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                signInVC.showToast(message: message)
+            }
+        }
     }
 }
 
@@ -127,15 +219,43 @@ extension SettingsTableViewController {
             return tr("settingsSectionTitleAbout")
         case 1:
             return tr("settingsSectionTitleTunnelLog")
+        case 2:
+            return tr("settingsSectionTitleManagement")
+        case 3:
+            return "Development Options"
         default:
             return nil
         }
+    }
+
+    override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        let label = UILabel()
+        label.textColor = UIColor(hex: "#111279")
+        label.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
+        label.text = self.tableView(tableView, titleForHeaderInSection: section)
+
+        let containerView = UIView()
+        containerView.addSubview(label)
+
+        label.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            label.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),
+            label.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
+            label.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 4),
+            label.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -4)
+        ])
+
+        return containerView
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let field = settingsFieldsBySection[indexPath.section][indexPath.row]
         if field == .iosAppVersion || field == .goBackendVersion {
             let cell: KeyValueCell = tableView.dequeueReusableCell(for: indexPath)
+
+            cell.backgroundColor = .white
+            cell.contentView.backgroundColor = .white
+
             cell.copyableGesture = false
             cell.key = field.localizedUIString
             if field == .iosAppVersion {
@@ -150,9 +270,66 @@ extension SettingsTableViewController {
             return cell
         } else if field == .viewLog {
             let cell: ButtonCell = tableView.dequeueReusableCell(for: indexPath)
+
+            cell.backgroundColor = .white
+            cell.contentView.backgroundColor = .white
+
             cell.buttonText = field.localizedUIString
             cell.onTapped = { [weak self] in
                 self?.presentLogView()
+            }
+            return cell
+        } else if field == .loggedInUser {
+            let cell: KeyValueCell = tableView.dequeueReusableCell(for: indexPath)
+
+            cell.backgroundColor = .white
+            cell.contentView.backgroundColor = .white
+
+            cell.copyableGesture = false
+            cell.key = field.localizedUIString
+
+            let email = SharedStorage.shared.getCurrentUser()?.email
+            cell.value = email!
+
+            return cell
+
+        } else if field == .signOut {
+            let cell: ButtonCell = tableView.dequeueReusableCell(for: indexPath)
+
+            cell.backgroundColor = .white
+            cell.contentView.backgroundColor = .white
+
+            cell.buttonText = field.localizedUIString
+            cell.onTapped = { [weak self] in
+                Task {
+                    await self?.signOutAction()
+                }
+            }
+            return cell
+        } else if field == .getStorage {
+            let cell: ButtonCell = tableView.dequeueReusableCell(for: indexPath)
+
+            cell.backgroundColor = .white
+            cell.contentView.backgroundColor = .white
+
+            cell.buttonText = field.localizedUIString
+            cell.onTapped = { [weak self] in
+                Task {
+                    await self?.getStorageAction()
+                }
+            }
+            return cell
+        } else if field == .deleteStorage {
+            let cell: ButtonCell = tableView.dequeueReusableCell(for: indexPath)
+
+            cell.backgroundColor = .white
+            cell.contentView.backgroundColor = .white
+
+            cell.buttonText = field.localizedUIString
+            cell.onTapped = { [weak self] in
+                Task {
+                    await self?.deleteStorageAction()
+                }
             }
             return cell
         }

@@ -8,8 +8,10 @@ class TunnelEditKeyValueCell: KeyValueCell {
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
 
-        keyLabel.textAlignment = .right
-        valueTextField.textAlignment = .left
+        keyLabel.textColor = .gray
+        keyLabel.textAlignment = .left
+        valueTextField.textAlignment = .right
+        valueTextField.textColor = .gray
 
         let widthRatioConstraint = NSLayoutConstraint(item: keyLabel, attribute: .width, relatedBy: .equal, toItem: self, attribute: .width, multiplier: 0.4, constant: 0)
         // In case the key doesn't fit into 0.4 * width,
@@ -29,8 +31,13 @@ class TunnelEditEditableKeyValueCell: TunnelEditKeyValueCell {
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
 
+
+
+        keyLabel.textColor = .gray
+        valueTextField.textColor = .gray
+
         copyableGesture = false
-        valueTextField.textColor = .label
+        valueTextField.textColor = .gray
         valueTextField.isEnabled = true
         valueLabelScrollView.isScrollEnabled = false
         valueTextField.widthAnchor.constraint(equalTo: valueLabelScrollView.widthAnchor).isActive = true

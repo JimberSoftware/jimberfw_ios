@@ -15,7 +15,7 @@ class TunnelDetailTableViewController: UITableViewController {
 
     static let interfaceFields: [TunnelViewModel.InterfaceField] = [
         .name, .publicKey, .addresses,
-        .listenPort, .mtu, .dns
+        .listenPort, .mtu, .daemonId, .userId, .dns
     ]
 
     static let peerFields: [TunnelViewModel.PeerField] = [
@@ -72,6 +72,12 @@ class TunnelDetailTableViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         title = tunnelViewModel.interfaceData[.name]
+
+        let customColor = UIColor(hex: "#111279")
+         navigationController?.navigationBar.titleTextAttributes = [
+             .foregroundColor: customColor
+         ]
+
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .edit, target: self, action: #selector(editTapped))
 
         tableView.estimatedRowHeight = 44
@@ -80,6 +86,8 @@ class TunnelDetailTableViewController: UITableViewController {
         tableView.register(KeyValueCell.self)
         tableView.register(ButtonCell.self)
         tableView.register(ChevronCell.self)
+
+        tableView.backgroundColor = .white
 
         restorationIdentifier = "TunnelDetailVC:\(tunnel.name)"
     }
@@ -97,6 +105,7 @@ class TunnelDetailTableViewController: UITableViewController {
 
     private func loadVisibleFields() {
         let visibleInterfaceFields = tunnelViewModel.interfaceData.filterFieldsWithValueOrControl(interfaceFields: TunnelDetailTableViewController.interfaceFields)
+
         interfaceFieldIsVisible = TunnelDetailTableViewController.interfaceFields.map { visibleInterfaceFields.contains($0) }
         peerFieldIsVisible = tunnelViewModel.peersData.map { peer in
             let visiblePeerFields = peer.filterFieldsWithValueOrControl(peerFields: TunnelDetailTableViewController.peerFields)
@@ -291,6 +300,26 @@ extension TunnelDetailTableViewController {
         }
     }
 
+    override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        let label = UILabel()
+        label.textColor = UIColor(hex: "#111279")
+        label.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
+        label.text = self.tableView(tableView, titleForHeaderInSection: section)
+
+        let containerView = UIView()
+        containerView.addSubview(label)
+
+        label.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            label.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),
+            label.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
+            label.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 4),
+            label.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -4)
+        ])
+
+        return containerView
+    }
+
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         switch sections[section] {
         case .status:
@@ -323,6 +352,9 @@ extension TunnelDetailTableViewController {
 
     private func statusCell(for tableView: UITableView, at indexPath: IndexPath) -> UITableViewCell {
         let cell: SwitchCell = tableView.dequeueReusableCell(for: indexPath)
+
+        cell.backgroundColor = .white
+        cell.contentView.backgroundColor = .white
 
         func update(cell: SwitchCell?, with tunnel: TunnelContainer) {
             guard let cell = cell else { return }
@@ -370,6 +402,7 @@ extension TunnelDetailTableViewController {
                 text = tr("tunnelStatusOnDemandDisabled")
             }
 
+            cell.textLabel?.textColor = .gray
             cell.textLabel?.text = text
         }
 
@@ -408,6 +441,10 @@ extension TunnelDetailTableViewController {
         let visibleInterfaceFields = TunnelDetailTableViewController.interfaceFields.enumerated().filter { interfaceFieldIsVisible[$0.offset] }.map { $0.element }
         let field = visibleInterfaceFields[indexPath.row]
         let cell: KeyValueCell = tableView.dequeueReusableCell(for: indexPath)
+
+        cell.backgroundColor = .white
+        cell.contentView.backgroundColor = .white
+
         cell.key = field.localizedUIString
         cell.value = tunnelViewModel.interfaceData[field]
         return cell
@@ -417,6 +454,10 @@ extension TunnelDetailTableViewController {
         let visiblePeerFields = TunnelDetailTableViewController.peerFields.enumerated().filter { peerFieldIsVisible[peerIndex][$0.offset] }.map { $0.element }
         let field = visiblePeerFields[indexPath.row]
         let cell: KeyValueCell = tableView.dequeueReusableCell(for: indexPath)
+
+        cell.backgroundColor = .white
+        cell.contentView.backgroundColor = .white
+
         cell.key = field.localizedUIString
         if field == .persistentKeepAlive {
             cell.value = tr(format: "tunnelPeerPersistentKeepaliveValue (%@)", peerData[field])
@@ -435,6 +476,10 @@ extension TunnelDetailTableViewController {
             cell.key = field.localizedUIString
             cell.value = onDemandViewModel.localizedInterfaceDescription
             cell.copyableGesture = false
+
+            cell.backgroundColor = .white
+            cell.contentView.backgroundColor = .white
+
             return cell
         } else {
             assert(field == .ssid)
@@ -443,11 +488,19 @@ extension TunnelDetailTableViewController {
                 cell.key = field.localizedUIString
                 cell.value = onDemandViewModel.ssidOption.localizedUIString
                 cell.copyableGesture = false
+
+                cell.backgroundColor = .white
+                cell.contentView.backgroundColor = .white
+
                 return cell
             } else {
                 let cell: ChevronCell = tableView.dequeueReusableCell(for: indexPath)
                 cell.message = field.localizedUIString
                 cell.detailMessage = onDemandViewModel.localizedSSIDDescription
+
+                cell.backgroundColor = .white
+                cell.contentView.backgroundColor = .white
+
                 return cell
             }
         }
@@ -455,25 +508,43 @@ extension TunnelDetailTableViewController {
 
     private func deleteConfigurationCell(for tableView: UITableView, at indexPath: IndexPath) -> UITableViewCell {
         let cell: ButtonCell = tableView.dequeueReusableCell(for: indexPath)
-        cell.buttonText = tr("deleteTunnelButtonTitle")
-        cell.hasDestructiveAction = true
-        cell.onTapped = { [weak self] in
-            guard let self = self else { return }
-            ConfirmationAlertPresenter.showConfirmationAlert(message: tr("deleteTunnelConfirmationAlertMessage"),
-                                       buttonTitle: tr("deleteTunnelConfirmationAlertButtonTitle"),
-                                       from: cell, presentingVC: self) { [weak self] in
-                guard let self = self else { return }
-                self.tunnelsManager.remove(tunnel: self.tunnel) { error in
-                    if error != nil {
-                        print("Error removing tunnel: \(String(describing: error))")
-                        return
-                    }
-                }
-            }
-        }
-        return cell
-    }
 
+        cell.backgroundColor = .white
+        cell.contentView.backgroundColor = .white
+
+          cell.buttonText = tr("deleteTunnelButtonTitle")
+          cell.hasDestructiveAction = true
+          cell.onTapped = { [weak self] in
+              guard let self = self else { return }
+              ConfirmationAlertPresenter.showConfirmationAlert(message: tr("deleteTunnelConfirmationAlertMessage"),
+                                         buttonTitle: tr("deleteTunnelConfirmationAlertButtonTitle"),
+                                         from: cell, presentingVC: self) { [weak self] in
+                  guard let self = self else { return }
+                  self.tunnelsManager.remove(tunnel: self.tunnel) { error in
+                      if let error = error {
+                          wg_log(.error, message: "Error removing tunnel: \(error)")
+                          return
+                      }
+
+                      SharedStorage.shared.clearUserLoginData()
+
+                      let signInVC = SignInViewController()
+                      let navController = UINavigationController(rootViewController: signInVC)
+
+                      if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                         let window = windowScene.windows.first(where: { $0.isKeyWindow }) {
+                          window.rootViewController = navController
+                          window.makeKeyAndVisible()
+
+                          DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                              signInVC.showToast(message: "Successfully deleted connection")
+                          }
+                      }
+                  }
+              }
+          }
+          return cell
+      }
 }
 
 extension TunnelDetailTableViewController {

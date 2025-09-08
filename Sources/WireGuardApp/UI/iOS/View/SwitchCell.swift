@@ -16,9 +16,14 @@ class SwitchCell: UITableViewCell {
         get { return switchView.isEnabled }
         set(value) {
             switchView.isEnabled = value
-            textLabel?.textColor = value ? .label : .secondaryLabel
+            textLabel?.textColor = .gray
         }
     }
+
+    var messageTextColor: UIColor? {
+            get { return textLabel?.textColor }
+            set { textLabel?.textColor = newValue }
+        }
 
     var onSwitchToggled: ((Bool) -> Void)?
 

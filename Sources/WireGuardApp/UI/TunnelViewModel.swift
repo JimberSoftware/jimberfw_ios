@@ -15,6 +15,8 @@ class TunnelViewModel {
         case mtu
         case dns
         case status
+        case daemonId
+        case userId
         case toggleStatus
 
         var localizedUIString: String {
@@ -28,6 +30,8 @@ class TunnelViewModel {
             case .mtu: return tr("tunnelInterfaceMTU")
             case .dns: return tr("tunnelInterfaceDNS")
             case .status: return tr("tunnelInterfaceStatus")
+            case .daemonId: return tr("tunnelInterfaceDaemonId")
+            case .userId: return tr("tunnelInterfaceUserId")
             case .toggleStatus: return ""
             }
         }
@@ -144,6 +148,14 @@ class TunnelViewModel {
                 dns.append(contentsOf: config.dnsSearch)
                 scratchpad[.dns] = dns.joined(separator: ", ")
             }
+            if let daemonId = config.daemonId {
+                scratchpad[.daemonId] = String(daemonId)
+            }
+            if let userId = config.userId {
+                scratchpad[.userId] = String(userId)
+            }
+
+
             return scratchpad
         }
 
@@ -220,6 +232,7 @@ class TunnelViewModel {
                 if TunnelViewModel.interfaceFieldsWithControl.contains(field) {
                     return true
                 }
+
                 return !self[field].isEmpty
             }
         }
@@ -488,12 +501,20 @@ class TunnelViewModel {
     private(set) var interfaceData: InterfaceData
     private(set) var peersData: [PeerData]
 
+    var currentTunnelConfiguration : TunnelConfiguration?
+
     init(tunnelConfiguration: TunnelConfiguration?) {
+        self.currentTunnelConfiguration = tunnelConfiguration;
+
         let interfaceData = InterfaceData()
         var peersData = [PeerData]()
         if let tunnelConfiguration = tunnelConfiguration {
             interfaceData.validatedConfiguration = tunnelConfiguration.interface
             interfaceData.validatedName = tunnelConfiguration.name
+
+            interfaceData.validatedConfiguration?.daemonId = tunnelConfiguration.daemonId;
+            interfaceData.validatedConfiguration?.userId = tunnelConfiguration.userId;
+
             for (index, peerConfiguration) in tunnelConfiguration.peers.enumerated() {
                 let peerData = PeerData(index: index)
                 peerData.validatedConfiguration = peerConfiguration
@@ -566,7 +587,10 @@ class TunnelViewModel {
                 return .error(tr("alertInvalidPeerMessagePublicKeyDuplicated"))
             }
 
-            let tunnelConfiguration = TunnelConfiguration(name: interfaceConfiguration.0, interface: interfaceConfiguration.1, peers: peerConfigurations)
+            let userId = self.currentTunnelConfiguration?.userId
+            let daemonId = self.currentTunnelConfiguration?.daemonId
+
+            let tunnelConfiguration = TunnelConfiguration(name: interfaceConfiguration.0, userId: userId!, daemonId: daemonId!, interface: interfaceConfiguration.1, peers: peerConfigurations)
             return .saved(tunnelConfiguration)
         }
     }

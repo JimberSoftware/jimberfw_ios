@@ -10,7 +10,13 @@
 	<true/>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>group.$(APP_ID_IOS)</string>
+		<string>group.io.jimber.networkisolation</string>
+		<string>group.io.jimber.networkisolation.beta</string>
+	</array>
+	<key>keychain-access-groups</key>
+	<array>
+		<string>$(AppIdentifierPrefix)com.microsoft.adalcache</string>
+		<string>$(AppIdentifierPrefix)com.microsoft.identity.universalstorage</string>
 	</array>
 </dict>
 </plist>

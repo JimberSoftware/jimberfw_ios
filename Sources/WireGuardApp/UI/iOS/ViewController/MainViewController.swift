@@ -11,7 +11,7 @@ class MainViewController: UISplitViewController {
 
     init() {
         let detailVC = UIViewController()
-        detailVC.view.backgroundColor = .systemBackground
+        detailVC.view.backgroundColor = .white
         let detailNC = UINavigationController(rootViewController: detailVC)
 
         let masterVC = TunnelsListTableViewController()
@@ -38,13 +38,16 @@ class MainViewController: UISplitViewController {
         // On iPad, always show both masterVC and detailVC, even in portrait mode, like the Settings app
         preferredDisplayMode = .allVisible
 
-        // Create the tunnels manager, and when it's ready, inform tunnelsListVC
         TunnelsManager.create { [weak self] result in
             guard let self = self else { return }
 
             switch result {
             case .failure(let error):
-                ErrorPresenter.showErrorAlert(error: error, from: self)
+                wg_log(.error, message: "Error when creating tunnelmanager: \(error)")
+
+                let signInVc = SignInViewController()
+                self.showDetailViewController(signInVc, sender: self)
+
             case .success(let tunnelsManager):
                 self.tunnelsManager = tunnelsManager
                 self.tunnelsListVC?.setTunnelsManager(tunnelsManager: tunnelsManager)
@@ -53,6 +56,38 @@ class MainViewController: UISplitViewController {
 
                 self.onTunnelsManagerReady?(tunnelsManager)
                 self.onTunnelsManagerReady = nil
+
+                let userId = SharedStorage.shared.getCurrentUser()?.id
+                if(userId == nil) {
+                    wg_log(.info, message: "No UserId found, navigating to sign in")
+
+                    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                       let window = windowScene.windows.first {
+                        let signInVC = SignInViewController()
+                        let navController = UINavigationController(rootViewController: signInVC)
+                        navController.modalPresentationStyle = .fullScreen
+                        window.rootViewController = navController
+                        window.makeKeyAndVisible()
+                    }
+
+                    return
+                }
+
+                let existingTunnels = SharedStorage.shared.getDaemonKeyPairByUserId(userId!)
+                if(existingTunnels == nil) {
+                    wg_log(.info, message: "UserId found, but no related tunnels, navigating to sign in")
+
+                    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                       let window = windowScene.windows.first {
+                        let signInVC = SignInViewController()
+                        let navController = UINavigationController(rootViewController: signInVC)
+                        navController.modalPresentationStyle = .fullScreen
+                        window.rootViewController = navController
+                        window.makeKeyAndVisible()
+                    }
+
+                    return
+                }
             }
         }
     }
@@ -107,19 +142,6 @@ extension MainViewController {
             showTunnelDetailBlock(tunnelsManager)
         } else {
             onTunnelsManagerReady = showTunnelDetailBlock
-        }
-    }
-
-    func importFromDisposableFile(url: URL) {
-        let importFromFileBlock: (TunnelsManager) -> Void = { [weak self] tunnelsManager in
-            TunnelImporter.importFromFile(urls: [url], into: tunnelsManager, sourceVC: self, errorPresenterType: ErrorPresenter.self) {
-                _ = FileManager.deleteFile(at: url)
-            }
-        }
-        if let tunnelsManager = tunnelsManager {
-            importFromFileBlock(tunnelsManager)
-        } else {
-            onTunnelsManagerReady = importFromFileBlock
         }
     }
 }

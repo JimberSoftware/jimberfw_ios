@@ -35,6 +35,13 @@ let package = Package(
             ],
             publicHeadersPath: ".",
             linkerSettings: [.linkedLibrary("wg-go")]
-        )
+        ),
+        .target(
+        name: "WireGuard",
+        dependencies: [
+            .product(name: "GoogleSignIn", package: "GoogleSignIn-iOS"),
+            .product(name: "MSAL", package: "MSAL")
+        ]
+    )
     ]
 )

@@ -43,6 +43,12 @@ class TunnelListRow: NSView {
 
         addSubview(statusImageView)
         addSubview(nameLabel)
+
+
+        nameLabel.backgroundColor = .systemGreen
+        statusImageView.contentTintColor = .systemGreen
+
+
         statusImageView.translatesAutoresizingMaskIntoConstraints = false
         nameLabel.translatesAutoresizingMaskIntoConstraints = false
         nameLabel.backgroundColor = .clear

@@ -35,7 +35,7 @@ class TunnelDetailTableViewController: NSViewController {
 
     static let interfaceFields: [TunnelViewModel.InterfaceField] = [
         .name, .status, .publicKey, .addresses,
-        .listenPort, .mtu, .dns, .toggleStatus
+        .listenPort, .mtu, .dns, .daemonId, .toggleStatus
     ]
 
     static let peerFields: [TunnelViewModel.PeerField] = [
@@ -50,6 +50,7 @@ class TunnelDetailTableViewController: NSViewController {
 
     let tableView: NSTableView = {
         let tableView = NSTableView()
+
         tableView.addTableColumn(NSTableColumn(identifier: NSUserInterfaceItemIdentifier("TunnelDetail")))
         tableView.headerView = nil
         tableView.rowSizeStyle = .medium

@@ -21,6 +21,9 @@ protocol TunnelsManagerActivationDelegate: AnyObject {
 
 class TunnelsManager {
     private var tunnels: [TunnelContainer]
+    private var allTunnels: [TunnelContainer]
+
+
     weak var tunnelsListDelegate: TunnelsManagerListDelegate?
     weak var activationDelegate: TunnelsManagerActivationDelegate?
     private var statusObservationToken: NotificationToken?
@@ -28,15 +31,31 @@ class TunnelsManager {
     private var configurationsObservationToken: NotificationToken?
 
     init(tunnelProviders: [NETunnelProviderManager]) {
+        allTunnels =  tunnelProviders.map { TunnelContainer(tunnel: $0) }.sorted { TunnelsManager.tunnelNameIsLessThan($0.name, $1.name) }
         tunnels = tunnelProviders.map { TunnelContainer(tunnel: $0) }.sorted { TunnelsManager.tunnelNameIsLessThan($0.name, $1.name) }
+
+        let userId = SharedStorage.shared.getCurrentUser()?.id
+        if let userId = userId {
+            tunnels = tunnelProviders
+                .map { TunnelContainer(tunnel: $0) }
+                .filter { $0.tunnelConfiguration?.userId == userId }
+                .sorted { TunnelsManager.tunnelNameIsLessThan($0.name, $1.name) }
+        }
+
         startObservingTunnelStatuses()
         startObservingTunnelConfigurations()
     }
 
+    func getAllTunnels() -> [TunnelContainer] {
+        return allTunnels
+    }
+
+    func allTunnelsOfUserId(userId: Int) -> [TunnelContainer] {
+        let userId = SharedStorage.shared.getCurrentUser()?.id
+        return tunnels.filter { $0.tunnelConfiguration?.userId == userId }
+    }
+
     static func create(completionHandler: @escaping (Result<TunnelsManager, TunnelsManagerError>) -> Void) {
-        #if targetEnvironment(simulator)
-        completionHandler(.success(TunnelsManager(tunnelProviders: MockTunnels.createMockTunnels())))
-        #else
         NETunnelProviderManager.loadAllFromPreferences { managers, error in
             if let error = error {
                 wg_log(.error, message: "Failed to load tunnel provider managers: \(error)")
@@ -48,6 +67,7 @@ class TunnelsManager {
             var refs: Set<Data> = []
             var tunnelNames: Set<String> = []
             for (index, tunnelManager) in tunnelManagers.enumerated().reversed() {
+
                 if let tunnelName = tunnelManager.localizedDescription {
                     tunnelNames.insert(tunnelName)
                 }
@@ -55,18 +75,9 @@ class TunnelsManager {
                 if proto.migrateConfigurationIfNeeded(called: tunnelManager.localizedDescription ?? "unknown") {
                     tunnelManager.saveToPreferences { _ in }
                 }
-                #if os(iOS)
+
                 let passwordRef = proto.verifyConfigurationReference() ? proto.passwordReference : nil
-                #elseif os(macOS)
-                let passwordRef: Data?
-                if proto.providerConfiguration?["UID"] as? uid_t == getuid() {
-                    passwordRef = proto.verifyConfigurationReference() ? proto.passwordReference : nil
-                } else {
-                    passwordRef = proto.passwordReference // To handle multiple users in macOS, we skip verifying
-                }
-                #else
-                #error("Unimplemented")
-                #endif
+
                 if let ref = passwordRef {
                     refs.insert(ref)
                 } else {
@@ -75,13 +86,12 @@ class TunnelsManager {
                     tunnelManagers.remove(at: index)
                 }
             }
+
             Keychain.deleteReferences(except: refs)
-            #if os(iOS)
             RecentTunnelsTracker.cleanupTunnels(except: tunnelNames)
-            #endif
+
             completionHandler(.success(TunnelsManager(tunnelProviders: tunnelManagers)))
         }
-        #endif
     }
 
     func reload() {
@@ -108,6 +118,7 @@ class TunnelsManager {
                             loadedTunnelProvider.saveToPreferences { _ in }
                         }
                     }
+
                     let tunnel = TunnelContainer(tunnel: loadedTunnelProvider)
                     self.tunnels.append(tunnel)
                     self.tunnels.sort { TunnelsManager.tunnelNameIsLessThan($0.name, $1.name) }
@@ -118,7 +129,10 @@ class TunnelsManager {
     }
 
     func add(tunnelConfiguration: TunnelConfiguration, onDemandOption: ActivateOnDemandOption = .off, completionHandler: @escaping (Result<TunnelContainer, TunnelsManagerError>) -> Void) {
-        let tunnelName = tunnelConfiguration.name ?? ""
+        let name = tunnelConfiguration.name ?? ""
+        let suffix = tunnelConfiguration.daemonId.map { "-\($0)" } ?? ""
+        let tunnelName = name + suffix
+
         if tunnelName.isEmpty {
             completionHandler(.failure(TunnelsManagerError.tunnelNameEmpty))
             return
@@ -130,8 +144,15 @@ class TunnelsManager {
         }
 
         let tunnelProviderManager = NETunnelProviderManager()
+
         tunnelProviderManager.setTunnelConfiguration(tunnelConfiguration)
         tunnelProviderManager.isEnabled = true
+
+        if let tunnelProtocol = tunnelProviderManager.protocolConfiguration as? NETunnelProviderProtocol {
+            tunnelProtocol.providerConfiguration = ["daemonId": tunnelConfiguration.daemonId, "userId": tunnelConfiguration.userId]
+        } else {
+            wg_log(.error, message: "Failed to set daemonId or userId in providerConfiguration")
+        }
 
         onDemandOption.apply(on: tunnelProviderManager)
 
@@ -147,7 +168,6 @@ class TunnelsManager {
 
             guard let self = self else { return }
 
-            #if os(iOS)
             // HACK: In iOS, adding a tunnel causes deactivation of any currently active tunnel.
             // This is an ugly hack to reactivate the tunnel that has been deactivated like that.
             if let activeTunnel = activeTunnel {
@@ -158,12 +178,18 @@ class TunnelsManager {
                     activeTunnel.status = .restarting
                 }
             }
-            #endif
 
             let tunnel = TunnelContainer(tunnel: tunnelProviderManager)
+
             self.tunnels.append(tunnel)
             self.tunnels.sort { TunnelsManager.tunnelNameIsLessThan($0.name, $1.name) }
             self.tunnelsListDelegate?.tunnelAdded(at: self.tunnels.firstIndex(of: tunnel)!)
+
+            if let savedDaemonId = (tunnelProviderManager.protocolConfiguration as? NETunnelProviderProtocol)?
+                .providerConfiguration?["daemonId"] as? Int {
+                wg_log(.info, message: "Successfully saved daemonId: \(savedDaemonId)")
+            }
+
             completionHandler(.success(tunnel))
         }
     }
@@ -301,15 +327,23 @@ class TunnelsManager {
 
     func remove(tunnel: TunnelContainer, completionHandler: @escaping (TunnelsManagerError?) -> Void) {
         let tunnelProviderManager = tunnel.tunnelProvider
-        #if os(macOS)
-        if tunnel.isTunnelAvailableToUser {
-            (tunnelProviderManager.protocolConfiguration as? NETunnelProviderProtocol)?.destroyConfigurationReference()
+        let daemonId = tunnel.tunnelConfiguration?.daemonId
+
+        if(daemonId != nil) {
+            let daemonKeyPair = SharedStorage.shared.getDaemonKeyPairByDaemonId(daemonId!)
+
+            Task {
+                _ =  await deleteDaemon(daemonId: daemonId!, company: daemonKeyPair!.companyName, sk: daemonKeyPair!.baseEncodedSkEd25519)
+
+                // Delete daemon in shared storage
+                SharedStorage.shared.clearDaemonKeys(daemonId: daemonId!)
+            }
+        } else {
+            wg_log(.error, message: "Strange, daemonId is somehow nil, so cannot remove in signal / storage, but bringing down tunnel")
+
         }
-        #elseif os(iOS)
+
         (tunnelProviderManager.protocolConfiguration as? NETunnelProviderProtocol)?.destroyConfigurationReference()
-        #else
-        #error("Unimplemented")
-        #endif
         tunnelProviderManager.removeFromPreferences { [weak self] error in
             if let error = error {
                 wg_log(.error, message: "Remove: Saving configuration failed: \(error)")
@@ -429,6 +463,7 @@ class TunnelsManager {
     }
 
     func startActivation(of tunnel: TunnelContainer) {
+
         guard tunnels.contains(tunnel) else { return } // Ensure it's not deleted
         guard tunnel.status == .inactive else {
             activationDelegate?.tunnelActivationAttemptFailed(tunnel: tunnel, error: .tunnelIsNotInactive)
@@ -438,6 +473,8 @@ class TunnelsManager {
         if let alreadyWaitingTunnel = tunnels.first(where: { $0.status == .waiting }) {
             alreadyWaitingTunnel.status = .inactive
         }
+
+        retrieveAndUpdateWireguardConfig(tunnel: tunnel)
 
         if let tunnelInOperation = tunnels.first(where: { $0.status != .inactive }) {
             wg_log(.info, message: "Tunnel '\(tunnel.name)' waiting for deactivation of '\(tunnelInOperation.name)'")
@@ -469,6 +506,56 @@ class TunnelsManager {
         RecentTunnelsTracker.handleTunnelActivated(tunnelName: tunnel.name)
         #endif
     }
+
+    func retrieveAndUpdateWireguardConfig(tunnel: TunnelContainer) {
+        let currentConfigString = tunnel.tunnelConfiguration!.asWgQuickConfig()
+
+        let daemonId = tunnel.tunnelConfiguration!.daemonId
+        let userId = tunnel.tunnelConfiguration!.userId
+
+        let kp = SharedStorage.shared.getDaemonKeyPairByDaemonId(daemonId!)
+
+        Task {
+            do {
+                let ncData = try await getDaemonConnectionData(daemonId: daemonId!, companyName:kp!.companyName, sk: kp!.baseEncodedSkEd25519)
+
+                let newEndpointAddress = ncData.endpointAddress
+                let newDnsServer = ncData.ipAddress
+                let newIpRange = ncData.allowedIps
+                let newPublicKey = parseEdPublicKeyToCurveX25519(pk: ncData.routerPublicKey)!
+
+                let newEndpointAddressLine = "Endpoint = \(newEndpointAddress)"
+                let newDNSServerLine = "DNS = \(newDnsServer)"
+                let newIpRangeLine = "AllowedIPs = \(newIpRange)"
+                let newPublicKeyLine = "PublicKey = \(newPublicKey)"
+
+                let newConfig = updateWireGuardConfig(currentConfig: currentConfigString, newPublicKeyLine:  newPublicKeyLine, newAllowedIpsLine: newIpRangeLine, newDnsServerLine: newDNSServerLine, newEndpointLine: newEndpointAddressLine)
+
+                let scannedTunnelConfiguration: TunnelConfiguration = {
+                    if let parsed = try? TunnelConfiguration(fromWgQuickConfig: newConfig, called: tunnel.name, userId: userId, daemonId: daemonId) {
+                        wg_log(.info, message: "New configuration retrieved, will use the new configuration")
+                        return parsed
+                    } else {
+                        wg_log(.error, message: "Could not parse retrieved configuration, using old one")
+                        return tunnel.tunnelConfiguration!
+                    }
+                }()
+
+                // We're modifying an existing tunnel
+                modify(tunnel: tunnel, tunnelConfiguration: scannedTunnelConfiguration, onDemandOption: ActivateOnDemandOption.off) { [weak self] error in
+                    if let error = error {
+                        wg_log(.error, message: "Error in modifying tunnel on activation \(error)")
+                        ErrorPresenter.showErrorAlert(error: error, from: self)
+                    } else {
+                        wg_log(.info, message: "Successfully modified tunnel configuration")
+                    }
+                }
+            } catch {
+                wg_log(.error, message: "Could not retrieve daemon connection data, will use old configuration")
+            }
+        }
+    }
+
 
     func startDeactivation(of tunnel: TunnelContainer) {
         tunnel.isAttemptingActivation = false
@@ -514,7 +601,7 @@ class TunnelsManager {
                     if let (title, message) = lastErrorTextFromNetworkExtension(for: tunnel) {
                         self.activationDelegate?.tunnelActivationFailed(tunnel: tunnel, error: .activationFailedWithExtensionError(title: title, message: message, wasOnDemandEnabled: tunnelProvider.isOnDemandEnabled))
                     } else {
-                        self.activationDelegate?.tunnelActivationFailed(tunnel: tunnel, error: .activationFailed(wasOnDemandEnabled: tunnelProvider.isOnDemandEnabled))
+                        wg_log(.error , message: "Activation failed, is it still failed? Do you have an internet connection?")
                     }
                 }
             }
@@ -565,6 +652,7 @@ private func lastErrorTextFromNetworkExtension(for tunnel: TunnelContainer) -> (
 
 class TunnelContainer: NSObject {
     @objc dynamic var name: String
+
     @objc dynamic var status: TunnelStatus
 
     @objc dynamic var isActivateOnDemandEnabled: Bool
@@ -611,19 +699,15 @@ class TunnelContainer: NSObject {
         return ActivateOnDemandOption(from: tunnelProvider)
     }
 
-    #if os(macOS)
-    var isTunnelAvailableToUser: Bool {
-        return (tunnelProvider.protocolConfiguration as? NETunnelProviderProtocol)?.providerConfiguration?["UID"] as? uid_t == getuid()
-    }
-    #endif
-
     init(tunnel: NETunnelProviderManager) {
         name = tunnel.localizedDescription ?? "Unnamed"
+
         let status = TunnelStatus(from: tunnel.connection.status)
         self.status = status
         isActivateOnDemandEnabled = tunnel.isOnDemandEnabled && tunnel.isEnabled
         hasOnDemandRules = !(tunnel.onDemandRules ?? []).isEmpty
         tunnelProvider = tunnel
+
         super.init()
     }
 
@@ -731,15 +815,45 @@ extension NETunnelProviderManager {
         if let cached = objc_getAssociatedObject(self, &NETunnelProviderManager.cachedConfigKey) as? TunnelConfiguration {
             return cached
         }
-        let config = (protocolConfiguration as? NETunnelProviderProtocol)?.asTunnelConfiguration(called: localizedDescription)
-        if config != nil {
+
+        var savedDaemonId: Int?
+        var savedUserId: Int?
+
+        if let tunnelProtocol = protocolConfiguration as? NETunnelProviderProtocol {
+            if let savedDaemonIdUnwrapped = tunnelProtocol.providerConfiguration?["daemonId"] as? Int {
+               savedDaemonId = savedDaemonIdUnwrapped
+            } else {
+                wg_log(.error, message: "Failed to retrieve daemonId")
+            }
+
+            if let savedUserIdUnwrapped = tunnelProtocol.providerConfiguration?["userId"] as? Int {
+               savedUserId = savedUserIdUnwrapped
+            } else {
+                wg_log(.error, message: "Failed to retrieve userId")
+            }
+
+        } else {
+            wg_log(.error, message: "Failed to cast to NETunnelProviderProtocol")
+        }
+
+        let config = (protocolConfiguration as? NETunnelProviderProtocol)?.asTunnelConfiguration(called: localizedDescription, userId: savedUserId, daemonId: savedDaemonId)
+        if let config = config {
             objc_setAssociatedObject(self, &NETunnelProviderManager.cachedConfigKey, config, objc_AssociationPolicy.OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
         return config
     }
 
     func setTunnelConfiguration(_ tunnelConfiguration: TunnelConfiguration) {
-        protocolConfiguration = NETunnelProviderProtocol(tunnelConfiguration: tunnelConfiguration, previouslyFrom: protocolConfiguration)
+        wg_log(.info, message: "Received new tunnel configuration, loading...")
+
+        protocolConfiguration = NETunnelProviderProtocol(tunnelConfiguration: tunnelConfiguration, previouslyFrom: protocolConfiguration) as NETunnelProviderProtocol?
+
+        if let tunnelProtocol = protocolConfiguration as? NETunnelProviderProtocol {
+            tunnelProtocol.providerConfiguration = ["daemonId": tunnelConfiguration.daemonId!, "userId": tunnelConfiguration.userId!]
+        } else {
+            wg_log(.error, message: "Failed to set daemonId or userId in providerConfiguration")
+        }
+
         localizedDescription = tunnelConfiguration.name
         objc_setAssociatedObject(self, &NETunnelProviderManager.cachedConfigKey, tunnelConfiguration, objc_AssociationPolicy.OBJC_ASSOCIATION_RETAIN_NONATOMIC)
     }

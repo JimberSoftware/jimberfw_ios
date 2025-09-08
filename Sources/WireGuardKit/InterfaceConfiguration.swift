@@ -12,6 +12,9 @@ public struct InterfaceConfiguration {
     public var dns = [DNSServer]()
     public var dnsSearch = [String]()
 
+    public var userId: Int?
+    public var daemonId: Int?
+
     public init(privateKey: PrivateKey) {
         self.privateKey = privateKey
     }
