@@ -463,22 +463,19 @@ class TunnelsManager {
     }
 
     func startActivation(of tunnel: TunnelContainer) {
-        // Ensure tunnel still exists
-        guard tunnels.contains(tunnel) else { return }
-
-        // Ensure tunnel is not already active
+        guard tunnels.contains(tunnel) else { return } // Ensure it's not deleted
         guard tunnel.status == .inactive else {
             activationDelegate?.tunnelActivationAttemptFailed(tunnel: tunnel, error: .tunnelIsNotInactive)
             return
         }
 
-        // Cancel any existing waiting tunnel
         if let alreadyWaitingTunnel = tunnels.first(where: { $0.status == .waiting }) {
             alreadyWaitingTunnel.status = .inactive
         }
 
-        // Approval Check
-        Task<Void, Never> {
+        retrieveAndUpdateWireguardConfig(tunnel: tunnel)
+
+        Task {
             guard let tunnelConfig = tunnel.tunnelConfiguration ,let daemonId = tunnelConfig.daemonId, let kp = SharedStorage.shared.getDaemonKeyPairByDaemonId(daemonId) else {
                 wg_log(.error, message: "Missing tunnel config or key pair")
                 return
@@ -490,23 +487,23 @@ class TunnelsManager {
 
                 if isApproved != true {
                     wg_log(.info, message: "Tunnel connection not approved — blocking activation")
+
                     ErrorPresenter.showErrorAlert(title: tr("statusStillPendingTitle"), message: tr("statusStillPendingMessage"))
                     startDeactivation(of: tunnel)
+
+                    DispatchQueue.main.async {
+                        tunnel.refreshStatus()
+                    }
+
                     return
                 }
             }
-            proceedWithTunnelActivation(tunnel)
         }
-    }
-
-    private func proceedWithTunnelActivation(_ tunnel: TunnelContainer) {
-        retrieveAndUpdateWireguardConfig(tunnel: tunnel)
 
         if let tunnelInOperation = tunnels.first(where: { $0.status != .inactive }) {
             wg_log(.info, message: "Tunnel '\(tunnel.name)' waiting for deactivation of '\(tunnelInOperation.name)'")
             tunnel.status = .waiting
             activateWaitingTunnelOnDeactivation(of: tunnelInOperation)
-
             if tunnelInOperation.status != .deactivating {
                 if tunnelInOperation.isActivateOnDemandEnabled {
                     setOnDemandEnabled(false, on: tunnelInOperation) { [weak self] error in
