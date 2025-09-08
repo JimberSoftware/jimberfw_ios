@@ -447,94 +447,14 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		9F9645C52DE4951A00E2AA2F /* ClientConfig */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
-			explicitFileTypes = {
-			};
-			explicitFolders = (
-			);
-			path = ClientConfig;
-			sourceTree = "<group>";
-		};
-		9F9645C62DE4952100E2AA2F /* Envs */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
-			explicitFileTypes = {
-			};
-			explicitFolders = (
-			);
-			path = Envs;
-			sourceTree = "<group>";
-		};
-		9FE0E2322D5C9707006A5835 /* Api */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
-			explicitFileTypes = {
-			};
-			explicitFolders = (
-			);
-			path = Api;
-			sourceTree = "<group>";
-		};
-		9FE0E23F2D5C9A97006A5835 /* Authentication */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
-			explicitFileTypes = {
-			};
-			explicitFolders = (
-			);
-			path = Authentication;
-			sourceTree = "<group>";
-		};
-		9FE0E2452D5C9AAE006A5835 /* Daemon */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
-			explicitFileTypes = {
-			};
-			explicitFolders = (
-			);
-			path = Daemon;
-			sourceTree = "<group>";
-		};
-		9FE0E24B2D5C9AC1006A5835 /* NetworkController */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
-			explicitFileTypes = {
-			};
-			explicitFolders = (
-			);
-			path = NetworkController;
-			sourceTree = "<group>";
-		};
-		9FE0E26F2D5CC7D5006A5835 /* SharedStorage */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
-			explicitFileTypes = {
-			};
-			explicitFolders = (
-			);
-			path = SharedStorage;
-			sourceTree = "<group>";
-		};
-		9FE0E27A2D5CCB00006A5835 /* Utils */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
-			explicitFileTypes = {
-			};
-			explicitFolders = (
-			);
-			path = Utils;
-			sourceTree = "<group>";
-		};
+		9F9645C52DE4951A00E2AA2F /* ClientConfig */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = ClientConfig; sourceTree = "<group>"; };
+		9F9645C62DE4952100E2AA2F /* Envs */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Envs; sourceTree = "<group>"; };
+		9FE0E2322D5C9707006A5835 /* Api */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Api; sourceTree = "<group>"; };
+		9FE0E23F2D5C9A97006A5835 /* Authentication */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Authentication; sourceTree = "<group>"; };
+		9FE0E2452D5C9AAE006A5835 /* Daemon */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Daemon; sourceTree = "<group>"; };
+		9FE0E24B2D5C9AC1006A5835 /* NetworkController */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = NetworkController; sourceTree = "<group>"; };
+		9FE0E26F2D5CC7D5006A5835 /* SharedStorage */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = SharedStorage; sourceTree = "<group>"; };
+		9FE0E27A2D5CCB00006A5835 /* Utils */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Utils; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1674,7 +1594,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "io.jimber.networkisolation.beta.network-extension";
+				PRODUCT_BUNDLE_IDENTIFIER = "io.jimber.networkisolation.network-extension";
 				PRODUCT_NAME = WireGuardNetworkExtension;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -1700,7 +1620,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "io.jimber.networkisolation.beta.network-extension";
+				PRODUCT_BUNDLE_IDENTIFIER = "io.jimber.networkisolation.network-extension";
 				PRODUCT_NAME = WireGuardNetworkExtension;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -2011,7 +1931,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 2.0;
-				PRODUCT_BUNDLE_IDENTIFIER = io.jimber.networkisolation.beta;
+				PRODUCT_BUNDLE_IDENTIFIER = io.jimber.networkisolation;
 				PRODUCT_NAME = WireGuard;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
@@ -2034,7 +1954,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 2.0;
-				PRODUCT_BUNDLE_IDENTIFIER = io.jimber.networkisolation.beta;
+				PRODUCT_BUNDLE_IDENTIFIER = io.jimber.networkisolation;
 				PRODUCT_NAME = WireGuard;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;

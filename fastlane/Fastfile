@@ -92,8 +92,8 @@ platform :ios do
       scheme: "WireGuardiOS",
       app_id: "io.jimber.networkisolation",
       ext_app_id: "io.jimber.networkisolation.network-extension",
-      main_profile_name: "Prov SASE Prod",
-      ext_profile_name: "Prov SASE Prod NetExt"
+      main_profile_name: "Prov SASE",
+      ext_profile_name: "Prov SASE NetExt"
     )
   end
 end
