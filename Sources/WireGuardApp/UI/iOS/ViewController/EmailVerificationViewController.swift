@@ -181,7 +181,8 @@ class EmailVerificationViewController: BaseViewController {
                     configurationString: result.configurationString,
                     daemonId: result.daemonId,
                     userId: userId,
-                    daemonName: daemonName
+                    daemonName: daemonName,
+                    companyName: companyName
                 )
             } catch {
                 self.showToast(message: "Unauthorized")
@@ -235,7 +236,7 @@ class EmailVerificationViewController: BaseViewController {
         }
     }
 
-    func importAndNavigate(configurationString: String, daemonId: Int, userId: Int, daemonName: String ) async {
+    func importAndNavigate(configurationString: String, daemonId: Int, userId: Int, daemonName: String, companyName: String) async {
         guard let scannedTunnelConfiguration = try? TunnelConfiguration(fromWgQuickConfig: configurationString, called: daemonName, userId: userId, daemonId: daemonId) else {
             wg_log(.error, message: "Invalid configuration \(configurationString)")
             return
@@ -243,6 +244,11 @@ class EmailVerificationViewController: BaseViewController {
 
         do {
             let tunnelsManager = try await createTunnelsManager()
+
+            let daemonKeyPair = SharedStorage.shared.getDaemonKeyPairByDaemonId(scannedTunnelConfiguration.daemonId!)
+            let isApproved = await getDaemonApprovalStatus(daemonId: daemonId, company: companyName, sk: daemonKeyPair!.baseEncodedSkEd25519)
+
+            scannedTunnelConfiguration.isApproved = isApproved
             _ = try await addTunnel(tunnelsManager: tunnelsManager, configuration: scannedTunnelConfiguration)
 
             DispatchQueue.main.async {

@@ -112,6 +112,7 @@ protocol ApiService {
     func getUserAuthentication(type: String, data: AuthenticationApiRequest, completion: @escaping (Result<UserAuthenticationApiResult, Error>) -> Void)
     func createDaemon(userId: Int, company: String, data: CreateDaemonApiRequest, cookies: String, completion: @escaping (Result<CreateDaemonApiResult, Error>) -> Void)
     func deleteDaemon(daemonId: Int, company: String, authorization: String, completion: @escaping (Result<DeleteDaemonApiResult, Error>) -> Void)
+    func getDaemonInformation(daemonId: Int, company: String, authorization: String, completion: @escaping (Result<GetDaemonInformationApiResult, Error>) -> Void)
     func sendVerificationEmail(data: VerificationCodeApiRequest, completion: @escaping (Result<Bool, Error>) -> Void)
     func verifyEmailWithToken(data: AuthenticationWithVerificationCodeApiRequest, completion: @escaping (Result<UserAuthenticationApiResult, Error>) -> Void)
     func refreshToken(cookies: String, completion: @escaping (Result<RefreshTokenApiResult, Error>) -> Void)
@@ -184,6 +185,13 @@ class ApiServiceImpl: ApiService {
     func deleteDaemon(daemonId: Int, company: String, authorization: String, completion: @escaping (Result<DeleteDaemonApiResult, Error>) -> Void) {
         let url = "\(ApiClient.BASE_URL)companies/\(company)/daemons-mobile/\(daemonId)"
         session.request(url, method: .delete, headers: ["Authorization": authorization])
+            .validate()
+            .responseData { self.handleResponse($0, completion: completion) }
+    }
+
+    func getDaemonInformation(daemonId: Int, company: String, authorization: String, completion: @escaping (Result<GetDaemonInformationApiResult, Error>) -> Void) {
+        let url = "\(ApiClient.BASE_URL)companies/\(company)/daemons-mobile/\(daemonId)"
+        session.request(url, method: .get, headers: ["Authorization": authorization])
             .validate()
             .responseData { self.handleResponse($0, completion: completion) }
     }

@@ -10,6 +10,7 @@
 	<array>
 		<string>group.io.jimber.networkisolation</string>
 		<string>group.io.jimber.networkisolation.beta</string>
+		<string>group.io.jimber.networkisolation.staging</string>
 	</array>
 </dict>
 </plist>

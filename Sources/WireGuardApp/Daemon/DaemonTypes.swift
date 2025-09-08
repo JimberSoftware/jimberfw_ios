@@ -16,3 +16,9 @@ struct NetworkIsolationDaemon: Codable {
     let companyName: String
     let configurationString: String
 }
+
+struct DaemonInfo {
+    let daemonId: Int
+    let name: String
+    let isApproved: Bool
+}

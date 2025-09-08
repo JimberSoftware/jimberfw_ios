@@ -5,6 +5,7 @@ import NetworkExtension
 
 enum TunnelsManagerError: WireGuardAppError {
     case tunnelNameEmpty
+    case statusStillPending
     case tunnelAlreadyExistsWithThatName
     case systemErrorOnListingTunnels(systemError: Error)
     case systemErrorOnAddTunnel(systemError: Error)
@@ -15,6 +16,8 @@ enum TunnelsManagerError: WireGuardAppError {
         switch self {
         case .tunnelNameEmpty:
             return (tr("alertTunnelNameEmptyTitle"), tr("alertTunnelNameEmptyMessage"))
+        case .statusStillPending:
+            return (tr("statusStillPendingTitle"), tr("statusStillPendingMessage"))
         case .tunnelAlreadyExistsWithThatName:
             return (tr("alertTunnelAlreadyExistsWithThatNameTitle"), tr("alertTunnelAlreadyExistsWithThatNameMessage"))
         case .systemErrorOnListingTunnels(let systemError):

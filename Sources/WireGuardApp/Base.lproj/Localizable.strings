@@ -280,6 +280,8 @@
 
 "alertTunnelNameEmptyTitle" = "No name provided";
 "alertTunnelNameEmptyMessage" = "Cannot create connection with an empty name";
+"statusStillPendingTitle" = "Device not approved";
+"statusStillPendingMessage" = "The device is not approved yet";
 
 "alertTunnelAlreadyExistsWithThatNameTitle" = "Name already exists";
 "alertTunnelAlreadyExistsWithThatNameMessage" = "A connection with that name already exists";

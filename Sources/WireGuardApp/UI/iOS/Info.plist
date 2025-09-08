@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Jimber SASE</string>
+	<string>Staging Jimber SASE</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
@@ -65,7 +65,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>Jimber SASE</string>
+	<string>Jimber SASE Staging</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -80,12 +80,12 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>com.googleusercontent.apps.107269124183-2u340vnj231dh29f15iqh3mm2jtllb64</string>
-				<string>msauth.io.jimber.networkisolation</string>
+				<string>msauth.io.jimber.networkisolation.staging</string>
 			</array>
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>38</string>
+	<string>$(VERSION_ID)</string>
 	<key>GIDClientID</key>
 	<string>107269124183-2u340vnj231dh29f15iqh3mm2jtllb64.apps.googleusercontent.com</string>
 	<key>GIDServerClientID</key>

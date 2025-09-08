@@ -1594,7 +1594,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "io.jimber.networkisolation.network-extension";
+				PRODUCT_BUNDLE_IDENTIFIER = "io.jimber.networkisolation.staging.network-extension";
 				PRODUCT_NAME = WireGuardNetworkExtension;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -1620,7 +1620,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "io.jimber.networkisolation.network-extension";
+				PRODUCT_BUNDLE_IDENTIFIER = "io.jimber.networkisolation.staging.network-extension";
 				PRODUCT_NAME = WireGuardNetworkExtension;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -1931,7 +1931,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 2.0;
-				PRODUCT_BUNDLE_IDENTIFIER = io.jimber.networkisolation;
+				PRODUCT_BUNDLE_IDENTIFIER = io.jimber.networkisolation.staging;
 				PRODUCT_NAME = WireGuard;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
@@ -1954,7 +1954,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 2.0;
-				PRODUCT_BUNDLE_IDENTIFIER = io.jimber.networkisolation;
+				PRODUCT_BUNDLE_IDENTIFIER = io.jimber.networkisolation.staging;
 				PRODUCT_NAME = WireGuard;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;

@@ -22,8 +22,6 @@ func createDaemon(userId: Int, company: String, daemonData: CreateDaemonApiReque
     }
 }
 
-
-
 func deleteDaemon(daemonId: Int, company: String, sk: String) async -> Result<DeletedDaemon, Error> {
     let timestampInSeconds = Int(Date().timeIntervalSince1970)
     let timestampBuffer = withUnsafeBytes(of: UInt64(timestampInSeconds).littleEndian) { Data($0) }
@@ -45,3 +43,33 @@ func deleteDaemon(daemonId: Int, company: String, sk: String) async -> Result<De
         }
     }
 }
+
+func getDaemonApprovalStatus(daemonId: Int, company: String, sk: String) async -> Bool? {
+    let timestampInSeconds = Int(Date().timeIntervalSince1970)
+    let timestampBuffer = withUnsafeBytes(of: UInt64(timestampInSeconds).littleEndian) { Data($0) }
+
+    guard let authorizationHeader = generateSignedMessage(message: timestampBuffer, privateKey: sk) else {
+        return nil
+    }
+
+    print(authorizationHeader)
+
+    return await withCheckedContinuation { continuation in
+        ApiClient.apiService.getDaemonInformation(daemonId: daemonId, company: company, authorization: authorizationHeader) { result in
+            switch result {
+            case .success(let response):
+                let isApproved = (response.approvalStatus == "approved")
+                continuation.resume(returning: isApproved)
+
+            case .failure(let error):
+                print(error)
+                continuation.resume(returning: nil)
+            }
+        }
+    }
+}
+
+
+
+
+
