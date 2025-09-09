@@ -237,7 +237,9 @@ class EmailVerificationViewController: BaseViewController {
     }
 
     func importAndNavigate(configurationString: String, daemonId: Int, userId: Int, daemonName: String, companyName: String) async {
-        guard let scannedTunnelConfiguration = try? TunnelConfiguration(fromWgQuickConfig: configurationString, called: daemonName, userId: userId, daemonId: daemonId) else {
+        let tunnelName = sanitizeTunnelName(companyName)
+
+        guard let scannedTunnelConfiguration = try? TunnelConfiguration(fromWgQuickConfig: configurationString, called: tunnelName, userId: userId, daemonId: daemonId) else {
             wg_log(.error, message: "Invalid configuration \(configurationString)")
             return
         }
