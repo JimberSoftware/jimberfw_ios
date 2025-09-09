@@ -52,8 +52,6 @@ func getDaemonApprovalStatus(daemonId: Int, company: String, sk: String) async -
         return nil
     }
 
-    print(authorizationHeader)
-
     return await withCheckedContinuation { continuation in
         ApiClient.apiService.getDaemonInformation(daemonId: daemonId, company: company, authorization: authorizationHeader) { result in
             switch result {

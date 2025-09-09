@@ -5,6 +5,22 @@ import UIKit
 
 class TunnelDetailTableViewController: UITableViewController {
 
+    private var titleTapCount = 0
+    private let requiredTapCountToShowEditButton = 5
+
+    @objc private func titleTapped() {
+        titleTapCount += 1
+        if titleTapCount >= requiredTapCountToShowEditButton {
+            showEditButton()
+        }
+    }
+
+    private func showEditButton() {
+        if navigationItem.rightBarButtonItem == nil {
+            navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .edit, target: self, action: #selector(editTapped))
+        }
+    }
+
     private enum Section {
         case status
         case interface
@@ -78,7 +94,16 @@ class TunnelDetailTableViewController: UITableViewController {
              .foregroundColor: customColor
          ]
 
-        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .edit, target: self, action: #selector(editTapped))
+        let titleLabel = UILabel()
+        titleLabel.text = tunnelViewModel.interfaceData[.name]
+        titleLabel.textColor = UIColor(hex: "#111279")
+        titleLabel.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
+        titleLabel.isUserInteractionEnabled = true
+
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(titleTapped))
+        titleLabel.addGestureRecognizer(tapGesture)
+
+        navigationItem.titleView = titleLabel
 
         tableView.estimatedRowHeight = 44
         tableView.rowHeight = UITableView.automaticDimension
@@ -124,6 +149,7 @@ class TunnelDetailTableViewController: UITableViewController {
     }
 
     @objc func editTapped() {
+        print("joehoe")
         PrivateDataConfirmation.confirmAccess(to: tr("iosViewPrivateData")) { [weak self] in
             guard let self = self else { return }
             let editVC = TunnelEditTableViewController(tunnelsManager: self.tunnelsManager, tunnel: self.tunnel)
