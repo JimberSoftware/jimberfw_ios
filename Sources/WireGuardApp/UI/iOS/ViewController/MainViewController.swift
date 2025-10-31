@@ -36,6 +36,10 @@ func cleanupInvalidDaemons(tunnelsManager: TunnelsManager?) async {
             )
             wg_log(.info, message: "Daemon \(daemon.daemonId) is valid ✅")
         } catch DaemonInfoError.httpError(let code) {
+            if(code != 403) {
+                return;
+            }
+
             wg_log(.error, message: "Failed to fetch daemon info \(daemon.daemonId) (HTTP \(code)), removing...")
             SharedStorage.shared.clearDaemonKeys(daemonId: daemon.daemonId)
 
@@ -165,6 +169,8 @@ class MainViewController: UISplitViewController {
                 }
             }
         }
+
+        self.hideLoadingSpinner(spinner)
     }
 
     func allTunnelNames() -> [String]? {
