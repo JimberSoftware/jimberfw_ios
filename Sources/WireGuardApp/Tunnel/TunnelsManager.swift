@@ -332,11 +332,13 @@ class TunnelsManager {
         if(daemonId != nil) {
             let daemonKeyPair = SharedStorage.shared.getDaemonKeyPairByDaemonId(daemonId!)
 
-            Task {
-                _ =  await deleteDaemon(daemonId: daemonId!, company: daemonKeyPair!.companyName, sk: daemonKeyPair!.baseEncodedSkEd25519)
+            if(daemonKeyPair != nil) {
+                Task {
+                    _ =  await deleteDaemon(daemonId: daemonId!, company: daemonKeyPair!.companyName, sk: daemonKeyPair!.baseEncodedSkEd25519)
 
-                // Delete daemon in shared storage
-                SharedStorage.shared.clearDaemonKeys(daemonId: daemonId!)
+                    // Delete daemon in shared storage
+                    SharedStorage.shared.clearDaemonKeys(daemonId: daemonId!)
+                }
             }
         } else {
             wg_log(.error, message: "Strange, daemonId is somehow nil, so cannot remove in signal / storage, but bringing down tunnel")
@@ -481,21 +483,32 @@ class TunnelsManager {
                 return
             }
 
-            if tunnelConfig.isApproved != true {
-                let isApproved: Bool? = await getDaemonApprovalStatus(daemonId: kp.daemonId, company: kp.companyName, sk: kp.baseEncodedSkEd25519)
-                tunnel.tunnelConfiguration?.isApproved = isApproved
+            do {
+                let daemonInfo: DaemonInfo? = try await getDaemonInfo(daemonId: kp.daemonId, company: kp.companyName, sk: kp.baseEncodedSkEd25519)
 
-                if isApproved != true {
-                    wg_log(.info, message: "Tunnel connection not approved — blocking activation")
+                if daemonInfo!.isApproved != true {
+                    tunnel.tunnelConfiguration?.isApproved = daemonInfo?.isApproved
 
-                    ErrorPresenter.showErrorAlert(title: tr("statusStillPendingTitle"), message: tr("statusStillPendingMessage"))
-                    startDeactivation(of: tunnel)
+                    if tunnel.tunnelConfiguration?.isApproved != true {
+                        wg_log(.info, message: "Tunnel connection not approved — blocking activation")
 
-                    DispatchQueue.main.async {
-                        tunnel.refreshStatus()
+                        ErrorPresenter.showErrorAlert(title: tr("statusStillPendingTitle"), message: tr("statusStillPendingMessage"))
+                        startDeactivation(of: tunnel)
+
+                        DispatchQueue.main.async {
+                            tunnel.refreshStatus()
+                        }
+
+                        return
                     }
+                }
+            }
+            catch DaemonInfoError.httpError(let code) {
+                if(code == 403) {
+                    wg_log(.info, message: "Daemon not found in signal - aborting")
 
-                    return
+                    ErrorPresenter.showErrorAlert(title: tr("daemonNotFoundInSignalTitle"), message: tr("daemonNotFoundInSignalMessage"))
+                    startDeactivation(of: tunnel)
                 }
             }
         }

@@ -22,3 +22,9 @@ struct DaemonInfo {
     let name: String
     let isApproved: Bool
 }
+
+enum DaemonInfoError: Error {
+    case signingError
+    case httpError(statusCode: Int)
+    case unknown
+}

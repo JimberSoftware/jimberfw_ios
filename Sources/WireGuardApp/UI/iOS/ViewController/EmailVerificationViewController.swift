@@ -155,6 +155,9 @@ class EmailVerificationViewController: BaseViewController {
 
         Task {
             do {
+                let tunnelsManager = try await self.createTunnelsManager()
+                await cleanupInvalidDaemons(tunnelsManager: tunnelsManager)
+
                 let userAuthentication = try await verifyEmailWithCode(email: self.email, token: code)
 
                 let companyName = userAuthentication.companyName
@@ -248,9 +251,9 @@ class EmailVerificationViewController: BaseViewController {
             let tunnelsManager = try await createTunnelsManager()
 
             let daemonKeyPair = SharedStorage.shared.getDaemonKeyPairByDaemonId(scannedTunnelConfiguration.daemonId!)
-            let isApproved = await getDaemonApprovalStatus(daemonId: daemonId, company: companyName, sk: daemonKeyPair!.baseEncodedSkEd25519)
+            let daemonInfo = try await getDaemonInfo(daemonId: daemonId, company: companyName, sk: daemonKeyPair!.baseEncodedSkEd25519)
 
-            scannedTunnelConfiguration.isApproved = isApproved
+            scannedTunnelConfiguration.isApproved = daemonInfo.isApproved
             _ = try await addTunnel(tunnelsManager: tunnelsManager, configuration: scannedTunnelConfiguration)
 
             DispatchQueue.main.async {

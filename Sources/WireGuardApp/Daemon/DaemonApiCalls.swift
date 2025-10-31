@@ -44,30 +44,36 @@ func deleteDaemon(daemonId: Int, company: String, sk: String) async -> Result<De
     }
 }
 
-func getDaemonApprovalStatus(daemonId: Int, company: String, sk: String) async -> Bool? {
+func getDaemonInfo(daemonId: Int, company: String, sk: String) async throws -> DaemonInfo {
     let timestampInSeconds = Int(Date().timeIntervalSince1970)
     let timestampBuffer = withUnsafeBytes(of: UInt64(timestampInSeconds).littleEndian) { Data($0) }
 
     guard let authorizationHeader = generateSignedMessage(message: timestampBuffer, privateKey: sk) else {
-        return nil
+        throw DaemonInfoError.signingError
     }
 
-    return await withCheckedContinuation { continuation in
-        ApiClient.apiService.getDaemonInformation(daemonId: daemonId, company: company, authorization: authorizationHeader) { result in
+    return try await withCheckedThrowingContinuation { continuation in
+        ApiClient.apiService.getDaemonInformation(
+            daemonId: daemonId,
+            company: company,
+            authorization: authorizationHeader
+        ) { result in
             switch result {
             case .success(let response):
-                let isApproved = (response.approvalStatus == "approved")
-                continuation.resume(returning: isApproved)
+                let daemon = DaemonInfo(
+                    daemonId: response.id,
+                    name: response.name,
+                    isApproved: response.approvalStatus == "approved"
+                )
+                continuation.resume(returning: daemon)
 
             case .failure(let error):
-                print(error)
-                continuation.resume(returning: nil)
+                if let nsError = error as NSError?, nsError.code != 0 {
+                    continuation.resume(throwing: DaemonInfoError.httpError(statusCode: nsError.code))
+                } else {
+                    continuation.resume(throwing: DaemonInfoError.unknown)
+                }
             }
         }
     }
 }
-
-
-
-
-

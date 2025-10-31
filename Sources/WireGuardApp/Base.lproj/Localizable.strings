@@ -283,6 +283,9 @@
 "statusStillPendingTitle" = "Device not approved";
 "statusStillPendingMessage" = "The device is not approved yet";
 
+"daemonNotFoundInSignalTitle" = "Connection not found";
+"daemonNotFoundInSignalMessage" = "Tunnel does not exist in the platform anymore, please restart";
+
 "alertTunnelAlreadyExistsWithThatNameTitle" = "Name already exists";
 "alertTunnelAlreadyExistsWithThatNameMessage" = "A connection with that name already exists";
 

@@ -2,6 +2,7 @@ import UIKit
 import GoogleSignIn
 import MSAL
 
+
 class SignInViewController: BaseViewController {
 
     // Update the below to your client ID. The below is for running the demo only
@@ -202,6 +203,13 @@ class SignInViewController: BaseViewController {
 
             Task {
                 do {
+                    let tunnelsManager = try await self.createTunnelsManager()
+
+                    print("do we have a tunnel manager")
+                    print(tunnelsManager)
+
+                    await cleanupInvalidDaemons(tunnelsManager: tunnelsManager)
+
                     let userAuthentication = try await getUserAuthentication(idToken: idToken, authenticationType: .google)
                     let companyName = userAuthentication.companyName
                     let userId = userAuthentication.userId
@@ -257,6 +265,9 @@ class SignInViewController: BaseViewController {
 
             Task {
                 do {
+                    let tunnelsManager = try await self.createTunnelsManager()
+                    await cleanupInvalidDaemons(tunnelsManager: tunnelsManager)
+
                     let userAuthentication = try await getUserAuthentication(idToken: accessToken, authenticationType: .microsoft)
                     let companyName = userAuthentication.companyName
                     let userId = userAuthentication.userId
@@ -350,9 +361,9 @@ class SignInViewController: BaseViewController {
             let tunnelsManager = try await createTunnelsManager()
 
             let daemonKeyPair = SharedStorage.shared.getDaemonKeyPairByDaemonId(scannedTunnelConfiguration.daemonId!)
-            let isApproved = await getDaemonApprovalStatus(daemonId: daemonId, company: companyName, sk: daemonKeyPair!.baseEncodedSkEd25519)
+            let daemonInfo = try await getDaemonInfo(daemonId: daemonId, company: companyName, sk: daemonKeyPair!.baseEncodedSkEd25519)
 
-            scannedTunnelConfiguration.isApproved = isApproved
+            scannedTunnelConfiguration.isApproved = daemonInfo.isApproved
             _ = try await addTunnel(tunnelsManager: tunnelsManager, configuration: scannedTunnelConfiguration)
 
             DispatchQueue.main.async {
