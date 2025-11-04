@@ -9,7 +9,8 @@ class SignInViewController: BaseViewController {
     let kClientID = "f1373772-6623-4090-9204-3cb04b9d46c9"
     let kAuthority = "https://login.microsoftonline.com/common"
 
-    let kScopes: [String] = ["f1373772-6623-4090-9204-3cb04b9d46c9/.default"] // request permission to read the profile of the signed-in user
+    let kScopes: [String] = ["User.Read"]
+
 
     var applicationContext : MSALPublicClientApplication?
     var webViewParameters : MSALWebviewParameters?
@@ -205,9 +206,6 @@ class SignInViewController: BaseViewController {
                 do {
                     let tunnelsManager = try await self.createTunnelsManager()
 
-                    print("do we have a tunnel manager")
-                    print(tunnelsManager)
-
                     await cleanupInvalidDaemons(tunnelsManager: tunnelsManager)
 
                     let userAuthentication = try await getUserAuthentication(idToken: idToken, authenticationType: .google)
@@ -256,11 +254,17 @@ class SignInViewController: BaseViewController {
 
         applicationContext.acquireToken(with: parameters) { (result, error) in
             if let error = error {
-                wg_log(.error, message: "Error in acquire token 1: \(error.localizedDescription)")
+                let errorMessage = "Sign-in failed: \(error.localizedDescription)"
+                wg_log(.error, message: "Error in acquire token 1: \(errorMessage)")
+
+                // Show the toast on the main thread (UI updates must be on main)
+                DispatchQueue.main.async {
+                    self.showToast(message: errorMessage)
+                }
                 return
             }
 
-            let accessToken = result!.accessToken
+            let accessToken = result!.idToken
             self.updateCurrentAccount(account: result!.account)
 
             Task {
@@ -268,7 +272,7 @@ class SignInViewController: BaseViewController {
                     let tunnelsManager = try await self.createTunnelsManager()
                     await cleanupInvalidDaemons(tunnelsManager: tunnelsManager)
 
-                    let userAuthentication = try await getUserAuthentication(idToken: accessToken, authenticationType: .microsoft)
+                    let userAuthentication = try await getUserAuthentication(idToken: accessToken!, authenticationType: .microsoft)
                     let companyName = userAuthentication.companyName
                     let userId = userAuthentication.userId
 
