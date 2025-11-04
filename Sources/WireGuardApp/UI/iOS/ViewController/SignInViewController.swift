@@ -256,11 +256,6 @@ class SignInViewController: BaseViewController {
             if let error = error {
                 let errorMessage = "Sign-in failed: \(error.localizedDescription)"
                 wg_log(.error, message: "Error in acquire token 1: \(errorMessage)")
-
-                // Show the toast on the main thread (UI updates must be on main)
-                DispatchQueue.main.async {
-                    self.showToast(message: errorMessage)
-                }
                 return
             }
 
