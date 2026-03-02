@@ -9,7 +9,7 @@ public final class TunnelConfiguration {
     public let peers: [PeerConfiguration]
     public let userId: Int?
     public let daemonId: Int?
-
+    public var isApproved: Bool?
 
     public init(name: String?, userId: Int?, daemonId: Int?, interface: InterfaceConfiguration, peers: [PeerConfiguration]) {
         self.interface = interface

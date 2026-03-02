@@ -34,3 +34,9 @@ func isValidMobileHostname(_ hostname: String) -> (Bool, String?) {
 
     return (true, nil)
 }
+
+func sanitizeTunnelName(_ name: String) -> String {
+    let pattern = "[^A-Za-z0-9]"
+    let sanitized = name.replacingOccurrences(of: pattern, with: "", options: .regularExpression)
+    return String(sanitized.prefix(191))
+}

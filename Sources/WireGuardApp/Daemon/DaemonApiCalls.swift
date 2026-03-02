@@ -22,8 +22,6 @@ func createDaemon(userId: Int, company: String, daemonData: CreateDaemonApiReque
     }
 }
 
-
-
 func deleteDaemon(daemonId: Int, company: String, sk: String) async -> Result<DeletedDaemon, Error> {
     let timestampInSeconds = Int(Date().timeIntervalSince1970)
     let timestampBuffer = withUnsafeBytes(of: UInt64(timestampInSeconds).littleEndian) { Data($0) }
@@ -41,6 +39,40 @@ func deleteDaemon(daemonId: Int, company: String, sk: String) async -> Result<De
 
             case .failure(let error):
                 continuation.resume(returning: .failure(error))
+            }
+        }
+    }
+}
+
+func getDaemonInfo(daemonId: Int, company: String, sk: String) async throws -> DaemonInfo {
+    let timestampInSeconds = Int(Date().timeIntervalSince1970)
+    let timestampBuffer = withUnsafeBytes(of: UInt64(timestampInSeconds).littleEndian) { Data($0) }
+
+    guard let authorizationHeader = generateSignedMessage(message: timestampBuffer, privateKey: sk) else {
+        throw DaemonInfoError.signingError
+    }
+
+    return try await withCheckedThrowingContinuation { continuation in
+        ApiClient.apiService.getDaemonInformation(
+            daemonId: daemonId,
+            company: company,
+            authorization: authorizationHeader
+        ) { result in
+            switch result {
+            case .success(let response):
+                let daemon = DaemonInfo(
+                    daemonId: response.id,
+                    name: response.name,
+                    isApproved: response.approvalStatus == "approved"
+                )
+                continuation.resume(returning: daemon)
+
+            case .failure(let error):
+                if let nsError = error as NSError?, nsError.code != 0 {
+                    continuation.resume(throwing: DaemonInfoError.httpError(statusCode: nsError.code))
+                } else {
+                    continuation.resume(throwing: DaemonInfoError.unknown)
+                }
             }
         }
     }

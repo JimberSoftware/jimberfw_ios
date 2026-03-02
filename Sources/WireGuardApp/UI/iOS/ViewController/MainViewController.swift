@@ -3,6 +3,64 @@
 
 import UIKit
 
+
+extension UIViewController {
+    func showLoadingSpinner() -> UIActivityIndicatorView {
+        let spinner = UIActivityIndicatorView(style: .large)
+        spinner.center = view.center
+        spinner.startAnimating()
+        view.addSubview(spinner)
+        return spinner
+    }
+
+    func hideLoadingSpinner(_ spinner: UIActivityIndicatorView) {
+        DispatchQueue.main.async {
+            spinner.stopAnimating()
+            spinner.removeFromSuperview()
+        }
+    }
+}
+
+    /// Cleanup invalid daemons and wait until done
+func cleanupInvalidDaemons(tunnelsManager: TunnelsManager?) async {
+    print("this is the tunnel manager")
+    print(tunnelsManager)
+
+    let daemonKeyPairs = SharedStorage.shared.getDaemonKeyPairs()
+    for daemon in daemonKeyPairs {
+        do {
+            _ = try await getDaemonInfo(
+                daemonId: daemon.daemonId,
+                company: daemon.companyName,
+                sk: daemon.baseEncodedSkEd25519
+            )
+            wg_log(.info, message: "Daemon \(daemon.daemonId) is valid ✅")
+        } catch DaemonInfoError.httpError(let code) {
+            if(code != 403) {
+                return;
+            }
+
+            wg_log(.error, message: "Failed to fetch daemon info \(daemon.daemonId) (HTTP \(code)), removing...")
+            SharedStorage.shared.clearDaemonKeys(daemonId: daemon.daemonId)
+
+            if let tunnelsManager = tunnelsManager {
+                let userTunnels = tunnelsManager.getAllTunnels()
+                for tunnel in userTunnels where tunnel.tunnelConfiguration?.daemonId == daemon.daemonId {
+                    tunnelsManager.remove(tunnel: tunnel) { error in
+                        if error != nil {
+                            wg_log(.error, message: "Error in removing tunnel")
+                        } else {
+                            wg_log(.info, message: "Succesfully removed")
+                        }
+                    }
+                }
+            }
+        } catch {
+            wg_log(.error, message: "Unexpected error fetching daemon \(daemon.daemonId): \(error)")
+        }
+    }
+}
+
 class MainViewController: UISplitViewController {
 
     var tunnelsManager: TunnelsManager?
@@ -33,63 +91,86 @@ class MainViewController: UISplitViewController {
     }
 
     override func viewDidLoad() {
+        super.viewDidLoad()
         delegate = self
 
-        // On iPad, always show both masterVC and detailVC, even in portrait mode, like the Settings app
+        // On iPad, always show both masterVC and detailVC, even in portrait mode
         preferredDisplayMode = .allVisible
 
-        TunnelsManager.create { [weak self] result in
-            guard let self = self else { return }
+        // Create and show loading spinner
+        let spinner = UIActivityIndicatorView(style: .large)
+        spinner.center = view.center
+        spinner.startAnimating()
+        view.addSubview(spinner)
 
-            switch result {
-            case .failure(let error):
-                wg_log(.error, message: "Error when creating tunnelmanager: \(error)")
+        // Run async cleanup
+        Task {
+            let spinner = showLoadingSpinner()
 
-                let signInVc = SignInViewController()
-                self.showDetailViewController(signInVc, sender: self)
+            // Continue with tunnels manager initialization
+            TunnelsManager.create { [weak self] result in
+                guard let self = self else { return }
 
-            case .success(let tunnelsManager):
-                self.tunnelsManager = tunnelsManager
-                self.tunnelsListVC?.setTunnelsManager(tunnelsManager: tunnelsManager)
+                switch result {
+                case .failure(let error):
+                    wg_log(.error, message: "Error when creating tunnelmanager: \(error)")
 
-                tunnelsManager.activationDelegate = self
+                    let signInVc = SignInViewController()
+                    self.showDetailViewController(signInVc, sender: self)
 
-                self.onTunnelsManagerReady?(tunnelsManager)
-                self.onTunnelsManagerReady = nil
+                case .success(let tunnelsManager):
+                    self.tunnelsManager = tunnelsManager
 
-                let userId = SharedStorage.shared.getCurrentUser()?.id
-                if(userId == nil) {
-                    wg_log(.info, message: "No UserId found, navigating to sign in")
+                    Task {
+                          await cleanupInvalidDaemons(tunnelsManager: tunnelsManager)
+                          self.hideLoadingSpinner(spinner)
+                      }
 
-                    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                       let window = windowScene.windows.first {
-                        let signInVC = SignInViewController()
-                        let navController = UINavigationController(rootViewController: signInVC)
-                        navController.modalPresentationStyle = .fullScreen
-                        window.rootViewController = navController
-                        window.makeKeyAndVisible()
+                    self.tunnelsListVC?.setTunnelsManager(tunnelsManager: tunnelsManager)
+
+                    tunnelsManager.activationDelegate = self
+
+                    self.onTunnelsManagerReady?(tunnelsManager)
+                    self.onTunnelsManagerReady = nil
+
+                    let userId = SharedStorage.shared.getCurrentUser()?.id
+                    if(userId == nil) {
+                        wg_log(.info, message: "No UserId found, navigating to sign in")
+
+                        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                           let window = windowScene.windows.first {
+                            let signInVC = SignInViewController()
+                            let navController = UINavigationController(rootViewController: signInVC)
+                            navController.modalPresentationStyle = .fullScreen
+                            window.rootViewController = navController
+                            window.makeKeyAndVisible()
+                        }
+
+                        self.hideLoadingSpinner(spinner)
+                        return
                     }
 
-                    return
-                }
+                    let existingTunnels = SharedStorage.shared.getDaemonKeyPairByUserId(userId!)
+                    if(existingTunnels == nil) {
+                        wg_log(.info, message: "UserId found, but no related tunnels, navigating to sign in")
 
-                let existingTunnels = SharedStorage.shared.getDaemonKeyPairByUserId(userId!)
-                if(existingTunnels == nil) {
-                    wg_log(.info, message: "UserId found, but no related tunnels, navigating to sign in")
+                        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                           let window = windowScene.windows.first {
+                            let signInVC = SignInViewController()
+                            let navController = UINavigationController(rootViewController: signInVC)
+                            navController.modalPresentationStyle = .fullScreen
+                            window.rootViewController = navController
+                            window.makeKeyAndVisible()
+                        }
 
-                    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                       let window = windowScene.windows.first {
-                        let signInVC = SignInViewController()
-                        let navController = UINavigationController(rootViewController: signInVC)
-                        navController.modalPresentationStyle = .fullScreen
-                        window.rootViewController = navController
-                        window.makeKeyAndVisible()
+                        self.hideLoadingSpinner(spinner)
+                        return
                     }
-
-                    return
                 }
             }
         }
+
+        self.hideLoadingSpinner(spinner)
     }
 
     func allTunnelNames() -> [String]? {

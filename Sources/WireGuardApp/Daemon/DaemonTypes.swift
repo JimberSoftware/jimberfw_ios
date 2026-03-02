@@ -16,3 +16,15 @@ struct NetworkIsolationDaemon: Codable {
     let companyName: String
     let configurationString: String
 }
+
+struct DaemonInfo {
+    let daemonId: Int
+    let name: String
+    let isApproved: Bool
+}
+
+enum DaemonInfoError: Error {
+    case signingError
+    case httpError(statusCode: Int)
+    case unknown
+}

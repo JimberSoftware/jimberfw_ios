@@ -155,6 +155,9 @@ class EmailVerificationViewController: BaseViewController {
 
         Task {
             do {
+                let tunnelsManager = try await self.createTunnelsManager()
+                await cleanupInvalidDaemons(tunnelsManager: tunnelsManager)
+
                 let userAuthentication = try await verifyEmailWithCode(email: self.email, token: code)
 
                 let companyName = userAuthentication.companyName
@@ -181,7 +184,8 @@ class EmailVerificationViewController: BaseViewController {
                     configurationString: result.configurationString,
                     daemonId: result.daemonId,
                     userId: userId,
-                    daemonName: daemonName
+                    daemonName: daemonName,
+                    companyName: companyName
                 )
             } catch {
                 self.showToast(message: "Unauthorized")
@@ -235,14 +239,21 @@ class EmailVerificationViewController: BaseViewController {
         }
     }
 
-    func importAndNavigate(configurationString: String, daemonId: Int, userId: Int, daemonName: String ) async {
-        guard let scannedTunnelConfiguration = try? TunnelConfiguration(fromWgQuickConfig: configurationString, called: daemonName, userId: userId, daemonId: daemonId) else {
+    func importAndNavigate(configurationString: String, daemonId: Int, userId: Int, daemonName: String, companyName: String) async {
+        let tunnelName = sanitizeTunnelName(companyName)
+
+        guard let scannedTunnelConfiguration = try? TunnelConfiguration(fromWgQuickConfig: configurationString, called: tunnelName, userId: userId, daemonId: daemonId) else {
             wg_log(.error, message: "Invalid configuration \(configurationString)")
             return
         }
 
         do {
             let tunnelsManager = try await createTunnelsManager()
+
+            let daemonKeyPair = SharedStorage.shared.getDaemonKeyPairByDaemonId(scannedTunnelConfiguration.daemonId!)
+            let daemonInfo = try await getDaemonInfo(daemonId: daemonId, company: companyName, sk: daemonKeyPair!.baseEncodedSkEd25519)
+
+            scannedTunnelConfiguration.isApproved = daemonInfo.isApproved
             _ = try await addTunnel(tunnelsManager: tunnelsManager, configuration: scannedTunnelConfiguration)
 
             DispatchQueue.main.async {

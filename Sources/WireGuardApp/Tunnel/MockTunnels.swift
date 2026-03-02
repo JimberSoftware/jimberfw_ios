@@ -34,7 +34,7 @@ class MockTunnels {
             peer.endpoint = Endpoint(from: endpoint)
             peer.allowedIPs = [IPAddressRange(from: allowedIPs)!]
 
-            let tunnelConfiguration = TunnelConfiguration(name: tunnelName, interface: interface, peers: [peer])
+            let tunnelConfiguration = TunnelConfigurationF(name: tunnelName, interface: interface, peers: [peer])
 
             let tunnelProviderManager = NETunnelProviderManager()
             tunnelProviderManager.protocolConfiguration = NETunnelProviderProtocol(tunnelConfiguration: tunnelConfiguration)

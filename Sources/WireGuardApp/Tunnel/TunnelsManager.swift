@@ -332,11 +332,13 @@ class TunnelsManager {
         if(daemonId != nil) {
             let daemonKeyPair = SharedStorage.shared.getDaemonKeyPairByDaemonId(daemonId!)
 
-            Task {
-                _ =  await deleteDaemon(daemonId: daemonId!, company: daemonKeyPair!.companyName, sk: daemonKeyPair!.baseEncodedSkEd25519)
+            if(daemonKeyPair != nil) {
+                Task {
+                    _ =  await deleteDaemon(daemonId: daemonId!, company: daemonKeyPair!.companyName, sk: daemonKeyPair!.baseEncodedSkEd25519)
 
-                // Delete daemon in shared storage
-                SharedStorage.shared.clearDaemonKeys(daemonId: daemonId!)
+                    // Delete daemon in shared storage
+                    SharedStorage.shared.clearDaemonKeys(daemonId: daemonId!)
+                }
             }
         } else {
             wg_log(.error, message: "Strange, daemonId is somehow nil, so cannot remove in signal / storage, but bringing down tunnel")
@@ -463,7 +465,6 @@ class TunnelsManager {
     }
 
     func startActivation(of tunnel: TunnelContainer) {
-
         guard tunnels.contains(tunnel) else { return } // Ensure it's not deleted
         guard tunnel.status == .inactive else {
             activationDelegate?.tunnelActivationAttemptFailed(tunnel: tunnel, error: .tunnelIsNotInactive)
@@ -475,6 +476,42 @@ class TunnelsManager {
         }
 
         retrieveAndUpdateWireguardConfig(tunnel: tunnel)
+
+        Task {
+            guard let tunnelConfig = tunnel.tunnelConfiguration ,let daemonId = tunnelConfig.daemonId, let kp = SharedStorage.shared.getDaemonKeyPairByDaemonId(daemonId) else {
+                wg_log(.error, message: "Missing tunnel config or key pair")
+                return
+            }
+
+            do {
+                let daemonInfo: DaemonInfo? = try await getDaemonInfo(daemonId: kp.daemonId, company: kp.companyName, sk: kp.baseEncodedSkEd25519)
+
+                if daemonInfo!.isApproved != true {
+                    tunnel.tunnelConfiguration?.isApproved = daemonInfo?.isApproved
+
+                    if tunnel.tunnelConfiguration?.isApproved != true {
+                        wg_log(.info, message: "Tunnel connection not approved — blocking activation")
+
+                        ErrorPresenter.showErrorAlert(title: tr("statusStillPendingTitle"), message: tr("statusStillPendingMessage"))
+                        startDeactivation(of: tunnel)
+
+                        DispatchQueue.main.async {
+                            tunnel.refreshStatus()
+                        }
+
+                        return
+                    }
+                }
+            }
+            catch DaemonInfoError.httpError(let code) {
+                if(code == 403) {
+                    wg_log(.info, message: "Daemon not found in signal - aborting")
+
+                    ErrorPresenter.showErrorAlert(title: tr("daemonNotFoundInSignalTitle"), message: tr("daemonNotFoundInSignalMessage"))
+                    startDeactivation(of: tunnel)
+                }
+            }
+        }
 
         if let tunnelInOperation = tunnels.first(where: { $0.status != .inactive }) {
             wg_log(.info, message: "Tunnel '\(tunnel.name)' waiting for deactivation of '\(tunnelInOperation.name)'")
@@ -507,6 +544,7 @@ class TunnelsManager {
         #endif
     }
 
+
     func retrieveAndUpdateWireguardConfig(tunnel: TunnelContainer) {
         let currentConfigString = tunnel.tunnelConfiguration!.asWgQuickConfig()
 
@@ -530,7 +568,6 @@ class TunnelsManager {
                 let newPublicKeyLine = "PublicKey = \(newPublicKey)"
 
                 let newConfig = updateWireGuardConfig(currentConfig: currentConfigString, newPublicKeyLine:  newPublicKeyLine, newAllowedIpsLine: newIpRangeLine, newDnsServerLine: newDNSServerLine, newEndpointLine: newEndpointAddressLine)
-
                 let scannedTunnelConfiguration: TunnelConfiguration = {
                     if let parsed = try? TunnelConfiguration(fromWgQuickConfig: newConfig, called: tunnel.name, userId: userId, daemonId: daemonId) {
                         wg_log(.info, message: "New configuration retrieved, will use the new configuration")
@@ -555,7 +592,6 @@ class TunnelsManager {
             }
         }
     }
-
 
     func startDeactivation(of tunnel: TunnelContainer) {
         tunnel.isAttemptingActivation = false

@@ -2,13 +2,15 @@ import UIKit
 import GoogleSignIn
 import MSAL
 
+
 class SignInViewController: BaseViewController {
 
     // Update the below to your client ID. The below is for running the demo only
     let kClientID = "f1373772-6623-4090-9204-3cb04b9d46c9"
     let kAuthority = "https://login.microsoftonline.com/common"
 
-    let kScopes: [String] = ["f1373772-6623-4090-9204-3cb04b9d46c9/.default"] // request permission to read the profile of the signed-in user
+    let kScopes: [String] = ["User.Read"]
+
 
     var applicationContext : MSALPublicClientApplication?
     var webViewParameters : MSALWebviewParameters?
@@ -202,6 +204,10 @@ class SignInViewController: BaseViewController {
 
             Task {
                 do {
+                    let tunnelsManager = try await self.createTunnelsManager()
+
+                    await cleanupInvalidDaemons(tunnelsManager: tunnelsManager)
+
                     let userAuthentication = try await getUserAuthentication(idToken: idToken, authenticationType: .google)
                     let companyName = userAuthentication.companyName
                     let userId = userAuthentication.userId
@@ -227,7 +233,8 @@ class SignInViewController: BaseViewController {
                         configurationString: result.configurationString,
                         daemonId: result.daemonId,
                         userId: userId,
-                        daemonName: daemonName
+                        daemonName: daemonName,
+                        companyName: companyName
                     )
                 } catch {
                     self.showToast(message: error.localizedDescription)
@@ -247,16 +254,20 @@ class SignInViewController: BaseViewController {
 
         applicationContext.acquireToken(with: parameters) { (result, error) in
             if let error = error {
-                wg_log(.error, message: "Error in acquire token 1: \(error.localizedDescription)")
+                let errorMessage = "Sign-in failed: \(error.localizedDescription)"
+                wg_log(.error, message: "Error in acquire token 1: \(errorMessage)")
                 return
             }
 
-            let accessToken = result!.accessToken
+            let accessToken = result!.idToken
             self.updateCurrentAccount(account: result!.account)
 
             Task {
                 do {
-                    let userAuthentication = try await getUserAuthentication(idToken: accessToken, authenticationType: .microsoft)
+                    let tunnelsManager = try await self.createTunnelsManager()
+                    await cleanupInvalidDaemons(tunnelsManager: tunnelsManager)
+
+                    let userAuthentication = try await getUserAuthentication(idToken: accessToken!, authenticationType: .microsoft)
                     let companyName = userAuthentication.companyName
                     let userId = userAuthentication.userId
 
@@ -281,7 +292,8 @@ class SignInViewController: BaseViewController {
                         configurationString: result.configurationString,
                         daemonId: result.daemonId,
                         userId: userId,
-                        daemonName: daemonName
+                        daemonName: daemonName,
+                        companyName: companyName
                     )
                 } catch {
                     self.showToast(message: error.localizedDescription)
@@ -336,14 +348,21 @@ class SignInViewController: BaseViewController {
         }
     }
 
-    func importAndNavigate(configurationString: String, daemonId: Int, userId: Int, daemonName: String) async {
-        guard let scannedTunnelConfiguration = try? TunnelConfiguration(fromWgQuickConfig: configurationString, called: daemonName, userId: userId, daemonId: daemonId) else {
+    func importAndNavigate(configurationString: String, daemonId: Int, userId: Int, daemonName: String, companyName: String) async {
+        let tunnelName = sanitizeTunnelName(companyName)
+
+        guard let scannedTunnelConfiguration = try? TunnelConfiguration(fromWgQuickConfig: configurationString, called: tunnelName, userId: userId, daemonId: daemonId) else {
             wg_log(.error, message: "Invalid configuration \(configurationString)")
             return
         }
 
         do {
             let tunnelsManager = try await createTunnelsManager()
+
+            let daemonKeyPair = SharedStorage.shared.getDaemonKeyPairByDaemonId(scannedTunnelConfiguration.daemonId!)
+            let daemonInfo = try await getDaemonInfo(daemonId: daemonId, company: companyName, sk: daemonKeyPair!.baseEncodedSkEd25519)
+
+            scannedTunnelConfiguration.isApproved = daemonInfo.isApproved
             _ = try await addTunnel(tunnelsManager: tunnelsManager, configuration: scannedTunnelConfiguration)
 
             DispatchQueue.main.async {

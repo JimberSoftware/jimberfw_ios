@@ -108,7 +108,7 @@ class SharedStorage {
         return keyPairs.first { $0.daemonId == daemonId }
     }
 
-    private func getDaemonKeyPairs() -> [DaemonKeyPair] {
+    func getDaemonKeyPairs() -> [DaemonKeyPair] {
         guard let data = defaults.data(forKey: Keys.wireGuardKeyPairKey),
               let keyPairs = try? JSONDecoder().decode([DaemonKeyPair].self, from: data) else {
             return []
