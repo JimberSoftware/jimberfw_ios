@@ -4,19 +4,19 @@
 import UIKit
 
 class TunnelListCell: UITableViewCell {
+
+    // MARK: - Public API
+
     var tunnel: TunnelContainer? {
         didSet {
-            // Bind to the tunnel's name
             nameLabel.text = tunnel?.name ?? ""
             nameObservationToken = tunnel?.observe(\.name) { [weak self] tunnel, _ in
                 self?.nameLabel.text = tunnel.name
             }
-            // Bind to the tunnel's status
             update(from: tunnel, animated: false)
             statusObservationToken = tunnel?.observe(\.status) { [weak self] tunnel, _ in
                 self?.update(from: tunnel, animated: true)
             }
-            // Bind to tunnel's on-demand settings
             isOnDemandEnabledObservationToken = tunnel?.observe(\.isActivateOnDemandEnabled) { [weak self] tunnel, _ in
                 self?.update(from: tunnel, animated: true)
             }
@@ -25,19 +25,22 @@ class TunnelListCell: UITableViewCell {
             }
         }
     }
+
     var onSwitchToggled: ((Bool) -> Void)?
 
+    // MARK: - Views
+
     let nameLabel: UILabel = {
-        let nameLabel = UILabel()
-        nameLabel.font = UIFont.preferredFont(forTextStyle: .body)
-        nameLabel.adjustsFontForContentSizeCategory = true
-        nameLabel.numberOfLines = 0
-        return nameLabel
+        let label = UILabel()
+        label.font = UIFont.preferredFont(forTextStyle: .body)
+        label.adjustsFontForContentSizeCategory = true
+        label.numberOfLines = 0
+        label.textColor = UIColor(hex: "#111279")
+        return label
     }()
 
     let onDemandLabel: UILabel = {
         let label = UILabel()
-        label.text = ""
         label.font = UIFont.preferredFont(forTextStyle: .caption2)
         label.adjustsFontForContentSizeCategory = true
         label.numberOfLines = 1
@@ -46,36 +49,56 @@ class TunnelListCell: UITableViewCell {
     }()
 
     let busyIndicator: UIActivityIndicatorView = {
-        let busyIndicator: UIActivityIndicatorView
-        busyIndicator = UIActivityIndicatorView(style: .medium)
-        busyIndicator.hidesWhenStopped = true
-        return busyIndicator
+        let indicator = UIActivityIndicatorView(style: .medium)
+        indicator.hidesWhenStopped = true
+        return indicator
     }()
 
-    let statusSwitch = UISwitch()
+    /// Make the switch readable externally
+    private(set) var statusSwitch = UISwitch()
+
+    // MARK: - Observation tokens
 
     private var nameObservationToken: NSKeyValueObservation?
     private var statusObservationToken: NSKeyValueObservation?
     private var isOnDemandEnabledObservationToken: NSKeyValueObservation?
     private var hasOnDemandRulesObservationToken: NSKeyValueObservation?
 
-    private var subTitleLabelBottomConstraint: NSLayoutConstraint?
-    private var nameLabelBottomConstraint: NSLayoutConstraint?
+    // MARK: - Init
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-
         selectionStyle = .none
+        backgroundColor = .white
+        contentView.backgroundColor = .white
 
-        // Remove default accessory
         accessoryType = .none
+        configureChevron()
+        configureSubviews()
+        configureSwitch()
+        setupConstraints()
+    }
 
-        // Create and configure the custom chevron
+    required init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+        selectionStyle = .none
+        backgroundColor = .white
+        contentView.backgroundColor = .white
+
+        accessoryType = .none
+        configureChevron()
+        configureSubviews()
+        configureSwitch()
+        setupConstraints()
+    }
+
+    // MARK: - Configuration
+
+    private func configureChevron() {
         let chevronImage = UIImage(systemName: "chevron.right")?.withRenderingMode(.alwaysTemplate)
         let chevronImageView = UIImageView(image: chevronImage)
-        chevronImageView.tintColor = UIColor(hex: "#111279")  // Your custom color
+        chevronImageView.tintColor = UIColor(hex: "#111279")
 
-        // Wrap the chevron in a container view for proper sizing/alignment
         let containerView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 24))
         chevronImageView.translatesAutoresizingMaskIntoConstraints = false
         containerView.addSubview(chevronImageView)
@@ -86,20 +109,31 @@ class TunnelListCell: UITableViewCell {
             chevronImageView.heightAnchor.constraint(equalToConstant: 14)
         ])
         accessoryView = containerView
+    }
 
+    private func configureSubviews() {
         for subview in [statusSwitch, busyIndicator, onDemandLabel, nameLabel] {
             subview.translatesAutoresizingMaskIntoConstraints = false
             contentView.addSubview(subview)
         }
+    }
 
-        backgroundColor = .white
-        contentView.backgroundColor = .white
+    private func configureSwitch() {
+        // Customize the UISwitch only
+        statusSwitch.onTintColor = UIColor.systemGreen  // ON color
+        statusSwitch.thumbTintColor = .white          // Knob color
 
-        nameLabel.textColor = UIColor(hex: "#111279")
+        // OFF state appearance
+        statusSwitch.tintColor = UIColor.systemGray4
+        statusSwitch.backgroundColor = UIColor.systemGray4
+        statusSwitch.layer.cornerRadius = 16
+        statusSwitch.clipsToBounds = true
 
-        nameLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        onDemandLabel.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+        // Add action
+        statusSwitch.addTarget(self, action: #selector(switchToggled), for: .valueChanged)
+    }
 
+    private func setupConstraints() {
         let nameLabelBottomConstraint =
             contentView.layoutMarginsGuide.bottomAnchor.constraint(equalToSystemSpacingBelow: nameLabel.bottomAnchor, multiplier: 1)
         nameLabelBottomConstraint.priority = .defaultLow
@@ -107,8 +141,6 @@ class TunnelListCell: UITableViewCell {
         NSLayoutConstraint.activate([
             statusSwitch.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
             statusSwitch.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor),
-            statusSwitch.leadingAnchor.constraint(equalToSystemSpacingAfter: busyIndicator.trailingAnchor, multiplier: 1),
-            statusSwitch.leadingAnchor.constraint(equalToSystemSpacingAfter: onDemandLabel.trailingAnchor, multiplier: 1),
 
             nameLabel.topAnchor.constraint(equalToSystemSpacingBelow: contentView.layoutMarginsGuide.topAnchor, multiplier: 1),
             nameLabel.leadingAnchor.constraint(equalToSystemSpacingAfter: contentView.layoutMarginsGuide.leadingAnchor, multiplier: 1),
@@ -121,43 +153,40 @@ class TunnelListCell: UITableViewCell {
             busyIndicator.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
             busyIndicator.leadingAnchor.constraint(greaterThanOrEqualToSystemSpacingAfter: nameLabel.trailingAnchor, multiplier: 1)
         ])
-
-        statusSwitch.addTarget(self, action: #selector(switchToggled), for: .valueChanged)
     }
 
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+    // MARK: - Layout
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        statusSwitch.layer.cornerRadius = statusSwitch.bounds.height / 2
     }
 
-    override func prepareForReuse() {
-        super.prepareForReuse()
-        reset(animated: false)
-    }
-
-    override func setEditing(_ editing: Bool, animated: Bool) {
-        super.setEditing(editing, animated: animated)
-        statusSwitch.isEnabled = !editing
-    }
+    // MARK: - Actions
 
     @objc private func switchToggled() {
         onSwitchToggled?(statusSwitch.isOn)
     }
+
+    // MARK: - Tunnel Updates
 
     private func update(from tunnel: TunnelContainer?, animated: Bool) {
         guard let tunnel = tunnel else {
             reset(animated: animated)
             return
         }
+
         let status = tunnel.status
         let isOnDemandEngaged = tunnel.isActivateOnDemandEnabled
-
         let shouldSwitchBeOn = ((status != .deactivating && status != .inactive) || isOnDemandEngaged)
+
         statusSwitch.setOn(shouldSwitchBeOn, animated: true)
 
+        // Adaptive color for on-demand
         if isOnDemandEngaged && !(status == .activating || status == .active) {
-            statusSwitch.onTintColor = UIColor.systemYellow
+            statusSwitch.onTintColor = .systemYellow
         } else {
-            statusSwitch.onTintColor = UIColor.systemGreen
+            statusSwitch.onTintColor = .systemGreen
         }
 
         statusSwitch.isUserInteractionEnabled = (status == .inactive || status == .active)
@@ -182,5 +211,17 @@ class TunnelListCell: UITableViewCell {
         statusSwitch.setOn(false, animated: animated)
         statusSwitch.isUserInteractionEnabled = false
         busyIndicator.stopAnimating()
+    }
+
+    // MARK: - Reuse
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        reset(animated: false)
+    }
+
+    override func setEditing(_ editing: Bool, animated: Bool) {
+        super.setEditing(editing, animated: animated)
+        statusSwitch.isEnabled = !editing
     }
 }
