@@ -43,6 +43,7 @@ class SignInViewController: BaseViewController {
         // Pin the title colour: system buttons can otherwise render grey on
         // newer iOS versions when used as a bar button's custom view.
         settingsButton.setTitleColor(UIColor(hex: "#111279"), for: .normal)
+        settingsButton.setTitleColor(UIColor(hex: "#111279"), for: .highlighted)
         settingsButton.translatesAutoresizingMaskIntoConstraints = false
         settingsButton.addTarget(self, action: #selector(openSettings), for: .touchUpInside)
         view.addSubview(settingsButton)
