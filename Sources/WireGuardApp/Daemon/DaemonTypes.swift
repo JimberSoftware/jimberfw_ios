@@ -23,8 +23,27 @@ struct DaemonInfo {
     let isApproved: Bool
 }
 
-enum DaemonInfoError: Error {
+enum DaemonInfoError: LocalizedError {
     case signingError
-    case httpError(statusCode: Int)
-    case unknown
+
+    var errorDescription: String? {
+        switch self {
+        case .signingError:
+            return "Could not authenticate with the server. Please sign in again."
+        }
+    }
+}
+
+enum DaemonRegistrationError: LocalizedError {
+    case invalidKeys
+    case invalidNetworkConfiguration
+
+    var errorDescription: String? {
+        switch self {
+        case .invalidKeys:
+            return "Could not create the tunnel keys. Please try again."
+        case .invalidNetworkConfiguration:
+            return "The server returned an invalid network configuration. Please contact support."
+        }
+    }
 }

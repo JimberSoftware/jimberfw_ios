@@ -66,9 +66,20 @@ class TunnelsListTableViewController: UIViewController {
             settingsButton.setTitle("⋯", for: .normal) // Unicode ellipsis
             settingsButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 28)
             settingsButton.tintColor = UIColor(hex: "#111279")
+            // System buttons in a bar button item can fall back to the bar's
+            // default tint on newer iOS versions; pin the title colour explicitly.
+            settingsButton.setTitleColor(UIColor(hex: "#111279"), for: .normal)
+            settingsButton.setTitleColor(UIColor(hex: "#111279"), for: .highlighted)
             settingsButton.addTarget(self, action: #selector(settingsButtonTapped(sender:)), for: .touchUpInside)
 
             let barButtonItem = UIBarButtonItem(customView: settingsButton)
+            barButtonItem.tintColor = UIColor(hex: "#111279")
+            if #available(iOS 26.0, *) {
+                // iOS 26 draws a shared glass background behind bar button
+                // items; that showed up as a grey circle around the dots.
+                barButtonItem.hidesSharedBackground = true
+                barButtonItem.sharesBackground = false
+            }
             navigationItem.rightBarButtonItem = barButtonItem
             navigationItem.leftBarButtonItem = nil
 

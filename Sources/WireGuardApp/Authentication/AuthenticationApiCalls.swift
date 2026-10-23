@@ -23,7 +23,11 @@ func getUserAuthentication(idToken: String, authenticationType: AuthenticationTy
 
                 let user = User(id: userAuthResult.id, email: userAuthResult.email)
 
-                saveDataToLocalStorage(cookies: userAuthResult.authCookie!, user: user)
+                guard let authCookie = userAuthResult.authCookie else {
+                    continuation.resume(throwing: AuthenticationError.missingSessionCookie)
+                    return
+                }
+                saveDataToLocalStorage(cookies: authCookie, user: user)
                 continuation.resume(returning: userAuthentication)
 
             case .failure(let error):
@@ -65,7 +69,11 @@ func verifyEmailWithCode(email: String, token: Int) async throws -> UserAuthenti
 
                 let user = User(id: userAuthResult.id, email: userAuthResult.email)
 
-                saveDataToLocalStorage(cookies: userAuthResult.authCookie!, user: user)
+                guard let authCookie = userAuthResult.authCookie else {
+                    continuation.resume(throwing: AuthenticationError.missingSessionCookie)
+                    return
+                }
+                saveDataToLocalStorage(cookies: authCookie, user: user)
                 continuation.resume(returning: userAuthentication)
 
             case .failure(let error):
@@ -75,6 +83,18 @@ func verifyEmailWithCode(email: String, token: Int) async throws -> UserAuthenti
     }
 }
 
+/// Revokes the session server-side (refresh token). Best effort: failures are
+/// logged instead of thrown, because local sign-out must always proceed.
+func logoutSession() async {
+    await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+        ApiClient.apiService.logout { result in
+            if case .failure(let error) = result {
+                wg_log(.error, message: "Server logout failed: \(error.safeLogDescription)")
+            }
+            continuation.resume()
+        }
+    }
+}
 
 
 private var subscriptions = Set<AnyCancellable>()

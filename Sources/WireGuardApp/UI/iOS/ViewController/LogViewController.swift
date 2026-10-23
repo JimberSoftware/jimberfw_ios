@@ -34,8 +34,14 @@ class LogViewController: UIViewController {
     private var updateLogEntriesTimer: Timer?
 
     override func loadView() {
+        // The rest of the app is a fixed light theme; without this the log
+        // follows the system appearance and becomes black with green text.
+        overrideUserInterfaceStyle = .light
         view = UIView()
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = .white
+        textView.backgroundColor = .white
+        textView.textColor = UIColor(hex: "#111279")
+        textView.indicatorStyle = .black
         view.addSubview(textView)
         textView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -81,10 +87,11 @@ class LogViewController: UIViewController {
             let bodyFont = UIFont.preferredFont(forTextStyle: UIFont.TextStyle.body)
             let captionFont = UIFont.preferredFont(forTextStyle: UIFont.TextStyle.caption1)
             for logEntry in fetchedLogEntries {
-                let bgColor: UIColor = self.isNextLineHighlighted ? .systemGray3 : .systemBackground
-                let fgColor: UIColor = .green
-                let timestampText = NSAttributedString(string: logEntry.timestamp + "\n", attributes: [.font: captionFont, .backgroundColor: bgColor, .foregroundColor: fgColor, .paragraphStyle: self.paragraphStyle])
-                let messageText = NSAttributedString(string: logEntry.message + "\n", attributes: [.font: bodyFont, .backgroundColor: bgColor, .foregroundColor: fgColor, .paragraphStyle: self.paragraphStyle])
+                let bgColor: UIColor = self.isNextLineHighlighted ? UIColor(hex: "#F2F2F7") : .white
+                let timestampColor = UIColor(hex: "#6B6B76")
+                let messageColor = UIColor(hex: "#111279")
+                let timestampText = NSAttributedString(string: logEntry.timestamp + "\n", attributes: [.font: captionFont, .backgroundColor: bgColor, .foregroundColor: timestampColor, .paragraphStyle: self.paragraphStyle])
+                let messageText = NSAttributedString(string: logEntry.message + "\n", attributes: [.font: bodyFont, .backgroundColor: bgColor, .foregroundColor: messageColor, .paragraphStyle: self.paragraphStyle])
                 richText.append(timestampText)
                 richText.append(messageText)
                 self.isNextLineHighlighted.toggle()

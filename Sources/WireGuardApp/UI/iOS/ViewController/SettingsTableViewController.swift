@@ -38,7 +38,13 @@ class SettingsTableViewController: UITableViewController {
             sections.append([.loggedInUser, .signOut])
         }
 
-        sections.append([.getStorage, .deleteStorage]) // Always include development options
+        sections.append([.deleteStorage]) // Always include development options
+
+#if DEBUG
+        // Copying diagnostics to the pasteboard is a debug aid only. It used to be
+        // available in App Store builds and copied tokens and private keys.
+        sections[sections.count - 1].insert(.getStorage, at: 0)
+#endif
 
         return sections
     }()
@@ -127,16 +133,19 @@ class SettingsTableViewController: UITableViewController {
     }
 
     func getStorageAction() async {
-        let allData = SharedStorage.shared.getAll()
+        // Redacted on purpose: this string ends up on the system pasteboard.
+        let diagnostics = SharedStorage.shared.getDiagnosticsSummary()
 
-        wg_log(.info, message: "Getting storage")
-        wg_log(.info, message: String(describing: allData))
-
-        UIPasteboard.general.string = String(describing: allData)
-        showToast(message: "Storage info copied to clipboard")
+        wg_log(.info, message: "Diagnostics summary requested")
+        UIPasteboard.general.string = String(describing: diagnostics)
+        showToast(message: "Diagnostics copied to clipboard")
     }
 
     func deleteStorageAction() async {
+        let spinner = showLoadingSpinner()
+        defer { hideLoadingSpinner(spinner) }
+
+        // Removing tunnels can fail; the wipe below must still happen.
         do {
             let tunnelsManager = try await createTunnelsManager()
             let tunnels = tunnelsManager.getAllTunnels()
@@ -153,39 +162,50 @@ class SettingsTableViewController: UITableViewController {
                 }
                 wg_log(.info, message: "Removed \(tunnel.name)")
             }
-
-            wg_log(.info, message: "Removing all storage")
-            SharedStorage.shared.clearAll()
-
-            navigateToSignIn(message: "Succesfully deleted storage")
-
         } catch {
-            wg_log(.error, message: "Could not clear storage: \(error)")
+            wg_log(.error, message: "Could not remove tunnels before deleting storage: \(error.safeLogDescription)")
         }
+
+        // Revoke this device's refresh token before wiping the local state.
+        wg_log(.info, message: "Logging out")
+        await logoutSession()
+
+        wg_log(.info, message: "Removing all storage")
+        SharedStorage.shared.clearAll()
+        ApiClient.apiService.clearSessionCookies()
+
+        navigateToSignIn(message: "Succesfully deleted storage")
     }
 
     func signOutAction() async {
-        do {
-            let userId = SharedStorage.shared.getCurrentUser()?.id;
+        let spinner = showLoadingSpinner()
+        defer { hideLoadingSpinner(spinner) }
 
-            let tunnelsManager = try await createTunnelsManager()
-            let tunnels = tunnelsManager.allTunnelsOfUserId(userId: userId!)
-
-            wg_log(.info, message: "Deactivating tunnels")
-            for tunnel in tunnels {
-                wg_log(.info, message: "Deactivating tunnel \(tunnel.name)")
-                tunnelsManager.startDeactivation(of: tunnel)
+        // Tunnels first, but a failure here must not block signing out.
+        if let userId = SharedStorage.shared.getCurrentUser()?.id {
+            do {
+                let tunnelsManager = try await createTunnelsManager()
+                for tunnel in tunnelsManager.allTunnelsOfUserId(userId: userId) {
+                    wg_log(.info, message: "Deactivating tunnel \(tunnel.name)")
+                    tunnelsManager.startDeactivation(of: tunnel)
+                }
+            } catch {
+                wg_log(.error, message: "Error deactivating tunnels during sign out: \(error.safeLogDescription)")
             }
-
-            wg_log(.info, message: "Clearing user login data")
-            SharedStorage.shared.clearUserLoginData()
-
-            navigateToSignIn(message: "Succesfully signed out")
         }
 
-        catch {
-            wg_log(.error, message: "Error in sign out action: \(error)")
-        }
+        // Revoke the refresh token server-side, then clear local session data.
+        wg_log(.info, message: "Logging out")
+        await logoutSession()
+
+        wg_log(.info, message: "Clearing user login data")
+        SharedStorage.shared.clearUserLoginData()
+        ApiClient.apiService.clearSessionCookies()
+
+        // Daemon key pairs are kept on purpose: signing in again reuses the
+        // existing device instead of registering a new one.
+
+        navigateToSignIn(message: "Succesfully signed out")
     }
 
     func navigateToSignIn(message: String) {
@@ -214,14 +234,18 @@ extension SettingsTableViewController {
     }
 
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        switch section {
-        case 0:
+        guard section < settingsFieldsBySection.count else { return nil }
+
+        // Derive the header from the contents instead of the section index: the
+        // logged-in and development sections are not always present.
+        switch settingsFieldsBySection[section].first {
+        case .iosAppVersion:
             return tr("settingsSectionTitleAbout")
-        case 1:
+        case .viewLog:
             return tr("settingsSectionTitleTunnelLog")
-        case 2:
+        case .loggedInUser:
             return tr("settingsSectionTitleManagement")
-        case 3:
+        case .getStorage, .deleteStorage:
             return "Development Options"
         default:
             return nil

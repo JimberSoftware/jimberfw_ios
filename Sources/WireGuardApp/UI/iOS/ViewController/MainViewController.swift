@@ -23,9 +23,6 @@ extension UIViewController {
 
     /// Cleanup invalid daemons and wait until done
 func cleanupInvalidDaemons(tunnelsManager: TunnelsManager?) async {
-    print("this is the tunnel manager")
-    print(tunnelsManager)
-
     let daemonKeyPairs = SharedStorage.shared.getDaemonKeyPairs()
     for daemon in daemonKeyPairs {
         do {
@@ -35,12 +32,8 @@ func cleanupInvalidDaemons(tunnelsManager: TunnelsManager?) async {
                 sk: daemon.baseEncodedSkEd25519
             )
             wg_log(.info, message: "Daemon \(daemon.daemonId) is valid ✅")
-        } catch DaemonInfoError.httpError(let code) {
-            if(code != 403) {
-                return;
-            }
-
-            wg_log(.error, message: "Failed to fetch daemon info \(daemon.daemonId) (HTTP \(code)), removing...")
+        } catch let apiError as APIError where apiError.isDaemonGone {
+            wg_log(.error, message: "Daemon \(daemon.daemonId) no longer exists (\(apiError.logDescription)), removing...")
             SharedStorage.shared.clearDaemonKeys(daemonId: daemon.daemonId)
 
             if let tunnelsManager = tunnelsManager {
@@ -55,8 +48,13 @@ func cleanupInvalidDaemons(tunnelsManager: TunnelsManager?) async {
                     }
                 }
             }
+        } catch let apiError as APIError {
+            // A server error or a broken connection says nothing about the
+            // daemon's validity: never delete stored tunnels for those.
+            wg_log(.error, message: "Could not verify daemon \(daemon.daemonId) (\(apiError.logDescription)), keeping it")
+            return
         } catch {
-            wg_log(.error, message: "Unexpected error fetching daemon \(daemon.daemonId): \(error)")
+            wg_log(.error, message: "Unexpected error fetching daemon \(daemon.daemonId)")
         }
     }
 }

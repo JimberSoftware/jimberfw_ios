@@ -52,3 +52,6 @@ Sources/WireGuardApp/Config/Developer.xcconfig
 Pods/
 *.p8
 *.cer
+# Fastlane certificate exports
+*.p12
+*.certSigningRequest

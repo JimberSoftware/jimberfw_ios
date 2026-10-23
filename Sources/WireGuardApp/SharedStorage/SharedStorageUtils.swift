@@ -11,10 +11,15 @@ func saveDataToLocalStorage(cookies: String, user: User) {
     sharedStorage.saveAuthenticationToken(authToken ?? "")
 }
 
-func getCookieString() -> String {
-    let sharedStorage = SharedStorage.shared
-    let authToken = sharedStorage.getAuthenticationToken() ?? ""
-    let refreshToken = sharedStorage.getRefreshToken() ?? ""
+func updateStoredCookies(fromSetCookie header: String?) {
+    guard let header = header else { return }
 
-    return "Authentication=\(authToken); Refresh=\(refreshToken)"
+    let sharedStorage = SharedStorage.shared
+
+    if let authenticationToken = extractCookieValue(from: header, for: "Authentication") {
+        sharedStorage.saveAuthenticationToken(authenticationToken)
+    }
+    if let refreshToken = extractCookieValue(from: header, for: "Refresh") {
+        sharedStorage.saveRefreshToken(refreshToken)
+    }
 }
