@@ -1,10 +1,8 @@
 import Foundation
 
 func createDaemon(userId: Int, company: String, daemonData: CreateDaemonApiRequest) async throws -> Daemon {
-    let cookies = getCookieString()
-
     return try await withCheckedThrowingContinuation { continuation in
-        ApiClient.apiService.createDaemon(userId: userId, company: company, data: daemonData, cookies: cookies) { result in
+        ApiClient.apiService.createDaemon(userId: userId, company: company, data: daemonData) { result in
             switch result {
             case .success(let response):
                 let daemon = Daemon(
@@ -68,11 +66,9 @@ func getDaemonInfo(daemonId: Int, company: String, sk: String) async throws -> D
                 continuation.resume(returning: daemon)
 
             case .failure(let error):
-                if let nsError = error as NSError?, nsError.code != 0 {
-                    continuation.resume(throwing: DaemonInfoError.httpError(statusCode: nsError.code))
-                } else {
-                    continuation.resume(throwing: DaemonInfoError.unknown)
-                }
+                // Keep the APIError intact so callers can switch on the status
+                // and show the server's detail message.
+                continuation.resume(throwing: error)
             }
         }
     }

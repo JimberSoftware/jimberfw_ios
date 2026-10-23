@@ -24,10 +24,10 @@ $ cp Sources/WireGuardApp/Config/Developer.xcconfig.template Sources/WireGuardAp
 $ vim Sources/WireGuardApp/Config/Developer.xcconfig
 ```
 
-- Install swiftlint and go 1.19:
+- Install swiftlint and Go 1.26 or newer (the Go bridge pins `go 1.26.0`; the Makefile also looks for a versioned `go1.26` binary):
 
 ```
-$ brew install swiftlint go
+$ brew install swiftlint go@1.26
 ```
 
 - Open project in Xcode:

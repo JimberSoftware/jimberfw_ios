@@ -40,6 +40,9 @@ class SignInViewController: BaseViewController {
         settingsButton.setTitle("⋯", for: .normal) // Unicode ellipsis
         settingsButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 28)
         settingsButton.tintColor =  UIColor(hex: "#111279")
+        // Pin the title colour: system buttons can otherwise render grey on
+        // newer iOS versions when used as a bar button's custom view.
+        settingsButton.setTitleColor(UIColor(hex: "#111279"), for: .normal)
         settingsButton.translatesAutoresizingMaskIntoConstraints = false
         settingsButton.addTarget(self, action: #selector(openSettings), for: .touchUpInside)
         view.addSubview(settingsButton)
@@ -333,6 +336,8 @@ class SignInViewController: BaseViewController {
                     let daemonId = configuration.daemonId
                     let daemonKeyPair = SharedStorage.shared.getDaemonKeyPairByDaemonId(configuration.daemonId!)
 
+                    wg_log(.error, message: "Adding tunnel failed: \(error.safeLogDescription)")
+
                     Task {
                         _ =  await deleteDaemon(daemonId: daemonId!, company: daemonKeyPair!.companyName, sk: daemonKeyPair!.baseEncodedSkEd25519)
 
@@ -341,7 +346,6 @@ class SignInViewController: BaseViewController {
                         SharedStorage.shared.clearUserLoginData()
                     }
 
-                    self.showToast(message: "Cancellation in process")
                     continuation.resume(throwing: error)  // Throw the error if it fails
                 }
             }
@@ -352,7 +356,8 @@ class SignInViewController: BaseViewController {
         let tunnelName = sanitizeTunnelName(companyName)
 
         guard let scannedTunnelConfiguration = try? TunnelConfiguration(fromWgQuickConfig: configurationString, called: tunnelName, userId: userId, daemonId: daemonId) else {
-            wg_log(.error, message: "Invalid configuration \(configurationString)")
+            // Never log the configuration itself: it contains the WireGuard private key.
+            wg_log(.error, message: "Invalid configuration for tunnel '\(tunnelName)'")
             return
         }
 
@@ -376,7 +381,8 @@ class SignInViewController: BaseViewController {
                 }
             }
         } catch {
-            wg_log(.error, message: "Error occured in importAndNavigate \(error)")
+            wg_log(.error, message: "Error in importAndNavigate: \(error.safeLogDescription)")
+            ErrorPresenter.showErrorAlert(title: "Could not set up the tunnel", message: error.localizedDescription)
         }
     }
 

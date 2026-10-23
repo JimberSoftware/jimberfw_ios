@@ -22,3 +22,14 @@ struct User: Codable {
     let id: Int
     let email: String
 }
+
+enum AuthenticationError: LocalizedError {
+    case missingSessionCookie
+
+    var errorDescription: String? {
+        switch self {
+        case .missingSessionCookie:
+            return "Sign-in failed: the server did not return a session. Please try again."
+        }
+    }
+}

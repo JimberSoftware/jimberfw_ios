@@ -140,24 +140,31 @@ class SharedStorage {
         defaults.removeObject(forKey: Keys.currentUserKey)
     }
 
-    func getAll() -> [String: Any] {
-        let storedKeys: [String] = [
-            Keys.refreshTokenKey,
-            Keys.authenticationTokenKey,
-            Keys.currentUserKey
+    /// Redacted snapshot of what is stored, for diagnostics.
+    ///
+    /// Never includes tokens or private keys: the output is meant to be shared
+    /// (clipboard, log export, support ticket).
+    func getDiagnosticsSummary() -> [String: Any] {
+        var summary: [String: Any] = [
+            "hasRefreshToken": !(getRefreshToken() ?? "").isEmpty,
+            "hasAuthenticationToken": !(getAuthenticationToken() ?? "").isEmpty
         ]
 
-        var filteredData: [String: Any] = [:]
-
-        for key in storedKeys {
-            if let value = defaults.object(forKey: key) {
-                filteredData[key] = value
-            }
+        if let user = getCurrentUser() {
+            summary["userId"] = user.id
+            summary["email"] = user.email
         }
 
-        filteredData[Keys.wireGuardKeyPairKey] = getDaemonKeyPairs()
+        summary["daemons"] = getDaemonKeyPairs().map { keyPair -> [String: Any] in
+            [
+                "daemonId": keyPair.daemonId,
+                "daemonName": keyPair.daemonName,
+                "userId": keyPair.userId,
+                "companyName": keyPair.companyName
+            ]
+        }
 
-        return filteredData
+        return summary
     }
 
 }

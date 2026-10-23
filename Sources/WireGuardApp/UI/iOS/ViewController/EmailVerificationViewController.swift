@@ -151,7 +151,11 @@ class EmailVerificationViewController: BaseViewController {
     }
 
     @objc private func confirmTapped() {
-        let code = Int(codeFields.map { $0.text ?? "" }.joined())!
+        let codeString = codeFields.map { $0.text ?? "" }.joined()
+        guard codeString.count == 6, let code = Int(codeString) else {
+            showToast(message: "Enter the 6-digit code")
+            return
+        }
 
         Task {
             do {
@@ -188,7 +192,9 @@ class EmailVerificationViewController: BaseViewController {
                     companyName: companyName
                 )
             } catch {
-                self.showToast(message: "Unauthorized")
+                // Wrong or expired code, rate limit, or a connection problem:
+                // show what the server said and keep the entered code editable.
+                self.showToast(message: error.localizedDescription)
             }
         }
     }
@@ -224,6 +230,8 @@ class EmailVerificationViewController: BaseViewController {
                     let daemonId = configuration.daemonId
                     let daemonKeyPair = SharedStorage.shared.getDaemonKeyPairByDaemonId(configuration.daemonId!)
 
+                    wg_log(.error, message: "Adding tunnel failed: \(error.safeLogDescription)")
+
                     Task {
                         _ =  await deleteDaemon(daemonId: daemonId!, company: daemonKeyPair!.companyName, sk: daemonKeyPair!.baseEncodedSkEd25519)
 
@@ -232,7 +240,6 @@ class EmailVerificationViewController: BaseViewController {
                         SharedStorage.shared.clearUserLoginData()
                     }
 
-                    self.showToast(message: "Cancellation in process")
                     continuation.resume(throwing: error)  // Throw the error if it fails
                 }
             }
@@ -243,7 +250,8 @@ class EmailVerificationViewController: BaseViewController {
         let tunnelName = sanitizeTunnelName(companyName)
 
         guard let scannedTunnelConfiguration = try? TunnelConfiguration(fromWgQuickConfig: configurationString, called: tunnelName, userId: userId, daemonId: daemonId) else {
-            wg_log(.error, message: "Invalid configuration \(configurationString)")
+            // Never log the configuration itself: it contains the WireGuard private key.
+            wg_log(.error, message: "Invalid configuration for tunnel '\(tunnelName)'")
             return
         }
 
@@ -267,7 +275,8 @@ class EmailVerificationViewController: BaseViewController {
                 }
             }
         } catch {
-            wg_log(.error, message: "Error occured in importAndNavigate \(error)")
+            wg_log(.error, message: "Error in importAndNavigate: \(error.safeLogDescription)")
+            ErrorPresenter.showErrorAlert(title: "Could not set up the tunnel", message: error.localizedDescription)
         }
     }
 
@@ -283,8 +292,7 @@ class EmailVerificationViewController: BaseViewController {
             _ = try await sendVerificationEmail(email: self.email)
             showToast(message: "Email succesfully sent")
         } catch {
-            showToast(message: "Could not send verification email, please contact support")
-            return
+            showToast(message: error.localizedDescription)
         }
     }
 }

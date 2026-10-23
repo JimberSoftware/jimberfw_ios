@@ -25,8 +25,10 @@ func generateEd25519KeyPair() -> EdKeyPair {
 
 // Convert Ed25519 keys to X25519 for WireGuard
 func generateWireguardConfigurationKeys(pk: String, sk: String) -> WireguardKeys? {
-    let x25519Pk = parseEdPublicKeyToCurveX25519(pk: pk)!
-    let x25519Sk = parseEdPrivateKeyToCurveX25519(sk: sk)!
+    guard let x25519Pk = parseEdPublicKeyToCurveX25519(pk: pk),
+          let x25519Sk = parseEdPrivateKeyToCurveX25519(sk: sk) else {
+        return nil
+    }
 
     return WireguardKeys(
         base64EncodedPkCurveX25519: x25519Pk,

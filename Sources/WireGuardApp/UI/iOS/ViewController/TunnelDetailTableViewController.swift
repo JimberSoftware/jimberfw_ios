@@ -149,7 +149,6 @@ class TunnelDetailTableViewController: UITableViewController {
     }
 
     @objc func editTapped() {
-        print("joehoe")
         PrivateDataConfirmation.confirmAccess(to: tr("iosViewPrivateData")) { [weak self] in
             guard let self = self else { return }
             let editVC = TunnelEditTableViewController(tunnelsManager: self.tunnelsManager, tunnel: self.tunnel)

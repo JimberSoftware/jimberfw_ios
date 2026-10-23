@@ -484,32 +484,49 @@ class TunnelsManager {
             }
 
             do {
-                let daemonInfo: DaemonInfo? = try await getDaemonInfo(daemonId: kp.daemonId, company: kp.companyName, sk: kp.baseEncodedSkEd25519)
+                let daemonInfo = try await getDaemonInfo(daemonId: kp.daemonId, company: kp.companyName, sk: kp.baseEncodedSkEd25519)
 
-                if daemonInfo!.isApproved != true {
-                    tunnel.tunnelConfiguration?.isApproved = daemonInfo?.isApproved
+                guard daemonInfo.isApproved else {
+                    tunnel.tunnelConfiguration?.isApproved = daemonInfo.isApproved
 
-                    if tunnel.tunnelConfiguration?.isApproved != true {
-                        wg_log(.info, message: "Tunnel connection not approved — blocking activation")
+                    wg_log(.info, message: "Tunnel connection not approved — blocking activation")
 
-                        ErrorPresenter.showErrorAlert(title: tr("statusStillPendingTitle"), message: tr("statusStillPendingMessage"))
-                        startDeactivation(of: tunnel)
+                    ErrorPresenter.showErrorAlert(title: tr("statusStillPendingTitle"), message: tr("statusStillPendingMessage"))
+                    startDeactivation(of: tunnel)
 
-                        DispatchQueue.main.async {
-                            tunnel.refreshStatus()
-                        }
-
-                        return
+                    DispatchQueue.main.async {
+                        tunnel.refreshStatus()
                     }
+
+                    return
                 }
             }
-            catch DaemonInfoError.httpError(let code) {
-                if(code == 403) {
-                    wg_log(.info, message: "Daemon not found in signal - aborting")
+            catch let apiError as APIError {
+                // Fail closed: without a confirmed approval the tunnel must not
+                // come up. Show the server's message (or a connection error).
+                wg_log(.error, message: "Daemon check before activation failed: \(apiError.logDescription)")
 
+                if apiError.isDaemonGone {
                     ErrorPresenter.showErrorAlert(title: tr("daemonNotFoundInSignalTitle"), message: tr("daemonNotFoundInSignalMessage"))
-                    startDeactivation(of: tunnel)
+                } else {
+                    ErrorPresenter.showErrorAlert(title: tr("alertTunnelActivationFailureTitle"), message: apiError.localizedDescription)
                 }
+
+                startDeactivation(of: tunnel)
+                DispatchQueue.main.async {
+                    tunnel.refreshStatus()
+                }
+
+                return
+            }
+            catch {
+                wg_log(.error, message: "Daemon check before activation failed")
+                ErrorPresenter.showErrorAlert(title: tr("alertTunnelActivationFailureTitle"), message: error.localizedDescription)
+                startDeactivation(of: tunnel)
+                DispatchQueue.main.async {
+                    tunnel.refreshStatus()
+                }
+                return
             }
         }
 
@@ -588,7 +605,7 @@ class TunnelsManager {
                     }
                 }
             } catch {
-                wg_log(.error, message: "Could not retrieve daemon connection data, will use old configuration")
+                wg_log(.error, message: "Could not retrieve daemon connection data, will use old configuration: \(error.safeLogDescription)")
             }
         }
     }

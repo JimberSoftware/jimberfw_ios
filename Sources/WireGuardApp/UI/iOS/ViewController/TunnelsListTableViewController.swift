@@ -66,6 +66,9 @@ class TunnelsListTableViewController: UIViewController {
             settingsButton.setTitle("⋯", for: .normal) // Unicode ellipsis
             settingsButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 28)
             settingsButton.tintColor = UIColor(hex: "#111279")
+            // System buttons in a bar button item can fall back to the bar's
+            // default tint on newer iOS versions; pin the title colour explicitly.
+            settingsButton.setTitleColor(UIColor(hex: "#111279"), for: .normal)
             settingsButton.addTarget(self, action: #selector(settingsButtonTapped(sender:)), for: .touchUpInside)
 
             let barButtonItem = UIBarButtonItem(customView: settingsButton)

@@ -162,9 +162,19 @@ class EmailRegistrationViewController: BaseViewController {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 emailVC.showToast(message: "Email succesfully sent")
             }
+        } catch let apiError as APIError {
+            // Field-level problems (e.g. an email that is already taken) belong
+            // under the field; everything else gets a general message.
+            if let fieldMessage = apiError.message(forField: "email") {
+                errorLabel.text = fieldMessage
+                errorLabel.isHidden = false
+            } else {
+                errorLabel.isHidden = true
+                showToast(message: apiError.localizedDescription)
+            }
         } catch {
-            showToast(message: "Could not send verification email, please contact support")
-            return
+            errorLabel.isHidden = true
+            showToast(message: error.localizedDescription)
         }
     }
 

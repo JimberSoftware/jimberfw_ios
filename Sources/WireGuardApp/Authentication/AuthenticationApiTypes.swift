@@ -9,6 +9,7 @@ struct UserAuthenticationApiResult: Codable {
 
 struct RefreshTokenApiResult: Codable {
     let accessToken: String
+    var authCookie: String?
 }
 
 struct AuthenticationApiRequest: Codable {

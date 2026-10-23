@@ -60,6 +60,9 @@ func wg_log(_ type: OSLogType, staticMessage msg: StaticString) {
 }
 
 func wg_log(_ type: OSLogType, message msg: String) {
-    os_log("%{public}s", log: OSLog.default, type: type, msg)
+    // Keep dynamic messages private in the unified log. The in-app log file still
+    // receives them (and can be exported on purpose), but they are no longer
+    // readable in Console.app, sysdiagnose or by other processes.
+    os_log("%{private}s", log: OSLog.default, type: type, msg)
     Logger.global?.log(message: msg)
 }

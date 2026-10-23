@@ -10,6 +10,12 @@ CONFIGURATION_BUILD_DIR ?= $(CURDIR)/out
 CONFIGURATION_TEMP_DIR ?= $(CURDIR)/.tmp
 
 export PATH := $(PATH):/usr/local/bin:/opt/homebrew/bin
+# The runtime patch below is applied to the Go tree in GOROOT. Letting the go
+# command switch to a downloaded toolchain would bypass that patched tree, so
+# fail instead of silently switching when the installed Go is too old.
+export GOTOOLCHAIN := local
+# Prefer a versioned toolchain when one is installed; CI usually has `go` on PATH.
+GO ?= $(shell command -v go1.26 >/dev/null 2>&1 && echo go1.26 || echo go)
 export CC ?= clang
 LIPO ?= lipo
 DESTDIR ?= $(CONFIGURATION_BUILD_DIR)
@@ -24,7 +30,7 @@ GOOS_iphoneos := ios
 build: $(DESTDIR)/libwg-go.a
 version-header: $(DESTDIR)/wireguard-go-version.h
 
-REAL_GOROOT := $(shell go env GOROOT 2>/dev/null)
+REAL_GOROOT := $(shell $(GO) env GOROOT 2>/dev/null)
 export GOROOT := $(BUILDDIR)/goroot
 $(GOROOT)/.prepared:
 	[ -n "$(REAL_GOROOT)" ]
@@ -40,7 +46,7 @@ $(BUILDDIR)/libwg-go-$(1).a: export CGO_LDFLAGS := $(CFLAGS_PREFIX) $(ARCH)
 $(BUILDDIR)/libwg-go-$(1).a: export GOOS := $(GOOS_$(PLATFORM_NAME))
 $(BUILDDIR)/libwg-go-$(1).a: export GOARCH := $(GOARCH_$(1))
 $(BUILDDIR)/libwg-go-$(1).a: $(GOROOT)/.prepared go.mod
-	go build -ldflags=-w -trimpath -v -o "$(BUILDDIR)/libwg-go-$(1).a" -buildmode c-archive
+	$(GO) build -ldflags=-w -trimpath -v -o "$(BUILDDIR)/libwg-go-$(1).a" -buildmode c-archive
 	rm -f "$(BUILDDIR)/libwg-go-$(1).h"
 endef
 $(foreach ARCH,$(ARCHS),$(eval $(call libwg-go-a,$(ARCH))))
